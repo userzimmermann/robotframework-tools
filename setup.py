@@ -12,7 +12,7 @@ setup(
 
   license = 'GPLv3',
 
-  packages = ['robottools'],
+  packages = ['robottools', 'robottools.library'],
 
   classifiers = [
     'Development Status :: 3 - Alpha',
