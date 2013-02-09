@@ -17,31 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = 'SessionError', 'LibraryBase', 'library',
+"""robottools
 
-import re
+.. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
+"""
+__all__ = 'LibraryType', 'library',
 
+from collections import OrderedDict
 from moretools import simpledict
 
-class SessionError(RuntimeError):
-  """Standard Exception for Robot Library session handling related errors.
-  """
-  pass
+from .keywords import KeywordsDict
 
-# A mapping type for storing Robot Library Keyword methods by name,
-# providing additional `__getattr__` access with CamelCase Keyword names
-Keywords = simpledict(
-  'Keywords',
-  # convert lower_case keyword names to CamelCase attribute names
-  key_to_attr = lambda key: re.sub(
-    '_([a-z])', lambda match: match.group(1).upper(),
-    key.capitalize()),
-  # convert CamelCase keyword attribute names back to lower_case
-  attr_to_key = lambda name: re.sub(
-    '[A-Z]', lambda match: '_' + match.group().lower(),
-    name[0].lower() + name[1:]))
-
-class LibraryBase(object):
+class LibraryType(object):
   """A base class for Robot Test Libraries.
   * Should not be initialized directly.
   * :func:`library` dynamically creates derived Library classes
@@ -55,7 +42,7 @@ class LibraryBase(object):
     * When manually called with `()` an optional override `name` can be given.
     * The Keyword method function gets stored
     in the Library's `keywords` class attribute.
-    ** This :class:`Keywords` instance gets dynamically created
+    ** This :class:`KeywordsDict` instance gets dynamically created
     for the derived Library `cls` in :func:`library`.
     """
     cls.keywords[name or func.func_name] = func
@@ -75,7 +62,7 @@ class LibraryBase(object):
     in the Library class owned `Keywords` mapping
     populated by the `keyword` decorator.
     """
-    self.keywords = Keywords()
+    self.keywords = KeywordsDict()
     for name, func in type(self).keywords:
       self.keywords[name] = getattr(self, name)
 
@@ -89,146 +76,41 @@ class LibraryBase(object):
     """
     return dir(self.keywords)
 
-def library(session_groups = []):
-  """Creates the actual base type for a Robot Test Library
-  derived from :class:`LibraryBase`.
+# ordered name-mapped storing of user-defined session handlers
+HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
 
-  For every name in `session_groups`
-  a session handling system will be generated.
-  This includes a decorator `<group name>_opener`
-  for turning session open methods to
-  `open_<group name>`/`open_named_<group name>` Keywords
-  (with optional suffixes based on the method name),
-  a `<group name>` property
-  for accessing the currently active session,
-  a `switch_<group name>` Keyword for switching the currently active session,
-  and a `close_<group name>` Keyword.
+def library(session_handlers = []):
+  """Creates the actual base type for a user-defined Robot Test Library
+  derived from :class:`LibraryType`.
+
+  For every handler in `session_handlers`
+  its generated open_/switch_/close_session Keywords
+  (with `Handler.meta.identifier_name` substituting 'session')
+  will be added to the Library's Keywords.
 
   :returns: type.
   """
-  # The Library's dictionary of opened-sessions-by-group-dictionaries
-  sessions = {}
+  # the attrs dict for type(...)
+  clsattrs = {}
+
   # The Library's Keyword method function objects mapping
-  # to be populated by the keyword decorator
-  keywords = Keywords()
-  clsattrs = dict( # for the type('Library', (LibraryBase,), clsattrs) call
-    sessions = sessions,
-    # the currently active sessions of the session groups
-    sessionnames = {},
-    keywords = keywords,
-    )
-  for group in session_groups:
-    # the group's dictionary of opened sessions
-    sessions[group] = {}
+  # to be filled with the session handlers' Keywords
+  # and further populated by the LibraryType.keyword decorator
+  keywords = clsattrs['keywords'] = KeywordsDict()
 
-    def register_session(self, session):
-      """Helper method for registering an unnamed session of `group`
-      to the `Library.sessions` dictionary.
-      """
-      self.sessions[group][None] = session
-      self.sessionnames[group] = None
+  handlers = clsattrs['session_handlers'] = HandlersDict()
+  for handlercls in session_handlers:
+    handlers[handlercls.__name__] = handlercls
+    # import the handler-specific session exception type
+    clsattrs[handlercls.SessionError.__name__] = handlercls.SessionError
+    # give access to the handler's dictionary of running sessions
+    clsattrs[handlercls.meta.plural_identifier_name] = property(
+      lambda self, h = handlercls: h.sessions)
+    # give access to the handler's currently active session
+    clsattrs[handlercls.meta.identifier_name] = property(
+      lambda self, h = handlercls: h.session)
+    # import the handler's auto-generated keywords
+    for keywordname, func in handlercls.keywords:
+      clsattrs[keywordname] = keywords[keywordname] = func
 
-    clsattrs['register_' + group] = register_session
-
-    def register_named_session(self, name, session):
-      """Helper method for registering a named session of `group`
-      to the `Library.sessions` dictionary.
-      """
-      self.sessions[group][name] = session
-      self.sessionnames[group] = name
-
-    clsattrs['register_named_' + group] = register_named_session
-
-    def session(self):
-      """Property method for accessing
-      the currently active session of `group`.
-      """
-      sessions = self.sessions[group]
-      try:
-        name = self.sessionnames[group]
-      except KeyError: # no active session name (or None for unnamed)
-        raise SessionError('No Session opened yet.')
-      try:
-        return sessions[name]
-      except KeyError:
-        raise RuntimeError(
-          name is None and 'No unnamed Session.'
-          or 'Session not found: %s' % name)
-
-    clsattrs[group] = property(session)
-
-    def opener(cls, openfunc):
-      """The Library `cls`'s decorator
-      for turning method functions to named/unnamed session open Keywords.
-      """
-      # optional `open_<group>` Keyword suffix based on method name
-      suffix = openfunc.func_name.lstrip('_')
-
-      def open_session(self, *args, **kwargs):
-        """Open an unnamed session.
-        """
-        session = openfunc(self, *args, **kwargs)
-        register = getattr(self, 'register_' + group)
-        register(session)
-
-      keywordname = 'open_' + group
-      if suffix:
-        keywordname += '_' + suffix
-      setattr(
-        cls, keywordname, cls.keyword( # call decorator with override name
-          open_session, name = keywordname))
-
-      def open_named_session(self, name, *args, **kwargs):
-        """Open a named session.
-        Automatically closes running unnamed sessions.
-        """
-        session = openfunc(self, *args, **kwargs)
-        register = getattr(self, 'register_named_' + group)
-        register(name, session)
-        try: # close an unnamed session if running
-          del self.sessions[group][None]
-        except KeyError:
-          pass
-
-      keywordname = 'open_named_' + group
-      if suffix:
-        keywordname += '_' + suffix
-      setattr(
-        cls, keywordname, cls.keyword( # call decorator with override name
-          open_named_session, name = keywordname))
-
-    clsattrs[group + '_opener'] = classmethod(opener)
-
-    def switch_session(self, name = None):
-      """Switch the currently active session.
-      Automatically closes running unnamed sessions.
-      """
-      sessions = self.sessions[group]
-      name = str(name)
-      if name not in sessions:
-        raise SessionError('Session not found: %s' % name)
-      self.sessionnames[group] = name
-      try: # close an unnamed session if running
-        del sessions[None]
-      except KeyError:
-        pass
-
-    keywordname = 'switch_' + group
-    clsattrs[keywordname] = keywords[keywordname] = switch_session
-
-    def close_session(self):
-      """Close the currently active session.
-      """
-      sessions = self.sessions[group]
-      name = self.sessionnames[group]
-      try:
-        del sessions[name]
-      except KeyError:
-        raise RuntimeError(
-          name is None and 'No unnamed Session.'
-          or 'Session not found: %s' % name)
-
-    keywordname = 'close_' + group
-    clsattrs[keywordname] = keywords[keywordname] = close_session
-
-  return type('Library', (LibraryBase,), clsattrs)
+  return type('Library', (LibraryType,), clsattrs)
