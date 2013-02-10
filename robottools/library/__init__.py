@@ -101,14 +101,22 @@ def library(session_handlers = []):
   handlers = clsattrs['session_handlers'] = HandlersDict()
   for handlercls in session_handlers:
     handlers[handlercls.__name__] = handlercls
+
     # import the handler-specific session exception type
     clsattrs[handlercls.SessionError.__name__] = handlercls.SessionError
+
     # give access to the handler's dictionary of running sessions
     clsattrs[handlercls.meta.plural_identifier_name] = property(
       lambda self, h = handlercls: h.sessions)
+
     # give access to the handler's currently active session
-    clsattrs[handlercls.meta.identifier_name] = property(
-      lambda self, h = handlercls: h.session)
+    def session(self, h = handlercls):
+      if h.session is None:
+        raise h.SessionError("No active session.")
+      return h.session
+
+    clsattrs[handlercls.meta.identifier_name] = property(session)
+
     # import the handler's auto-generated keywords
     for keywordname, func in handlercls.keywords:
       clsattrs[keywordname] = keywords[keywordname] = func
