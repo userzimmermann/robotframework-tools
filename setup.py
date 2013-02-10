@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
   name = 'robotframework-tools',
-  version = '0.1a1',
+  version = '0.1a2',
   description = (
     'Tools for Robot Framework and Test Libraries.'
     ),
