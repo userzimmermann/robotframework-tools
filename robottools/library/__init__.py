@@ -34,7 +34,7 @@ class LibraryType(object):
   * :func:`library` dynamically creates derived Library classes
   for use as a base for an actual Test Library.
   * Provides a decorator for declaring methods as Robot Keywords
-  and storing them in a class owned `Keywords` mapping instance.
+  and storing them in a class-owned `KeywordsDict` instance.
   """
   @classmethod
   def keyword(cls, func, name = None):
