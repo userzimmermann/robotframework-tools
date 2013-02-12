@@ -3,7 +3,7 @@ from distutils.core import setup
 
 setup(
   name = 'robotframework-tools',
-  version = '0.1a2',
+  version = '0.1a3',
   description = (
     'Tools for Robot Framework and Test Libraries.'
     ),
@@ -12,6 +12,9 @@ setup(
 
   license = 'GPLv3',
 
+  install_requires = [
+    'python-moretools >= 0.1a5',
+    ],
   packages = ['robottools', 'robottools.library'],
 
   classifiers = [
