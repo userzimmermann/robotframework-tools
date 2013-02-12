@@ -36,37 +36,58 @@ class Meta(object):
   based on the handler's class name
   and a user-defined `Handler.Meta` class.
   """
-  def __init__(self, handlerclsname = None, defs = None):
-    """Generate several variants of the session handler name
+  def __init__(self, handlerclsname = None, metadefs = None):
+    """Generate several variants of a session handler name
     for use in identifiers and message strings,
     based on the `handlerclsname`
-    and/or the attributes of a `defs` class,
+    and/or the attributes of the optional `Handler.Meta` class in `metadefs`,
     which can define name (variant) prefixes/suffixes
     and/or explicit name variants.
     """
+    # check all prefix definitions and generate actual prefix strings
+    prefixes = {}
+
     def gen_prefix(key, default, append = ''):
       """Check the prefix definition for name variant identified by `key`,
       setting to `default` if not defined.
       Always `append` the given extra string.
       """
       try:
-        prefix = getattr(defs, (key and key + '_') + 'name_prefix')
+        prefix = getattr(metadefs, (key and key + '_') + 'name_prefix')
       except AttributeError:
         prefix = default
       else:
         prefix = prefix and str(prefix) or ''
-      if prefix:
+      if prefix and not prefix.endswith(append):
         prefix += append
-      return prefix
+      # finally add to the prefixes dictionary
+      prefixes[key] = prefix
 
-    # check all prefix definitions and generate actual prefix strings
-    prefix = {}
-    prefix[''] = gen_prefix('', '', '_')
-    prefix['upper'] = gen_prefix('upper', camelize(prefix['']))
-    prefix['identifier'] = gen_prefix('identifier', '', '_')
-    prefix['upper_identifier'] = gen_prefix(
-      'upper_identifier', camelize(prefix['identifier']))
-    prefix['verbose'] = gen_prefix('verbose', '', ' ')
+    def gen_plural_prefix(key, append = ''):
+      """Check the prefix definition
+      for plural name variant identified by plural_`key`,
+      setting to singular `key` prefix if not defined.
+      Always `append` the given extra string.
+      """
+      plural_key = 'plural' + (key and '_' + key)
+      default = prefixes[key]
+      gen_prefix(plural_key, default, append)
+
+    # base name prefixes
+    gen_prefix('', '', '_')
+    gen_plural_prefix('', '_')
+    gen_prefix('upper', camelize(prefixes['']))
+    gen_plural_prefix('upper')
+    # identifier name prefixes
+    gen_prefix('identifier', '', '_')
+    gen_plural_prefix('identifier', '_')
+    gen_prefix('upper_identifier', camelize(prefixes['identifier']))
+    # verbose name prefixes
+    gen_prefix('verbose', '', ' ')
+    gen_plural_prefix('verbose', ' ')
+
+    # check all suffix definitions and generate actual suffix strings
+    suffixes = {}
 
     def gen_suffix(key, default, prepend = ''):
       """Check the suffix definition for name variant identified by `key`,
@@ -74,68 +95,99 @@ class Meta(object):
       Always `prepend` the given extra string.
       """
       try:
-        suffix = getattr(defs, key + '_name_suffix')
+        suffix = getattr(metadefs, key + '_name_suffix')
       except AttributeError:
         suffix = default
       else:
         suffix = suffix and str(suffix) or ''
-      if suffix:
+      if suffix and not suffix.startswith(prepend):
         suffix = prepend + suffix
-      return suffix
+      # finally add to the suffixes dictionary
+      suffixes[key] = suffix
 
-    # check all suffix definitions and generate actual suffix strings
-    suffix = {}
-    suffix[''] = gen_suffix('', '', '_')
-    suffix['upper'] = gen_suffix('upper', camelize(suffix['']))
-    suffix['identifier'] = gen_suffix('identifier', 'session', '_')
-    suffix['upper_identifier'] = gen_suffix(
-      'upper_identifier', camelize(suffix['identifier']))
-    suffix['verbose'] = gen_suffix('verbose', 'Session', ' ')
+    def gen_plural_suffix(key, prepend = ''):
+      """Check the suffix definition
+      for plural name variant identified by plural_`key`,
+      setting to singular `key` suffix + 's' if not defined.
+      Always `prepend` the given extra string.
+      """
+      plural_key = 'plural' + (key and '_' + key)
+      default = suffixes[key] and suffixes[key] + 's'
+      gen_suffix(plural_key, default, prepend)
 
-    # check explicit base name definition
-    name = getattr(defs, 'name', None)
-    # non-empty string or None
-    name = name and str(name) or None
-    # check all explicit name variant definitions
+    # identifier name suffixes
+    gen_suffix('', '', '_')
+    gen_plural_suffix('', '_')
+    gen_suffix('upper', camelize(suffixes['']))
+    gen_plural_suffix('upper')
+    # identifier name suffixes
+    gen_suffix('identifier', 'session', '_')
+    gen_plural_suffix('identifier', '_')
+    gen_suffix('upper_identifier', camelize(suffixes['identifier']))
+    # verbose name suffixes
+    gen_suffix('verbose', 'Session', ' ')
+    gen_plural_suffix('verbose', ' ')
+
+    # check explicit name variant definitions
     variants = {}
     for variantkey in (
-      'upper', 'identifier', 'plural_identifier', 'upper_identifier',
+      '', 'plural', 'upper', 'plural_upper',
+      'identifier', 'plural_identifier', 'upper_identifier',
       'verbose', 'plural_verbose'
       ):
-      variant = getattr(defs, variantkey + '_name', None)
+      defname = (variantkey and variantkey + '_') + 'name'
+      variant = getattr(metadefs, defname, None)
       # non-empty string or None
       variant = variant and (str(variant) or None) or None
       variants[variantkey] = variant
 
+    # create final base name (helper) variants
+    # (NOT stored in final meta object (`self`))
     key = ''
-    self.name = (
-      name
-      or prefix[key] + decamelize(handlerclsname) + suffix[key])
-    key = 'upper'
-    self.upper_name = (
+    name = (
       variants[key]
-      or name and camelize(name)
-      or prefix[key] + handlerclsname + suffix[key])
+      or prefixes[key] + decamelize(handlerclsname) + suffixes[key])
+    key = 'plural'
+    plural_name = (
+      variants[key] and prefixes[key] + variants[key] + suffixes[key]
+      or None)
+    key = 'upper'
+    upper_name = (
+      variants[key]
+      or variants[''] and camelize(variants[''])
+      or prefixes[key] + handlerclsname + suffixes[key])
+    key = 'plural_upper'
+    plural_upper_name = (
+      variants[key]
+      or variants['plural']
+      and prefixes[key] + camelize(variants['plural']) + (
+        suffixes[key] or (not variants['plural'] and 's' or ''))
+      or None)
+
+    # create final identifier/verbose name variants
+    # (stored in final meta object (`self`))
     key = 'identifier'
     self.identifier_name = (
       variants[key]
-      or prefix[key] + self.name + suffix[key])
+      or prefixes[key] + name + suffixes[key])
     key = 'plural_identifier'
     self.plural_identifier_name = (
       variants[key]
-      or self.identifier_name + 's')
+      or prefixes[key] + (plural_name or name) + (
+        suffixes[key] or (not plural_name and 's' or '')))
     key = 'upper_identifier'
     self.upper_identifier_name = (
       variants[key]
-      or prefix[key] + self.upper_name + suffix[key])
+      or prefixes[key] + upper_name + suffixes[key])
     key = 'verbose'
     self.verbose_name = (
       variants[key]
-      or prefix[key] + self.upper_name + suffix[key])
+      or prefixes[key] + upper_name + suffixes[key])
     key = 'plural_verbose'
     self.plural_verbose_name = (
       variants[key]
-      or self.verbose_name + 's')
+      or prefixes[key] + (plural_upper_name or upper_name) + (
+        suffixes[key] or (not plural_upper_name and 's' or '')))
 
 class HandlerMeta(type):
   """The custom type class for :class:`Handler`.
@@ -157,7 +209,7 @@ class HandlerMeta(type):
     except KeyError:
       meta = Meta(handlerclsname = clsname)
     else:
-      meta = Meta(handlerclsname = clsname, defs = metadefs)
+      meta = Meta(handlerclsname = clsname, metadefs = metadefs)
     clsattrs['meta'] = meta
 
     excname = meta.upper_identifier_name + 'Error'
