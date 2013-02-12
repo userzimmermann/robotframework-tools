@@ -56,10 +56,10 @@ class LibraryType(object):
 
   def __init__(self):
     """Initializes the Test Library base.
-    * Creates a new `Keywords` mapping
+    * Creates a new `KeywordsDict` instance
     for storing the actual bound Keyword method objects
     corresponding to the method function objects
-    in the Library class owned `Keywords` mapping
+    in the Library class owned `KeywordsDict` instance
     populated by the `keyword` decorator.
     """
     self.keywords = KeywordsDict()
