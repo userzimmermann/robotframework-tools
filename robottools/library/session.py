@@ -27,6 +27,8 @@ __all__ = 'Handler',
 
 import re
 
+from moretools import camelize, decamelize
+
 from .keywords import KeywordsDict
 
 class Meta(object):
@@ -60,10 +62,10 @@ class Meta(object):
     # check all prefix definitions and generate actual prefix strings
     prefix = {}
     prefix[''] = gen_prefix('', '', '_')
-    prefix['upper'] = gen_prefix('upper', prefix[''].capitalize())
+    prefix['upper'] = gen_prefix('upper', camelize(prefix['']))
     prefix['identifier'] = gen_prefix('identifier', '', '_')
     prefix['upper_identifier'] = gen_prefix(
-      'upper_identifier', prefix['identifier'].capitalize())
+      'upper_identifier', camelize(prefix['identifier']))
     prefix['verbose'] = gen_prefix('verbose', '', ' ')
 
     def gen_suffix(key, default, prepend = ''):
@@ -84,10 +86,10 @@ class Meta(object):
     # check all suffix definitions and generate actual suffix strings
     suffix = {}
     suffix[''] = gen_suffix('', '', '_')
-    suffix['upper'] = gen_suffix('upper', suffix[''].capitalize())
+    suffix['upper'] = gen_suffix('upper', camelize(suffix['']))
     suffix['identifier'] = gen_suffix('identifier', 'session', '_')
     suffix['upper_identifier'] = gen_suffix(
-      'upper_identifier', suffix['identifier'].capitalize())
+      'upper_identifier', camelize(suffix['identifier']))
     suffix['verbose'] = gen_suffix('verbose', 'Session', ' ')
 
     # check explicit base name definition
@@ -108,11 +110,11 @@ class Meta(object):
     key = ''
     self.name = (
       name
-      or prefix[key] + handlerclsname.lower() + suffix[key])
+      or prefix[key] + decamelize(handlerclsname) + suffix[key])
     key = 'upper'
     self.upper_name = (
       variants[key]
-      or name and name.capitalize()
+      or name and camelize(name)
       or prefix[key] + handlerclsname + suffix[key])
     key = 'identifier'
     self.identifier_name = (

@@ -29,17 +29,13 @@ __all__ = 'KeywordsDict',
 
 import re
 
-from moretools import simpledict
+from moretools import simpledict, camelize, decamelize
 
 # A mapping type for storing Robot Library Keyword methods by name,
 # providing additional `__getattr__` access with CamelCase Keyword names
 KeywordsDict = simpledict(
   'Keywords',
   # convert lower_case keyword names to CamelCase attribute names
-  key_to_attr = lambda key: re.sub(
-    '_([a-z])', lambda match: match.group(1).upper(),
-    key.capitalize()),
+  key_to_attr = camelize,
   # convert CamelCase keyword attribute names back to lower_case
-  attr_to_key = lambda name: re.sub(
-    '[A-Z]', lambda match: '_' + match.group().lower(),
-    name[0].lower() + name[1:]))
+  attr_to_key = decamelize)
