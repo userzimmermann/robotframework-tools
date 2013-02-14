@@ -21,33 +21,25 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = 'LibraryType', 'library',
+__all__ = (
+  'LibraryType', 'library',
+  # from .keywords
+  'KeywordDecoratorType', 'InvalidKeywordOption',
+  )
 
 from collections import OrderedDict
 from moretools import simpledict
 
-from .keywords import KeywordsDict
+from .keywords import (
+  KeywordsDict, KeywordDecoratorType, InvalidKeywordOption,
+  )
 
 class LibraryType(object):
   """A base class for Robot Test Libraries.
   * Should not be initialized directly.
   * :func:`library` dynamically creates derived Library classes
   for use as a base for an actual Test Library.
-  * Provides a decorator for declaring methods as Robot Keywords
-  and storing them in a class-owned `KeywordsDict` instance.
   """
-  @classmethod
-  def keyword(cls, func, name = None):
-    """The Keyword method decorator.
-    * When manually called with `()` an optional override `name` can be given.
-    * The Keyword method function gets stored
-    in the Library's `keywords` class attribute.
-    ** This :class:`KeywordsDict` instance gets dynamically created
-    for the derived Library `cls` in :func:`library`.
-    """
-    cls.keywords[name or func.func_name] = func
-    return func
-
   def get_keyword_names(self):
     """Get all lower_case Keyword names for Robot Framework
     from `self.keywords` mapping.
@@ -79,11 +71,20 @@ class LibraryType(object):
 # ordered name-mapped storing of user-defined session handlers
 HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
 
-def library(session_handlers = []):
+def library(
+  custom_keyword_options = [],
+  default_keyword_options = [],
+  session_handlers = []
+  ):
   """Creates the actual base type for a user-defined Robot Test Library
   derived from :class:`LibraryType`.
 
-  For every handler in `session_handlers`
+  * Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
+  adding the `custom_keyword_options`.
+  * Adds the `keyword` decorator to the Library class
+  by instantiating the decorator class with the `default_keyword_options`.
+
+  * For every handler in `session_handlers`
   its generated open_/switch_/close_session Keywords
   (with `Handler.meta.identifier_name` substituting 'session')
   will be added to the Library's Keywords.
@@ -121,4 +122,16 @@ def library(session_handlers = []):
     for keywordname, func in handlercls.keywords:
       clsattrs[keywordname] = keywords[keywordname] = func
 
-  return type('Library', (LibraryType,), clsattrs)
+  cls = type('Library', (LibraryType,), clsattrs)
+
+  # the attributes dict for the Keyword decorator class generation
+  decotypeattrs = {}
+  # the additional custom Keyword decorator options
+  for optionname, decofunc in custom_keyword_options:
+    decotypeattrs['option_' + optionname] = decofunc
+  # create the final Keyword decorator
+  decotype = type(
+    'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
+  cls.keyword = decotype(cls, *default_keyword_options)
+
+  return cls
