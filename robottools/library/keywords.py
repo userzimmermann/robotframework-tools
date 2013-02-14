@@ -74,6 +74,14 @@ class KeywordDecoratorType(object):
     method.func_name = func.func_name
     return method
 
+  @property
+  def no_options(self):
+    return type(self)(self.librarycls)
+
+  @property
+  def reset_options(self):
+    return type(self)(self.librarycls)
+
   def __getattr__(self, name):
     """Returns a new Keyword decorator class instance
     with the given option added.
