@@ -54,8 +54,11 @@ class KeywordDecoratorType(object):
   Options are added with `__getattr__`,
   which generates new decorator class instances.
   """
-  def __init__(self, librarycls, *options):
-    self.librarycls = librarycls
+  def __init__(self, keywords, *options):
+    """Initialize with a Test Library's :class:`KeywordsDict` instance
+    and additional `options` to apply to the decorated methods.
+    """
+    self.keywords = keywords
 
     for optionname in options:
       if not hasattr(type(self), 'option_' + optionname):
@@ -76,11 +79,11 @@ class KeywordDecoratorType(object):
 
   @property
   def no_options(self):
-    return type(self)(self.librarycls)
+    return type(self)(self.keywords)
 
   @property
   def reset_options(self):
-    return type(self)(self.librarycls)
+    return type(self)(self.keywords)
 
   def __getattr__(self, name):
     """Returns a new Keyword decorator class instance
@@ -88,7 +91,7 @@ class KeywordDecoratorType(object):
     """
     if not hasattr(type(self), 'option_' + name):
       raise AttributeError(name)
-    return type(self)(self.librarycls, name, *self.options)
+    return type(self)(self.keywords, name, *self.options)
 
   def __call__(self, func, name = None):
     """The actual Keyword method decorator function.
@@ -100,5 +103,5 @@ class KeywordDecoratorType(object):
     for optionname in self.options:
       decorator = getattr(type(self), 'option_' + optionname)
       func = decorator(func)
-    self.librarycls.keywords[name or func.func_name] = func
+    self.keywords[name or func.func_name] = func
     return func

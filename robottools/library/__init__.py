@@ -91,13 +91,24 @@ def library(
 
   :returns: type.
   """
-  # the attrs dict for type(...)
+  # the attributes dict for the Library base class generation
   clsattrs = {}
 
   # The Library's Keyword method function objects mapping
   # to be filled with the session handlers' Keywords
   # and further populated by the LibraryType.keyword decorator
   keywords = clsattrs['keywords'] = KeywordsDict()
+
+  # the attributes dict for the Keyword decorator class generation
+  decotypeattrs = {}
+  # the additional custom Keyword decorator options
+  for optionname, decofunc in custom_keyword_options:
+    decotypeattrs['option_' + optionname] = decofunc
+  # create the final Keyword decorator
+  decotype = type(
+    'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
+  keyword_decorator = clsattrs['keyword'] = decotype(
+    keywords, *default_keyword_options)
 
   handlers = clsattrs['session_handlers'] = HandlersDict()
   for handlercls in session_handlers:
@@ -120,18 +131,6 @@ def library(
 
     # import the handler's auto-generated keywords
     for keywordname, func in handlercls.keywords:
-      clsattrs[keywordname] = keywords[keywordname] = func
+      clsattrs[keywordname] = keyword_decorator(func, name = keywordname)
 
-  cls = type('Library', (LibraryType,), clsattrs)
-
-  # the attributes dict for the Keyword decorator class generation
-  decotypeattrs = {}
-  # the additional custom Keyword decorator options
-  for optionname, decofunc in custom_keyword_options:
-    decotypeattrs['option_' + optionname] = decofunc
-  # create the final Keyword decorator
-  decotype = type(
-    'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
-  cls.keyword = decotype(cls, *default_keyword_options)
-
-  return cls
+  return type('Library', (LibraryType,), clsattrs)
