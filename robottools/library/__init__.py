@@ -46,6 +46,19 @@ class LibraryType(object):
     """
     return [name for name, method in self.keywords]
 
+  def run_keyword(self, name, args):
+    """Run the Keyword given by its lower_case `name`
+    with the given `args`.
+    """
+    method = self.keywords[name]
+    return method(*args)
+
+  def get_keyword_arguments(self, name):
+    """Get the arguments definition of Keyword given by its lower_case `name`.
+    """
+    method = self.keywords[name]
+    return method.argspec.args[1:]
+
   def __init__(self):
     """Initializes the Test Library base.
     * Creates a new `KeywordsDict` instance

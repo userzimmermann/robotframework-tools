@@ -25,6 +25,7 @@ The Robot Test Library session handler framework.
 """
 __all__ = 'Handler',
 
+import inspect
 import re
 
 from ..keywords import KeywordsDict
@@ -78,6 +79,7 @@ class HandlerMeta(type):
     keywordname = 'open%s_' + cls.meta.identifier_name
     if suffix:
       keywordname += '_' + suffix
+    argspec = inspect.getargspec(func)
 
     def open_session(self, *args, **kwargs):
       """Open an unnamed session.
@@ -86,6 +88,7 @@ class HandlerMeta(type):
       session = func(self, *args, **kwargs)
       cls.add_session(session)
 
+    open_session.argspec = argspec
     cls.keywords[keywordname % ''] = open_session
 
     def open_named_session(self, name, *args, **kwargs):
@@ -95,6 +98,7 @@ class HandlerMeta(type):
       session = func(self, *args, **kwargs)
       cls.add_named_session(name, session)
 
+    open_named_session.argspec = argspec
     cls.keywords[keywordname % '_named'] = open_named_session
 
   def __init__(cls, clsname, bases, clsattrs):

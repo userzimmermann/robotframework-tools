@@ -31,6 +31,7 @@ and to apply certain additional options to these methods.
 """
 __all__ = 'KeywordsDict', 'KeywordDecoratorType', 'InvalidKeywordOption',
 
+import inspect
 import re
 
 from moretools import simpledict, camelize, decamelize
@@ -100,8 +101,16 @@ class KeywordDecoratorType(object):
     * The Keyword method function is stored
     in the Library's `keywords` mapping.
     """
+    try:
+      argspec = func.argspec
+    except AttributeError:
+      argspec = inspect.getargspec(func)
+    # apply options
     for optionname in self.options:
       decorator = getattr(type(self), 'option_' + optionname)
       func = decorator(func)
+    # store original method argspec
+    func.argspec = argspec
+    # add method to Library's `keywords` mapping
     self.keywords[name or func.func_name] = func
     return func
