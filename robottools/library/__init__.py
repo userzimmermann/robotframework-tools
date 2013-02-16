@@ -116,7 +116,7 @@ def library(
   decotypeattrs = {}
   # the additional custom Keyword decorator options
   for optionname, decofunc in custom_keyword_options:
-    decotypeattrs['option_' + optionname] = decofunc
+    decotypeattrs['option_' + optionname] = staticmethod(decofunc)
   # create the final Keyword decorator
   decotype = type(
     'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
