@@ -115,7 +115,11 @@ def library(
   # the attributes dict for the Keyword decorator class generation
   decotypeattrs = {}
   # the additional custom Keyword decorator options
-  for optionname, decofunc in custom_keyword_options:
+  for decofunc in custom_keyword_options:
+    try:
+      optionname = decofunc.func_name
+    except AttributeError:
+      optionname, decofunc = decofunc
     decotypeattrs['option_' + optionname] = staticmethod(decofunc)
   # create the final Keyword decorator
   decotype = type(
