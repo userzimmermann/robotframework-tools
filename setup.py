@@ -13,7 +13,7 @@ setup(
   license = 'GPLv3',
 
   install_requires = [
-    'python-moretools >= 0.1a7',
+    'python-moretools >= 0.1a9',
     ],
   packages = [
     'robottools',
