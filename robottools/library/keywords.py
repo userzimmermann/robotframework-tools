@@ -50,7 +50,7 @@ class InvalidKeywordOption(LookupError):
 
 class KeywordDecoratorType(object):
   """The base type for a Test Library's `keyword` decorator.
-  Stores the Keyword method function in the Library's `keywords` mapping,
+  Stores the Keyword method function in the Test Library's `keywords` mapping,
   after applying additional options (decorators) to the function.
   Options are added with `__getattr__`,
   which generates new decorator class instances.
@@ -99,7 +99,7 @@ class KeywordDecoratorType(object):
     * When manually called, an optional override `name` can be given.
     * All Keyword options added to this decorator class instance are applied.
     * The Keyword method function is stored
-    in the Library's `keywords` mapping.
+    in the Test Library's `keywords` mapping.
     """
     try:
       argspec = func.argspec

@@ -22,7 +22,7 @@
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = (
-  'LibraryType', 'library',
+  'TestLibraryType', 'testlibrary',
   # from .keywords
   'KeywordDecoratorType', 'InvalidKeywordOption',
   )
@@ -34,11 +34,11 @@ from .keywords import (
   KeywordsDict, KeywordDecoratorType, InvalidKeywordOption,
   )
 
-class LibraryType(object):
+class TestLibraryType(object):
   """A base class for Robot Test Libraries.
   * Should not be initialized directly.
-  * :func:`library` dynamically creates derived Library classes
-  for use as a base for an actual Test Library.
+  * :func:`testlibrary` dynamically creates derived classes
+  for use as a base for a custom Test Library.
   """
   def get_keyword_names(self):
     """Get all lower_case Keyword names for Robot Framework
@@ -64,7 +64,7 @@ class LibraryType(object):
     * Creates a new `KeywordsDict` instance
     for storing the actual bound Keyword method objects
     corresponding to the method function objects
-    in the Library class owned `KeywordsDict` instance
+    in the Test Library class-owned `KeywordsDict` instance
     populated by the `keyword` decorator.
     """
     self.keywords = KeywordsDict()
@@ -84,32 +84,32 @@ class LibraryType(object):
 # ordered name-mapped storing of user-defined session handlers
 HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
 
-def library(
+def testlibrary(
   custom_keyword_options = [],
   default_keyword_options = [],
   session_handlers = []
   ):
   """Creates the actual base type for a user-defined Robot Test Library
-  derived from :class:`LibraryType`.
+  derived from :class:`TestLibraryType`.
 
   * Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
   adding the `custom_keyword_options`.
-  * Adds the `keyword` decorator to the Library class
+  * Adds the `keyword` decorator to the Test Library class
   by instantiating the decorator class with the `default_keyword_options`.
 
   * For every handler in `session_handlers`
   its generated open_/switch_/close_session Keywords
   (with `Handler.meta.identifier_name` substituting 'session')
-  will be added to the Library's Keywords.
+  will be added to the Test Library's Keywords.
 
   :returns: type.
   """
-  # the attributes dict for the Library base class generation
+  # the attributes dict for the Test Library base class generation
   clsattrs = {}
 
-  # The Library's Keyword method function objects mapping
+  # The Test Library's Keyword method function objects mapping
   # to be filled with the session handlers' Keywords
-  # and further populated by the LibraryType.keyword decorator
+  # and further populated by the TestLibraryType.keyword decorator
   keywords = clsattrs['keywords'] = KeywordsDict()
 
   # the attributes dict for the Keyword decorator class generation
@@ -150,4 +150,4 @@ def library(
     for keywordname, func in handlercls.keywords:
       clsattrs[keywordname] = keyword_decorator(func, name = keywordname)
 
-  return type('Library', (LibraryType,), clsattrs)
+  return type('TestLibrary', (TestLibraryType,), clsattrs)
