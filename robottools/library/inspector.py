@@ -21,27 +21,43 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = 'TestLibraryInspector', 'MultiTestLibraryInspector',
+__all__ = (
+  'TestLibraryImportError',
+  'TestLibraryInspector', 'MultiTestLibraryInspector',
+  )
 
 from collections import OrderedDict
 from itertools import chain
 from moretools import camelize, decamelize, simpledict
 
+import robot.errors
 import robot.running
+
+class TestLibraryImportError(ImportError):
+  pass
 
 class TestLibraryInspector(object):
   def __init__(self, name):
-    self._library = robot.running.TestLibrary(name)
+    try:
+      self._library = robot.running.TestLibrary(name)
+    except robot.errors.DataError as e:
+      raise TestLibraryImportError(str(e))
 
   @property
   def name(self):
     return self._library.name
 
   def __getitem__(self, name):
-    return self._library.get_handler(name)
+    try:
+      return self._library.get_handler(name)
+    except robot.errors.DataError as e:
+      raise KeyError(str(e))
 
   def __getattr__(self, name):
-    return self._library.get_handler(name)
+    try:
+      return self[name]
+    except KeyError as e:
+      raise AttributeError(str(e))
 
   def __dir__(self):
     return list(map(camelize, self._library.handlers.keys()))
@@ -62,15 +78,15 @@ class MultiTestLibraryInspector(object):
     for libname, lib in self.libraries:
       try:
         return lib[name]
-      except KeyError:
+      except KeyError as e:
         pass
-    raise KeyError(name)
+    raise e
 
   def __getattr__(self, name):
     try:
       return self[name]
-    except KeyError:
-      raise AttributeError(name)
+    except KeyError as e:
+      raise AttributeError(str(e))
 
   def __dir__(self):
     ikeys = chain(*(
