@@ -9,6 +9,7 @@ setup(
     ),
   author = 'Stefan Zimmermann',
   author_email = 'zimmermann.code@gmail.com',
+  url = 'http://bitbucket.org/StefanZimmermann/robotframework-tools',
 
   license = 'GPLv3',
 
