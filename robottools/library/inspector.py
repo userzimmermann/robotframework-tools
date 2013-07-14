@@ -47,6 +47,10 @@ class TestLibraryInspector(object):
   def name(self):
     return self._library.name
 
+  def __iter__(self):
+    for keyword in self._library.handlers.values():
+      yield keyword
+
   def __getitem__(self, name):
     try:
       return self._library.get_handler(name)
@@ -73,6 +77,11 @@ class MultiTestLibraryInspector(object):
       libslist.append(lib)
     self.libraries = TestLibrariesDict.frozen(
       (lib.name, lib) for lib in libslist)
+
+  def __iter__(self):
+    for libname, lib in self.libraries:
+      for keyword in lib._library.handlers.values():
+        yield keyword
 
   def __getitem__(self, name):
     for libname, lib in self.libraries:
