@@ -27,6 +27,7 @@ __all__ = 'Handler',
 
 import inspect
 import re
+from copy import deepcopy
 
 from ..keywords import KeywordsDict
 
@@ -98,7 +99,9 @@ class HandlerMeta(type):
       session = func(self, *args, **kwargs)
       cls.add_named_session(name, session)
 
-    open_named_session.argspec = argspec
+    named_argspec = deepcopy(argspec)
+    named_argspec.args.insert(1, 'name') # (after self)
+    open_named_session.argspec = named_argspec
     cls.keywords[keywordname % '_named'] = open_named_session
 
   def __init__(cls, clsname, bases, clsattrs):
