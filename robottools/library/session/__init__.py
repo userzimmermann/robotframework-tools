@@ -35,148 +35,157 @@ from ..keywords import KeywordsDict
 from .meta import Meta
 
 class HandlerMeta(type):
-  """The custom type class for :class:`Handler`.
-  * For user-derived handler classes
-  it generates the handler specific meta information
-  (using :class:`.meta.Meta`),
-  the session storage, the actual Robot Keywords for session management,
-  and a session exception type.
-  """
-  def __new__(metacls, clsname, bases, clsattrs):
-    """Generate meta information, session exception type,
-    and session/keywords storage
-    for :class:`Handler` derived classes.
+    """The custom type class for :class:`Handler`.
+
+    - For user-derived handler classes
+      it generates the handler specific meta information
+      (using :class:`.meta.Meta`),
+      the session storage, the actual Robot Keywords for session management,
+      and a session exception type.
     """
-    if clsname == 'Handler': # the handler base class itself
-      return type.__new__(metacls, clsname, bases, clsattrs)
+    def __new__(metacls, clsname, bases, clsattrs):
+        """Generate meta information, session exception type,
+           and session/keywords storage
+           for :class:`Handler` derived classes.
+        """
+        if clsname == 'Handler': # The handler base class itself
+            return type.__new__(metacls, clsname, bases, clsattrs)
 
-    try: # has a user-defined `Handler.Meta` class?
-      metadefs = clsattrs['Meta']
-    except KeyError:
-      meta = Meta(handlerclsname = clsname)
-    else:
-      meta = Meta(handlerclsname = clsname, metadefs = metadefs)
-    clsattrs['meta'] = meta
+        try: # Has a user-defined `Handler.Meta` class?
+            metadefs = clsattrs['Meta']
+        except KeyError:
+            meta = Meta(handlerclsname = clsname)
+        else:
+            meta = Meta(handlerclsname = clsname, metadefs = metadefs)
+        clsattrs['meta'] = meta
 
-    excname = meta.upper_identifier_name + 'Error'
-    clsattrs['SessionError'] = type(excname, (RuntimeError,), {})
+        excname = meta.upper_identifier_name + 'Error'
+        clsattrs['SessionError'] = type(excname, (RuntimeError,), {})
 
-    # The handler's dictionary of opened sessions
-    clsattrs['sessions'] = {}
-    # The handler's currently active session
-    clsattrs['session'] = None
+        # The handler's dictionary of opened sessions
+        clsattrs['sessions'] = {}
+        # The handler's currently active session
+        clsattrs['session'] = None
 
-    # for storing the handler's session management Keywords
-    clsattrs['keywords'] = KeywordsDict()
+        # For storing the handler's session management Keywords
+        clsattrs['keywords'] = KeywordsDict()
 
-    return type.__new__(metacls, clsname, bases, clsattrs)
+        return type.__new__(metacls, clsname, bases, clsattrs)
 
-  def add_opener(cls, func):
-    """Add Keywords for opening (un)named sessions
-    for a user-defined session opener method `func`
-    (methods whose names start with 'open').
-    """
-    suffix = re.sub('^open($|_)', '', func.func_name)
-    keywordname = 'open%s_' + cls.meta.identifier_name
-    if suffix:
-      keywordname += '_' + suffix
-    argspec = inspect.getargspec(func)
+    def add_opener(cls, func):
+        """Add Keywords for opening (un)named sessions
+           for a user-defined session opener method `func`
+           (methods whose names start with 'open').
+        """
+        suffix = re.sub('^open($|_)', '', func.func_name)
+        keywordname = 'open%s_' + cls.meta.identifier_name
+        if suffix:
+            keywordname += '_' + suffix
+        argspec = inspect.getargspec(func)
 
-    def open_session(self, *args, **kwargs):
-      """Open an unnamed session.
-      (Automatically closes already running unnamed sessions.)
-      """
-      session = func(self, *args, **kwargs)
-      cls.add_session(session)
+        def open_session(self, *args, **kwargs):
+            """Open an unnamed session.
 
-    open_session.argspec = argspec
-    cls.keywords[keywordname % ''] = open_session
+            - Automatically closes already running unnamed sessions.
+            """
+            session = func(self, *args, **kwargs)
+            cls.add_session(session)
 
-    def open_named_session(self, name, *args, **kwargs):
-      """Open a named session.
-      (Automatically closes running unnamed sessions.)
-      """
-      session = func(self, *args, **kwargs)
-      cls.add_named_session(name, session)
+        open_session.argspec = argspec
+        cls.keywords[keywordname % ''] = open_session
 
-    named_argspec = deepcopy(argspec)
-    named_argspec.args.insert(1, 'name') # (after self)
-    open_named_session.argspec = named_argspec
-    cls.keywords[keywordname % '_named'] = open_named_session
+        def open_named_session(self, name, *args, **kwargs):
+            """Open a named session.
 
-  def __init__(cls, clsname, bases, clsattrs):
-    """Generate the actual session management keywords
-    for :class:`Handler` derived classes,
-    based on the session management helper methods of :class:`Handler`
-    and user-defined session opener methods (whose names start with 'open').
-    All Keyword names include the handler specific `meta.identifier_name`.
-    """
-    try:
-      meta = cls.meta
-    except AttributeError:
-      return
+            - Automatically closes running unnamed sessions.
+            """
+            session = func(self, *args, **kwargs)
+            cls.add_named_session(name, session)
 
-    for func in clsattrs.values():
-      try:
-        name = func.func_name
-      except AttributeError: # no function object
-        pass
-      else:
-        if name.startswith('open'):
-          cls.add_opener(func)
+        named_argspec = deepcopy(argspec)
+        named_argspec.args.insert(1, 'name') # (after self)
+        open_named_session.argspec = named_argspec
+        cls.keywords[keywordname % '_named'] = open_named_session
 
-    def switch_session(self, name):
-      cls.switch_session(name)
+    def __init__(cls, clsname, bases, clsattrs):
+        """Generate the actual session management keywords
+           for :class:`Handler` derived classes.
 
-    keywordname = 'switch_' + meta.identifier_name
-    cls.keywords[keywordname] = switch_session
+        - Includes the session management helper methods of :class:`Handler`
+          and user-defined session opener methods
+          (whose names start with 'open').
+        - All Keyword names include the handler-specific
+          `meta.identifier_name`.
+        """
+        try:
+            meta = cls.meta
+        except AttributeError:
+            return
 
-    def close_session(self):
-      cls.close_session()
+        for func in clsattrs.values():
+            try:
+                name = func.func_name
+            except AttributeError: # No function object
+                pass
+            else:
+                if name.startswith('open'):
+                    cls.add_opener(func)
 
-    keywordname = 'close_' + meta.identifier_name
-    cls.keywords[keywordname] = cls.close_session
+        def switch_session(self, name):
+            cls.switch_session(name)
+
+        keywordname = 'switch_' + meta.identifier_name
+        cls.keywords[keywordname] = switch_session
+
+        def close_session(self):
+            cls.close_session()
+
+        keywordname = 'close_' + meta.identifier_name
+        cls.keywords[keywordname] = cls.close_session
 
 class Handler(object):
-  """The base class for custom Robot Test Library session handler types.
-  """
-  __metaclass__ = HandlerMeta
-
-  @classmethod
-  def add_session(cls, session):
-    """Helper method for adding an unnamed session to the handler
-    and making it active.
-    (Automatically closes already running unnamed sessions.)
+    """The base class for custom Robot Test Library session handler types.
     """
-    cls.session = session
+    __metaclass__ = HandlerMeta
 
-  @classmethod
-  def add_named_session(cls, name, session):
-    """Helper method for adding a named session to the handler
-    and making it active.
-    (Automatically closes running unnamed sessions.)
-    """
-    name = str(name)
-    cls.session = cls.sessions[name] = session
+    @classmethod
+    def add_session(cls, session):
+        """Helper method for adding an unnamed session to the handler
+           and making it active.
 
-  @classmethod
-  def switch_session(cls, name):
-    """Helper method for switching the currently active session.
-    (Automatically closes running unnamed sessions.)
-    """
-    name = str(name)
-    try:
-      cls.session = cls.sessions[name]
-    except KeyError:
-      raise cls.SessionError('Session not found: %s' % repr(name))
+        - Automatically closes already running unnamed sessions.
+        """
+        cls.session = session
 
-  @classmethod
-  def close_session(cls):
-    """Helper method for closing the currently active session.
-    """
-    if cls.session is None:
-      raise cls.SessionError('No active session.')
-    for name, session in cls.sessions.items():
-      if session is cls.session:
-        del cls.sessions[name]
-    cls.session = None
+    @classmethod
+    def add_named_session(cls, name, session):
+        """Helper method for adding a named session to the handler
+           and making it active.
+
+        - Automatically closes running unnamed sessions.
+        """
+        name = str(name)
+        cls.session = cls.sessions[name] = session
+
+    @classmethod
+    def switch_session(cls, name):
+        """Helper method for switching the currently active session.
+
+        - Automatically closes running unnamed sessions.
+        """
+        name = str(name)
+        try:
+            cls.session = cls.sessions[name]
+        except KeyError:
+            raise cls.SessionError('Session not found: %s' % repr(name))
+
+    @classmethod
+    def close_session(cls):
+        """Helper method for closing the currently active session.
+        """
+        if cls.session is None:
+            raise cls.SessionError('No active session.')
+        for name, session in cls.sessions.items():
+            if session is cls.session:
+                del cls.sessions[name]
+        cls.session = None

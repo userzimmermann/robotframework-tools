@@ -28,19 +28,21 @@ __all__ = 'Meta',
 from moretools import camelize, decamelize
 
 class Meta(object):
-  """The meta information for a session handler
-  based on the handler's class name
-  and a user-defined `Handler.Meta` class.
-  """
-  def __init__(self, handlerclsname = None, metadefs = None):
-    """Generate several variants of a session handler name
-    for use in identifiers and message strings,
-    based on the `handlerclsname`
+    """The meta information for a session handler
+
+    - Based on the handler's class name
+      and a user-defined `Handler.Meta` class.
+    """
+    def __init__(self, handlerclsname = None, metadefs = None):
+        """Generate several variants of a session handler name
+           for use in identifiers and message strings,
+
+        - Based on the `handlerclsname`
     and/or the attributes of the optional `Handler.Meta` class in `metadefs`,
     which can define name (variant) prefixes/suffixes
     and/or explicit name variants.
     """
-    # check all prefix definitions and generate actual prefix strings
+    # Check all prefix definitions and generate actual prefix strings
     prefixes = {}
 
     def gen_prefix(key, default, append = ''):
@@ -69,20 +71,20 @@ class Meta(object):
       default = prefixes[key]
       gen_prefix(plural_key, default, append)
 
-    # base name prefixes
+    # Base name prefixes
     gen_prefix('', '', '_')
     gen_plural_prefix('', '_')
     gen_prefix('upper', camelize(prefixes['']))
     gen_plural_prefix('upper')
-    # identifier name prefixes
+    # Identifier name prefixes
     gen_prefix('identifier', '', '_')
     gen_plural_prefix('identifier', '_')
     gen_prefix('upper_identifier', camelize(prefixes['identifier']))
-    # verbose name prefixes
+    # Verbose name prefixes
     gen_prefix('verbose', '', ' ')
     gen_plural_prefix('verbose', ' ')
 
-    # check all suffix definitions and generate actual suffix strings
+    # Check all suffix definitions and generate actual suffix strings
     suffixes = {}
 
     def gen_suffix(key, default, prepend = ''):
@@ -111,20 +113,20 @@ class Meta(object):
       default = suffixes[key] and suffixes[key] + 's'
       gen_suffix(plural_key, default, prepend)
 
-    # identifier name suffixes
+    # Identifier name suffixes
     gen_suffix('', '', '_')
     gen_plural_suffix('', '_')
     gen_suffix('upper', camelize(suffixes['']))
     gen_plural_suffix('upper')
-    # identifier name suffixes
+    # Identifier name suffixes
     gen_suffix('identifier', 'session', '_')
     gen_plural_suffix('identifier', '_')
     gen_suffix('upper_identifier', camelize(suffixes['identifier']))
-    # verbose name suffixes
+    # Verbose name suffixes
     gen_suffix('verbose', 'Session', ' ')
     gen_plural_suffix('verbose', ' ')
 
-    # check explicit name variant definitions
+    # Check explicit name variant definitions
     variants = {}
     for variantkey in (
       '', 'plural', 'upper', 'plural_upper',
@@ -137,8 +139,8 @@ class Meta(object):
       variant = variant and (str(variant) or None) or None
       variants[variantkey] = variant
 
-    # create final base name (helper) variants
-    # (NOT stored in final meta object (`self`))
+    # Create final base name (helper) variants
+    # (NOT stored in final meta object (self))
     key = ''
     name = (
       variants[key]
@@ -160,8 +162,8 @@ class Meta(object):
         suffixes[key] or (not variants['plural'] and 's' or ''))
       or None)
 
-    # create final identifier/verbose name variants
-    # (stored in final meta object (`self`))
+    # Create final identifier/verbose name variants
+    # (stored in final meta object (self))
     key = 'identifier'
     self.identifier_name = (
       variants[key]
