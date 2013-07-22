@@ -46,12 +46,12 @@ class TestLibraryType(object):
         """
         return [name for name, method in self.keywords]
 
-    def run_keyword(self, name, args):
+    def run_keyword(self, name, args, kwargs={}):
         """Run the Keyword given by its lower_case `name`
-        with the given `args`.
+        with the given `args` and `kwargs`.
         """
         method = self.keywords[name]
-        return method(*args)
+        return method(*args, **kwargs)
 
     def get_keyword_arguments(self, name):
         """Get the arguments definition of Keyword
@@ -62,6 +62,8 @@ class TestLibraryType(object):
         args = argspec.args[1:]
         if argspec.varargs:
             args.append('*' + argspec.varargs)
+        if argspec.keywords:
+            args.append('**' + argspec.keywords)
         return args
 
     def __init__(self):
