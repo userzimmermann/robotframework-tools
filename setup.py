@@ -20,6 +20,7 @@ setup(
     'robottools',
     'robottools.library',
     'robottools.library.session',
+    'robotshell',
     ],
 
   classifiers = [
