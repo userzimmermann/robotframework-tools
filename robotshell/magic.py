@@ -40,14 +40,6 @@ class RobotMagics(Magics):
     def Import(self, name):
         return self.robot_plugin.Import(name)
 
-## def KeywordsMagicsMeta(type(Magics)):
-##     def __new__(metacls, clsname, bases, clsattrs):
-
-## def KeywordsMagics(library):
-##     @magics_class
-##     class KeywordsMagics(Magics):
-##         for 
-
 class RobotMagic(object):
     def __init__(self, robot_plugin, name=None):
         self.robot_plugin = robot_plugin
