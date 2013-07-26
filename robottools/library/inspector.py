@@ -50,9 +50,61 @@ ROBOT_LIBRARIES = sorted(ROBOT_LIBRARIES)
 class TestLibraryImportError(ImportError):
   pass
 
+class KeywordArgumentsInspector(object):
+    def __init__(self, arguments):
+        self._arguments = arguments
+
+    def __getattr__(self, name):
+        return getattr(self._arguments, name)
+
+    def __dir__(self):
+        return ['positional', 'varargs', 'kwargs']
+
+    def __iter__(self):
+        args = self._arguments
+        for argname in args.positional:
+            yield argname
+        if args.varargs:
+            yield '*' + args.varargs
+        if args.kwargs:
+            yield '**' + args.kwargs
+
+    def __str__(self):
+        return ' | '.join(self)
+
+    def __repr__(self):
+        return '[Arguments] %s' % self
+
+class KeywordInspector(object):
+    def __init__(self, handler):
+        self._handler = handler
+
+    @property
+    def __doc__(self):
+        return "%s\n\n%s" % (repr(self), self._handler.doc)
+
+    @property
+    def arguments(self):
+        return KeywordArgumentsInspector(self._handler.arguments)
+
+    def __getattr__(self, name):
+        return getattr(self._handler, name)
+
+    def __dir__(self):
+        return ['name', 'doc', 'shortdoc']
+
+    def __str__(self):
+        return self._handler.longname
+
+    def __repr__(self):
+        return '[Keyword] %s [ %s ]' % (self, self.arguments)
+
 class TestLibraryInspectorMeta(type):
     def __getattr__(self, libname):
-        return TestLibraryInspector(libname)
+        try:
+            return TestLibraryInspector(libname)
+        except TestLibraryImportError as e:
+            raise AttributeError(str(e))
 
     def __dir__(self):
         return list(ROBOT_LIBRARIES)
@@ -67,18 +119,25 @@ class TestLibraryInspector(object):
             raise TestLibraryImportError(str(e))
 
     @property
+    def __doc__(self):
+        return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
+          '* [Keyword] %s [%s]' % (keyword.name, keyword.arguments)
+          for keyword in self)))
+
+    @property
     def name(self):
         return self._library.name
 
     def __iter__(self):
         for keyword in self._library.handlers.values():
-            yield keyword
+            yield KeywordInspector(keyword)
 
     def __getitem__(self, name):
         try:
-            return self._library.get_handler(name)
+            handler = self._library.get_handler(name)
         except robot.errors.DataError as e:
             raise KeyError(str(e))
+        return KeywordInspector(handler)
 
     def __getattr__(self, name):
         try:
@@ -88,6 +147,12 @@ class TestLibraryInspector(object):
 
     def __dir__(self):
         return list(map(camelize, self._library.handlers.keys()))
+
+    def __str__(self):
+        return self._library.name
+
+    def __repr__(self):
+        return '[Library] %s' % self
 
 TestLibrariesDict = simpledict('TestLibrariesDict', dicttype=OrderedDict)
 
@@ -101,10 +166,16 @@ class MultiTestLibraryInspector(object):
         self.libraries = TestLibrariesDict.frozen(
           (lib.name, lib) for lib in libslist)
 
+    @property
+    def __doc__(self):
+        return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
+          '* [Keyword] %s [%s]' % (keyword.name, keyword.arguments)
+          for keyword in self)))
+
     def __iter__(self):
         for libname, lib in self.libraries:
             for keyword in lib._library.handlers.values():
-                yield keyword
+                yield KeywordInspector(keyword)
 
     def __getitem__(self, name):
         for libname, lib in self.libraries:
@@ -124,3 +195,10 @@ class MultiTestLibraryInspector(object):
         ikeys = chain(*(
           lib._library.handlers.keys() for libname, lib in self.libraries))
         return list(map(camelize, ikeys))
+
+    def __str__(self):
+        return ' '.join(sorted(
+          item[0] for item in self.libraries))
+
+    def __repr__(self):
+        return '[Libraries] %s' %self
