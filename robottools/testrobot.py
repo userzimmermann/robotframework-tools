@@ -23,11 +23,20 @@
 """
 __all__ = ['TestRobot']
 
+from moretools import isidentifier
+
+from robot.errors import DataError
+from robot.conf import RobotSettings
+from robot.variables import GLOBAL_VARIABLES, init_global_variables
+
 from robottools.library.inspector import TestLibraryInspector
+
+init_global_variables(RobotSettings())
 
 class TestRobot(object):
     def __init__(self, name):
         self.name = name
+        self._variables = GLOBAL_VARIABLES.copy()
         self._libraries = []
 
     @property
@@ -42,6 +51,11 @@ class TestRobot(object):
         return lib
 
     def __getitem__(self, name):
+        if name.startswith('$'):
+            try:
+                return self._variables[name]
+            except DataError as e:
+                raise KeyError(str(e))
         for lib in self._libraries:
             if lib.name == name:
                 return lib
@@ -52,6 +66,8 @@ class TestRobot(object):
         raise e
 
     def __getattr__(self, name):
+        if name.isupper(): # Use as variable name
+            name = '${%s}' % name
         try:
             return self[name]
         except KeyError as e:
@@ -59,6 +75,10 @@ class TestRobot(object):
 
     def __dir__(self):
         names = []
+        for name in self._variables:
+            name = name[2:-1] # Strip ${}
+            if isidentifier(name):
+                names.append(name.upper())
         for lib in self._libraries:
             names.append(lib.name)
             # dir() returns the Library's CamelCase Keyword names
