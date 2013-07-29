@@ -62,8 +62,15 @@ class KeywordArgumentsInspector(object):
 
     def __iter__(self):
         args = self._arguments
-        for argname in args.positional:
-            yield argname
+        for argname, defaults_index in zip(
+          args.positional, range(-len(args.positional), 0)
+          ):
+            try:
+                default = args.defaults[defaults_index]
+            except IndexError:
+                yield argname
+            else:
+                yield '%s=%s' % (argname, default)
         if args.varargs:
             yield '*' + args.varargs
         if args.kwargs:
