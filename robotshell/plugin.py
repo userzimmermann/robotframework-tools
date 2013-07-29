@@ -29,6 +29,7 @@ import os
 from IPython.core.plugin import Plugin
 
 from robottools import TestRobot
+from robottools.testrobot import Keyword
 
 from .magic import RobotMagics, RobotMagic
 
@@ -65,6 +66,10 @@ class RobotPlugin(Plugin):
             self.shell.magics_manager.define_magic(
               str(robot_magic), robot_magic)
 
+            for var, value in robot._variables.items():
+                self.shell.magics_manager.define_magic(
+                  var, lambda self, _, _value=value: _value)
+
             self.unregister_robot_keyword_magics()
             for lib in robot._libraries:
                 self.register_robot_keyword_magics(lib)
@@ -89,7 +94,10 @@ class RobotPlugin(Plugin):
             keywordname = keyword.name.replace(' ', '')
             for name in keywordname, '%s.%s' % (library.name, keywordname):
                 def keyword_magic(magics, args, _keyword=keyword):
-                    print('[%s] %s' % (str(_keyword), args))
+                    keyword = Keyword(_keyword._handler, self.robot._context)
+                    if args:
+                        return keyword(*args.split())
+                    return keyword()
 
                 keyword_magic.func_name = str(keywordname)
                 keyword_magic.__doc__ = keyword.__doc__
