@@ -23,20 +23,92 @@
 """
 __all__ = ['TestRobot']
 
+import sys
+import warnings
+
 from moretools import isidentifier
 
 from robot.errors import DataError
 from robot.conf import RobotSettings
 from robot.variables import GLOBAL_VARIABLES, init_global_variables
+from robot.output.loggerhelper import LEVELS as LOG_LEVELS, AbstractLogger
+import robot.running
 
-from robottools.library.inspector import TestLibraryInspector
+from robottools.library.inspector import (
+  TestLibraryInspector, KeywordInspector)
 
 init_global_variables(RobotSettings())
+
+LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
+
+class Output(AbstractLogger):
+    def message(self, message):
+        level = message.level
+        print('[%s]%s %s' % (
+          message.level, ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)),
+          message.message))
+
+class Keyword(KeywordInspector):
+    def __init__(self, handler, context):
+        KeywordInspector.__init__(self, handler)
+        self._context = context
+
+    @property
+    def __doc__(self):
+        return KeywordInspector.__doc__.fget(self)
+
+    def __call__(self, *args, **kwargs):
+        args = list(map(str, args))
+        args.extend('%s=%s' % item for item in kwargs.items())
+        runner = robot.running.Keyword(self.name, args)
+        try:
+            runner.run(self._context)
+        except:
+            pass
+
+class Context(object):
+    def __init__(self, testrobot):
+        self.testrobot = testrobot
+
+        self.output = Output()
+        self.dry_run = False
+        self.in_teardown = False
+        self.test = None
+
+    @property
+    def variables(self):
+        return self.testrobot._variables
+
+    @property
+    def keywords(self):
+        return []
+
+    def get_handler(self, name):
+        try:
+            keyword = self.testrobot[name]
+            if type(keyword) is not Keyword:
+                raise KeyError(name)
+        except KeyError:
+            raise DataError(name)
+        return keyword._handler
+
+    def start_keyword(self, keyword):
+        pass
+
+    def end_keyword(self, keyword):
+        pass
+
+    def warn(self, msg):
+        self.output.warn(msg)
+
+    def trace(self, msg):
+        self.output.trace(msg)
 
 class TestRobot(object):
     def __init__(self, name):
         self.name = name
         self._variables = GLOBAL_VARIABLES.copy()
+        self._context = Context(testrobot=self)
         self._libraries = []
 
     @property
@@ -60,9 +132,11 @@ class TestRobot(object):
             if lib.name == name:
                 return lib
             try:
-                return lib[name]
+                keyword = lib[name]
             except KeyError as e:
                 pass
+            else:
+                return Keyword(keyword._handler, self._context)
         raise e
 
     def __getattr__(self, name):
