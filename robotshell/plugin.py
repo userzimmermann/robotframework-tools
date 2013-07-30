@@ -31,7 +31,7 @@ from IPython.core.plugin import Plugin
 from robottools import TestRobot
 from robottools.testrobot import Keyword
 
-from .magic import RobotMagics, RobotMagic
+from .magic import RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic
 
 class RobotPlugin(Plugin):
     def __init__(self, shell):
@@ -50,6 +50,7 @@ class RobotPlugin(Plugin):
         self.robot = None
         self.robots = {}
         self.robot_keyword_magics = {}
+        self.robot_keyword_cell_magics = {}
 
         # Create initial Test Robot
         self.Robot('Default')
@@ -89,24 +90,30 @@ class RobotPlugin(Plugin):
 
     def register_robot_keyword_magics(self, library):
         define_magic = self.shell.magics_manager.define_magic
+        cell_magics = self.shell.magics_manager.magics['cell']
 
         for keyword in library:
             keywordname = keyword.name.replace(' ', '')
             for name in keywordname, '%s.%s' % (library.name, keywordname):
-                def keyword_magic(magics, args, _keyword=keyword):
-                    keyword = Keyword(_keyword._handler, self.robot._context)
-                    if args:
-                        return keyword(*args.split())
-                    return keyword()
+                keyword = Keyword(keyword._handler, self.robot._context)
 
-                keyword_magic.func_name = str(keywordname)
-                keyword_magic.__doc__ = keyword.__doc__
+                keyword_magic = KeywordMagic(keyword)
                 self.robot_keyword_magics[name] = keyword_magic
 
                 define_magic(name, keyword_magic)
+
+                keyword_cell_magic = KeywordCellMagic(keyword)
+                self.robot_keyword_cell_magics[name] = keyword_magic
+
+                cell_magics[name] = keyword_cell_magic
 
     def unregister_robot_keyword_magics(self):
         magics = self.shell.magics_manager.magics['line']
         for name in self.robot_keyword_magics:
             del magics[name]
         self.robot_keyword_magics = {}
+
+        magics = self.shell.magics_manager.magics['cell']
+        for name in self.robot_keyword_cell_magics:
+            del magics[name]
+        self.robot_keyword_cell_magics = {}

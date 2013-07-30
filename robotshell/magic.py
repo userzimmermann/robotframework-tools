@@ -21,7 +21,7 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['RobotMagics', 'RobotMagic']
+__all__ = ['RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic']
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
@@ -66,3 +66,29 @@ class RobotMagic(object):
 
     def __call__(self, magics, name):
         return self.robot_plugin.Robot(self.name or name)
+
+class KeywordMagic(object):
+    def __init__(self, keyword):
+        self.keyword = keyword
+
+    @property
+    def __doc__(self):
+        return self.keyword.__doc__
+
+    def __str__(self):
+        return self.keyword.name
+
+    def __call__(self, magics, args_str):
+        if not args_str:
+            return self.keyword()
+
+        if any(args_str.startswith(c) for c in '[|'):
+            args = [s.strip() for s in args_str.strip('[|]').split('|')]
+        else:
+            args = args_str.split()
+        return self.keyword.debug(*args)
+
+class KeywordCellMagic(KeywordMagic):
+    def __call__(self, magics, args_str):
+        args = [s.strip() for s in args_str.strip().split('\n')]
+        return self.keyword(*args)
