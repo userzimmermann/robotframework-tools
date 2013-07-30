@@ -28,10 +28,12 @@ import warnings
 
 from moretools import isidentifier
 
-from robot.errors import DataError
+from robot.errors import DataError, HandlerExecutionFailed
+## from robot.utils.error import ErrorDetails, PythonErrorDetails
 from robot.conf import RobotSettings
 from robot.variables import GLOBAL_VARIABLES, init_global_variables
 from robot.output.loggerhelper import LEVELS as LOG_LEVELS, AbstractLogger
+from robot.running import EXECUTION_CONTEXTS
 import robot.running
 
 from robottools.library.inspector import (
@@ -48,10 +50,25 @@ class Output(AbstractLogger):
           message.level, ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)),
           message.message))
 
+class DebugKeyword(robot.running.Keyword):
+    def _report_failure(self, context):
+        # Get the Exception raised by the Keyword
+        exc_type, exc_value, traceback = sys.exc_info()
+        # and search the oldest traceback frame of the actual Keyword code
+        # (Adapted from robot.utils.error.PythonErrorDetails._get_traceback)
+        while traceback:
+            modulename = traceback.tb_frame.f_globals['__name__']
+            if modulename.startswith('robot.running.'):
+                traceback = traceback.tb_next
+            else:
+                break
+        raise exc_type, exc_value, traceback
+
 class Keyword(KeywordInspector):
-    def __init__(self, handler, context):
+    def __init__(self, handler, context, debug=False):
         KeywordInspector.__init__(self, handler)
         self._context = context
+        self._debug = debug
 
     @property
     def __doc__(self):
@@ -60,11 +77,23 @@ class Keyword(KeywordInspector):
     def __call__(self, *args, **kwargs):
         args = list(map(str, args))
         args.extend('%s=%s' % item for item in kwargs.items())
-        runner = robot.running.Keyword(self.name, args)
+        if self._debug:
+            runner = DebugKeyword(self.name, args)
+        else:
+            runner = robot.running.Keyword(self.name, args)
+        #HACK: For the Robot BuiltIn Library
+        EXECUTION_CONTEXTS._contexts = [self._context]
         try:
-            runner.run(self._context)
-        except:
+            return runner.run(self._context)
+        # Raised by robot.running.Keyword:
+        except HandlerExecutionFailed as e:
             pass
+        #HACK:
+        EXECUTION_CONTEXTS._contexts = []
+
+    def debug(self, *args, **kwargs):
+        keyword = Keyword(self._handler, self._context, debug=True)
+        return keyword(*args, **kwargs)
 
 class Context(object):
     def __init__(self, testrobot):
