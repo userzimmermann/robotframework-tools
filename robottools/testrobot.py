@@ -54,7 +54,9 @@ class DebugKeyword(robot.running.Keyword):
     def _report_failure(self, context):
         # Get the Exception raised by the Keyword
         exc_type, exc_value, traceback = sys.exc_info()
-        # and search the oldest traceback frame of the actual Keyword code
+        context.output.fail("%s: %s" % (exc_type.__name__, exc_value))
+        context.output.debug("Re-raising exception...")
+        # Search the oldest traceback frame of the actual Keyword code
         # (Adapted from robot.utils.error.PythonErrorDetails._get_traceback)
         while traceback:
             modulename = traceback.tb_frame.f_globals['__name__']
