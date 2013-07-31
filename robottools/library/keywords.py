@@ -105,6 +105,8 @@ class KeywordDecoratorType(object):
         - The Keyword method function is stored
           in the Test Library's `keywords` mapping.
         """
+        # Save original doc string
+        doc = func.func_doc
         try:
             argspec = func.argspec
         except AttributeError:
@@ -113,8 +115,22 @@ class KeywordDecoratorType(object):
         for optionname in self.options:
             decorator = getattr(type(self), 'option_' + optionname)
             func = decorator(func)
+        if not name:
+            name = func.func_name
+        if func.func_doc:
+            # Update saved doc string
+            doc = func.doc
+
+        # Use at least one wrapper to make the assignments below always work
+        def keyword_method(self, *args, **kwargs):
+            return func(self, *args, **kwargs)
+
+        # Keep existing (or explicitly given) method name
+        keyword_method.func_name = name
+        # Keep method doc string
+        keyword_method.func_doc = doc
         # Store original method argspec
-        func.argspec = argspec
-        # Add method to Library's `keywords` mapping
-        self.keywords[name or func.func_name] = func
-        return func
+        keyword_method.argspec = argspec
+        # Add method to the Library's Keywords mapping
+        self.keywords[name] = keyword_method
+        return keyword_method
