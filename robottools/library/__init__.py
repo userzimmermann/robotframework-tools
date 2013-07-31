@@ -27,6 +27,7 @@ __all__ = (
   'KeywordDecoratorType', 'InvalidKeywordOption',
   )
 
+from functools import partial
 from collections import OrderedDict
 from moretools import simpledict
 
@@ -42,7 +43,7 @@ class TestLibraryType(object):
     """
     def get_keyword_names(self):
         """Get all lower_case Keyword names for Robot Framework
-        from `self.keywords` mapping.
+        from the `self.keywords` mapping.
         """
         return [name for name, method in self.keywords]
 
@@ -53,8 +54,15 @@ class TestLibraryType(object):
         method = self.keywords[name]
         return method(*args, **kwargs)
 
+    def get_keyword_documentation(self, name):
+        """Get the doc string of the Keyword
+        given by its lower_case `name`.
+        """
+        method = self.keywords[name]
+        return method.__doc__
+
     def get_keyword_arguments(self, name):
-        """Get the arguments definition of Keyword
+        """Get the arguments definition of the Keyword
         given by its lower_case `name`.
         """
         method = self.keywords[name]
@@ -76,7 +84,9 @@ class TestLibraryType(object):
         """
         self.keywords = KeywordsDict()
         for name, func in type(self).keywords:
-            self.keywords[name] = getattr(self, name)
+            def keyword(*args, **kwargs):
+                return func
+            self.keywords[name] = partial(func, self) #getattr(self, name)
 
     def __getattr__(self, name):
         """CamelCase access to the bound Keyword methods.
@@ -127,7 +137,7 @@ def testlibrary(
             optionname = decofunc.func_name
         except AttributeError:
             optionname, decofunc = decofunc
-    decotypeattrs['option_' + optionname] = staticmethod(decofunc)
+        decotypeattrs['option_' + optionname] = staticmethod(decofunc)
     # create the final Keyword decorator
     decotype = type(
       'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
