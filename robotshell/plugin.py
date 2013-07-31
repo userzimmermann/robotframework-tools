@@ -37,6 +37,8 @@ class RobotPlugin(Plugin):
     def __init__(self, shell):
         Plugin.__init__(self, shell=shell)
 
+        self.debug = False
+
         for name, value in os.environ.items():
             self.shell.magics_manager.define_magic(
               '{%s}' % name, lambda magics, _, _value=value: _value)
@@ -63,7 +65,7 @@ class RobotPlugin(Plugin):
                 robot = TestRobot(name)
                 self.robots[name] = robot
 
-            robot_magic = RobotMagic(robot_plugin=self, name=name)
+            robot_magic = RobotMagic(name, robot_plugin=self)
             self.shell.magics_manager.define_magic(
               str(robot_magic), robot_magic)
 
@@ -97,15 +99,16 @@ class RobotPlugin(Plugin):
             for name in keywordname, '%s.%s' % (library.name, keywordname):
                 keyword = Keyword(keyword._handler, self.robot._context)
 
-                keyword_magic = KeywordMagic(keyword)
+                keyword_magic = KeywordMagic(keyword, robot_plugin=self)
                 self.robot_keyword_magics[name] = keyword_magic
 
                 define_magic(name, keyword_magic)
 
-                keyword_cell_magic = KeywordCellMagic(keyword)
-                self.robot_keyword_cell_magics[name] = keyword_magic
+                ## keyword_cell_magic = KeywordCellMagic(
+                ##   keyword, robot_plugin=self)
+                ## self.robot_keyword_cell_magics[name] = keyword_cell_magic
 
-                cell_magics[name] = keyword_cell_magic
+                ## cell_magics[name] = keyword_cell_magic
 
     def unregister_robot_keyword_magics(self):
         magics = self.shell.magics_manager.magics['line']

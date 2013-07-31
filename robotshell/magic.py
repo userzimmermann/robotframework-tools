@@ -32,17 +32,22 @@ class RobotMagics(Magics):
 
         self.robot_plugin = robot_plugin
 
-    ## @line_magic
-    ## def Robot(self, name=None):
-    ##     return self.robot_plugin.Robot(name)
+    @line_magic
+    def robot_debug(self, name=None):
+        debug = self.robot_plugin.debug = not self.robot_plugin.debug
+        print("Robot debug mode is: " + (debug and "ON" or "OFF"))
 
     @line_magic
     def Import(self, name):
         return self.robot_plugin.Import(name)
 
-class RobotMagic(object):
-    def __init__(self, robot_plugin, name=None):
+class RobotMagicBase(object):
+    def __init__(self, robot_plugin):
         self.robot_plugin = robot_plugin
+
+class RobotMagic(RobotMagicBase):
+    def __init__(self, name=None, **baseargs):
+        RobotMagicBase.__init__(self, **baseargs)
         self.name = name
 
     @property
@@ -67,8 +72,9 @@ class RobotMagic(object):
     def __call__(self, magics, name):
         return self.robot_plugin.Robot(self.name or name)
 
-class KeywordMagic(object):
-    def __init__(self, keyword):
+class KeywordMagic(RobotMagicBase):
+    def __init__(self, keyword, **baseargs):
+        RobotMagicBase.__init__(self, **baseargs)
         self.keyword = keyword
 
     @property
@@ -86,7 +92,9 @@ class KeywordMagic(object):
             args = [s.strip() for s in args_str.strip('[|]').split('|')]
         else:
             args = args_str.split()
-        return self.keyword.debug(*args)
+        if self.robot_plugin.debug:
+            return self.keyword.debug(*args)
+        return self.keyword(*args)
 
 class KeywordCellMagic(KeywordMagic):
     def __call__(self, magics, args_str):
