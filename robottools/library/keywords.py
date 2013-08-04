@@ -29,7 +29,9 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = 'KeywordsDict', 'KeywordDecoratorType', 'InvalidKeywordOption',
+__all__ = [
+  'KeywordsDict', 'Keyword',
+  'KeywordDecoratorType', 'InvalidKeywordOption']
 
 import inspect
 import re
@@ -44,6 +46,39 @@ KeywordsDict = simpledict(
   key_to_attr=camelize,
   # convert CamelCase keyword attribute names back to lower_case
   attr_to_key=decamelize)
+
+class Keyword(object):
+    def __init__(self, name, func, testlib):
+        self.name = camelize(name)
+        self.func = func
+        self.testlib = testlib
+
+    @property
+    def __doc__(self):
+        return self.func.__doc__
+
+    @property
+    def libname(self):
+        return type(self.testlib).__name__
+
+    @property
+    def longname(self):
+        return '%s.%s' % (self.libname, self.name)
+
+    def args(self):
+        argspec = self.func.argspec
+        for arg in argspec.args[1:]:
+            yield arg
+        if argspec.varargs:
+            yield '*' + argspec.varargs
+        if argspec.keywords:
+            yield '**' + argspec.keywords
+
+    def __call__(self, *args, **kwargs):
+        return self.func(self.testlib, *args, **kwargs)
+
+    def __repr__(self):
+        return '%s [%s]' % (self.longname, ' | '.join(self.args()))
 
 class InvalidKeywordOption(LookupError):
     pass

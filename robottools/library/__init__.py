@@ -32,7 +32,8 @@ from collections import OrderedDict
 from moretools import simpledict
 
 from .keywords import (
-  KeywordsDict, KeywordDecoratorType, InvalidKeywordOption,
+  KeywordsDict, Keyword,
+  KeywordDecoratorType, InvalidKeywordOption,
   )
 
 class TestLibraryType(object):
@@ -45,34 +46,28 @@ class TestLibraryType(object):
         """Get all lower_case Keyword names for Robot Framework
         from the `self.keywords` mapping.
         """
-        return [name for name, method in self.keywords]
+        return [name for name, kw in self.keywords]
 
     def run_keyword(self, name, args, kwargs={}):
         """Run the Keyword given by its lower_case `name`
         with the given `args` and `kwargs`.
         """
-        method = self.keywords[name]
-        return method(*args, **kwargs)
+        keyword = self.keywords[name]
+        return keyword(*args, **kwargs)
 
     def get_keyword_documentation(self, name):
         """Get the doc string of the Keyword
         given by its lower_case `name`.
         """
-        method = self.keywords[name]
-        return method.__doc__
+        keyword = self.keywords[name]
+        return keyword.__doc__
 
     def get_keyword_arguments(self, name):
         """Get the arguments definition of the Keyword
         given by its lower_case `name`.
         """
-        method = self.keywords[name]
-        argspec = method.argspec
-        args = argspec.args[1:]
-        if argspec.varargs:
-            args.append('*' + argspec.varargs)
-        if argspec.keywords:
-            args.append('**' + argspec.keywords)
-        return args
+        keyword = self.keywords[name]
+        return list(keyword.args())
 
     def __init__(self):
         """Initializes the Test Library base.
@@ -84,9 +79,7 @@ class TestLibraryType(object):
         """
         self.keywords = KeywordsDict()
         for name, func in type(self).keywords:
-            def keyword(*args, **kwargs):
-                return func
-            self.keywords[name] = partial(func, self) #getattr(self, name)
+            self.keywords[name] = Keyword(name, func, testlib=self)
 
     def __getattr__(self, name):
         """CamelCase access to the bound Keyword methods.
