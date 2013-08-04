@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
   name = 'robotframework-tools',
-  version = '0.1a26',
+  version = '0.1a57',
   description = (
     'Tools for Robot Framework and Test Libraries.'
     ),
