@@ -84,23 +84,32 @@ class HandlerMeta(type):
         argspec = inspect.getargspec(func)
 
         def open_session(self, *args, **kwargs):
-            """Open an unnamed session.
+            """Open an unnamed %s.
 
-            - Automatically closes already running unnamed sessions.
+            - Automatically closes active unnamed %s.
             """
             session = func(self, *args, **kwargs)
             cls.add_session(session)
 
+        open_session.func_doc %= (
+          cls.meta.verbose_name, cls.meta.plural_verbose_name)
+
         open_session.argspec = argspec
+        # Use custom doc string if defined
+        if func.func_doc:
+            open_session.func_doc = func.func_doc
         cls.keywords[keywordname % ''] = open_session
 
         def open_named_session(self, name, *args, **kwargs):
-            """Open a named session.
+            """Open a named %s.
 
-            - Automatically closes running unnamed sessions.
+            - Automatically closes active unnamed %s.
             """
             session = func(self, *args, **kwargs)
             cls.add_named_session(name, session)
+
+        open_named_session.func_doc %= (
+          cls.meta.verbose_name, cls.meta.plural_verbose_name)
 
         named_argspec = deepcopy(argspec)
         named_argspec.args.insert(1, 'name') # (after self)
