@@ -38,8 +38,15 @@ class RobotMagics(Magics):
         print("Robot debug mode is: " + (debug and "ON" or "OFF"))
 
     @line_magic
-    def Import(self, name):
-        return self.robot_plugin.Import(name)
+    def Import(self, libname_as_alias):
+        try:
+            libname, _as_, alias = libname_as_alias.split()
+            if _as_ != 'as':
+                raise ValueError
+        except ValueError:
+            libname = libname_as_alias
+            alias = None
+        return self.robot_plugin.Import(libname, alias)
 
 class RobotMagicBase(object):
     def __init__(self, robot_plugin):
@@ -62,9 +69,10 @@ class RobotMagic(RobotMagicBase):
 
     @property
     def magic_name(self):
+        robot_magic_name = self.robot_plugin.robot_magic_name
         if self.name:
-            return 'Robot.' + self.name
-        return 'Robot'
+            return '%s.%s' % (robot_magic_name, self.name)
+        return robot_magic_name
 
     def __str__(self):
         return self.magic_name
