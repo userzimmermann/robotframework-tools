@@ -58,7 +58,7 @@ class KeywordArgumentsInspector(object):
         return getattr(self._arguments, name)
 
     def __dir__(self):
-        return ['positional', 'varargs', 'kwargs']
+        return ['positional', 'defaults', 'varargs', 'kwargs']
 
     def __iter__(self):
         args = self._arguments
