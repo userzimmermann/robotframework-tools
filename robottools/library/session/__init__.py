@@ -141,7 +141,7 @@ class HandlerMeta(type):
             cls.close_session()
 
         keywordname = 'close_' + meta.identifier_name
-        cls.keywords[keywordname] = cls.close_session
+        cls.keywords[keywordname] = close_session
 
 class Handler(object):
     """The base class for custom Robot Test Library session handler types.
