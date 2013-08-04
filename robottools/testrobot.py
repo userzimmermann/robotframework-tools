@@ -140,17 +140,18 @@ class TestRobot(object):
         self.name = name
         self._variables = GLOBAL_VARIABLES.copy()
         self._context = Context(testrobot=self)
-        self._libraries = []
+        self._libraries = {}
 
     @property
     def __doc__(self):
         return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
-          '* [Import] ' + lib.name for lib in self._libraries)))
+          '* [Import] ' + lib.name
+          for alias, lib in self._libraries.items())))
 
-    def Import(self, lib):
+    def Import(self, lib, alias=None):
         if type(lib) is not TestLibraryInspector:
             lib = TestLibraryInspector(lib)
-        self._libraries.append(lib)
+        self._libraries[alias or lib.name] = lib
         return lib
 
     def __getitem__(self, name):
@@ -159,8 +160,8 @@ class TestRobot(object):
                 return self._variables[name]
             except DataError as e:
                 raise KeyError(str(e))
-        for lib in self._libraries:
-            if lib.name == name:
+        for alias, lib in self._libraries.items():
+            if alias == name:
                 return lib
             try:
                 keyword = lib[name]
@@ -184,8 +185,8 @@ class TestRobot(object):
             name = name[2:-1] # Strip ${}
             if isidentifier(name):
                 names.append(name.upper())
-        for lib in self._libraries:
-            names.append(lib.name)
+        for alias, lib in self._libraries:
+            names.append(alias)
             # dir() returns the Library's CamelCase Keyword names
             names.extend(dir(lib))
         return names
