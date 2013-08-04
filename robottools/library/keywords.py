@@ -119,7 +119,7 @@ class KeywordDecoratorType(object):
             name = func.func_name
         if func.func_doc:
             # Update saved doc string
-            doc = func.doc
+            doc = func.func_doc
 
         # Use at least one wrapper to make the assignments below always work
         def keyword_method(self, *args, **kwargs):
