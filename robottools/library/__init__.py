@@ -79,7 +79,7 @@ class TestLibraryType(object):
         """
         self.keywords = KeywordsDict()
         for name, func in type(self).keywords:
-            self.keywords[name] = Keyword(name, func, testlib=self)
+            self.keywords[name] = Keyword(name, func, libinstance=self)
 
     def __getattr__(self, name):
         """CamelCase access to the bound Keyword methods.

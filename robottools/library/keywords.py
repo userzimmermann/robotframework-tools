@@ -35,6 +35,7 @@ __all__ = [
 
 import inspect
 import re
+from itertools import chain
 
 from moretools import simpledict, camelize, decamelize
 
@@ -48,10 +49,10 @@ KeywordsDict = simpledict(
   attr_to_key=decamelize)
 
 class Keyword(object):
-    def __init__(self, name, func, testlib):
-        self.name = camelize(name)
+    def __init__(self, name, func, libinstance):
+        self.name = camelize(name, joiner=' ')
         self.func = func
-        self.testlib = testlib
+        self.libinstance = libinstance
 
     @property
     def __doc__(self):
@@ -59,7 +60,7 @@ class Keyword(object):
 
     @property
     def libname(self):
-        return type(self.testlib).__name__
+        return type(self.libinstance).__name__
 
     @property
     def longname(self):
@@ -67,18 +68,34 @@ class Keyword(object):
 
     def args(self):
         argspec = self.func.argspec
-        for arg in argspec.args[1:]:
-            yield arg
+        posargs = argspec.args[1:]
+        defaults = argspec.defaults
+        if defaults:
+            for arg, defaults_index in zip(
+              posargs, range(-len(posargs), 0)
+              ):
+                try:
+                    default = defaults[defaults_index]
+                except IndexError:
+                    yield arg
+                else:
+                    yield '%s=%s' % (arg, default)
+        else:
+            for arg in posargs:
+                yield arg
         if argspec.varargs:
             yield '*' + argspec.varargs
         if argspec.keywords:
             yield '**' + argspec.keywords
 
     def __call__(self, *args, **kwargs):
-        return self.func(self.testlib, *args, **kwargs)
+        if self.func.argspec.keywords or not kwargs:
+            return self.func(self.libinstance, *args, **kwargs)
+        ikwargs = ('%s=%s' % item for item in kwargs.items())
+        return self.func(self.libinstance, *chain(args, ikwargs))
 
     def __repr__(self):
-        return '%s [%s]' % (self.longname, ' | '.join(self.args()))
+        return '%s [ %s ]' % (self.longname, ' | '.join(self.args()))
 
 class InvalidKeywordOption(LookupError):
     pass
