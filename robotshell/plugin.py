@@ -90,7 +90,7 @@ class RobotPlugin(Plugin):
 
     def Import(self, libname, alias=None):
         library = self.robot.Import(libname, alias)
-        self.register_robot_keyword_magics(alias, library)
+        self.register_robot_keyword_magics(alias or libname, library)
         return library
 
     def register_robot_keyword_magics(self, libalias, library):
