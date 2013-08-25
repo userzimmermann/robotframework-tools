@@ -37,10 +37,11 @@ class RobotPlugin(Plugin):
     # To support customization in derived Plugins
     robot_magic_name = 'Robot'
 
+    robot_debug_mode = False
+    robot_cell_magic_mode = False
+
     def __init__(self, shell, default_robot_name='Default'):
         Plugin.__init__(self, shell=shell)
-
-        self.debug = False
 
         for name, value in os.environ.items():
             self.shell.magics_manager.define_magic(

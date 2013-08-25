@@ -32,10 +32,39 @@ class RobotMagics(Magics):
 
         self.robot_plugin = robot_plugin
 
+    def robot_mode_magic(func):
+        def magic(self, mode):
+            attrname = func.func_name + '_mode'
+            title = attrname.capitalize().replace('_', ' ')
+
+            current = getattr(self.robot_plugin, attrname)
+            if not mode:
+                value = not current
+            else:
+                mode = mode.lower()
+                if mode in ['on', 'yes', 'true', '1']:
+                    value = True
+                elif mode.lower() in ['off', 'no', 'false', '0']:
+                    value = True
+                else:
+                    raise ValueError(mode)
+            setattr(self.robot_plugin, attrname, value)
+            print("%s is: %s" % (title, value and "ON" or "OFF"))
+
+            func(self, mode)
+
+        magic.func_name = func.func_name
+        return magic
+
     @line_magic
-    def robot_debug(self, name=None):
-        debug = self.robot_plugin.debug = not self.robot_plugin.debug
-        print("Robot debug mode is: " + (debug and "ON" or "OFF"))
+    @robot_mode_magic
+    def robot_debug(self, mode=None):
+        pass
+
+    @line_magic
+    @robot_mode_magic
+    def robot_cell_magic(self, mode=None):
+        pass
 
     @line_magic
     def Import(self, libname_as_alias):
@@ -100,7 +129,7 @@ class KeywordMagic(RobotMagicBase):
             args = [s.strip() for s in args_str.strip('[|]').split('|')]
         else:
             args = args_str.split()
-        if self.robot_plugin.debug:
+        if self.robot_plugin.robot_debug_mode:
             return self.keyword.debug(*args)
         return self.keyword(*args)
 
