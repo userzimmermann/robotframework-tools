@@ -77,6 +77,10 @@ class TestLibraryType(object):
         in the Test Library class-owned `KeywordsDict` instance
         populated by the `keyword` decorator.
         """
+        self.contexts = []
+        for name, handler in self.context_handlers:
+            self.contexts.append(handler.default)
+
         self.keywords = KeywordsDict()
         for name, func in type(self).keywords:
             self.keywords[name] = Keyword(name, func, libinstance=self)
@@ -91,12 +95,13 @@ class TestLibraryType(object):
         """
         return dir(self.keywords)
 
-# ordered name-mapped storing of user-defined session handlers
+# Ordered name-mapped storage of user-defined session/context handlers
 HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
 
 def testlibrary(
   custom_keyword_options = [],
   default_keyword_options = [],
+  context_handlers = [],
   session_handlers = []
   ):
     """Creates the actual base type for a user-defined Robot Test Library
@@ -136,6 +141,15 @@ def testlibrary(
       'KeywordDecorator', (KeywordDecoratorType,), decotypeattrs)
     keyword_decorator = clsattrs['keyword'] = decotype(
       keywords, *default_keyword_options)
+
+    handlers = clsattrs['context_handlers'] = HandlersDict()
+    for handlercls in context_handlers:
+        handlers[handlercls.__name__] = handlercls()
+
+        # import the handler's auto-generated keywords
+        for keywordname, func in handlercls.keywords:
+            clsattrs[keywordname] = keyword_decorator(
+              func, name=keywordname)
 
     handlers = clsattrs['session_handlers'] = HandlersDict()
     for handlercls in session_handlers:

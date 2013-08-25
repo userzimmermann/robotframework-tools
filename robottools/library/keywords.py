@@ -89,15 +89,22 @@ class Keyword(object):
             yield '**' + argspec.keywords
 
     def __call__(self, *args, **kwargs):
+        func = self.func
+        for context, context_func in func.contexts.items():
+            if context in self.libinstance.contexts:
+                func = context_func
         if self.func.argspec.keywords or not kwargs:
-            return self.func(self.libinstance, *args, **kwargs)
+            return func(self.libinstance, *args, **kwargs)
         ikwargs = ('%s=%s' % item for item in kwargs.items())
-        return self.func(self.libinstance, *chain(args, ikwargs))
+        return func(self.libinstance, *chain(args, ikwargs))
 
     def __repr__(self):
         return '%s [ %s ]' % (self.longname, ' | '.join(self.args()))
 
 class InvalidKeywordOption(LookupError):
+    pass
+
+class KeywordNotDefined(LookupError):
     pass
 
 class KeywordDecoratorType(object):
@@ -157,6 +164,11 @@ class KeywordDecoratorType(object):
         - The Keyword method function is stored
           in the Test Library's `keywords` mapping.
         """
+        original_func = func
+        try:
+            contexts = func.contexts
+        except AttributeError:
+            contexts = None
         # Save original doc string
         doc = func.func_doc
         try:
@@ -184,5 +196,14 @@ class KeywordDecoratorType(object):
         # Store original method argspec
         keyword_method.argspec = argspec
         # Add method to the Library's Keywords mapping
-        self.keywords[name] = keyword_method
-        return keyword_method
+        if contexts:
+            try:
+                keyword = self.keywords[name]
+            except KeyError:
+                raise KeywordNotDefined(name)
+            for context in contexts:
+                keyword.contexts[context] = keyword_method
+        else:
+            keyword_method.contexts = {}
+            self.keywords[name] = keyword_method
+        return original_func
