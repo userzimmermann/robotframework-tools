@@ -123,12 +123,12 @@ class KeywordMagic(RobotMagicBase):
 
     def __call__(self, magics, args_str):
         if not args_str:
-            return self.keyword()
-
-        if any(args_str.startswith(c) for c in '[|'):
+            args = ()
+        elif any(args_str.startswith(c) for c in '[|'):
             args = [s.strip() for s in args_str.strip('[|]').split('|')]
         else:
             args = args_str.split()
+
         if self.robot_plugin.robot_debug_mode:
             return self.keyword.debug(*args)
         return self.keyword(*args)
