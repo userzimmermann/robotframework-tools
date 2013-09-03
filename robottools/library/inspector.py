@@ -35,6 +35,7 @@ from path import path as Path
 
 import robot.errors
 import robot.running
+import robot.running.baselibrary
 import robot.libraries
 
 ROBOT_LIBRARIES_PATH = Path(robot.libraries.__file__).dirname()
@@ -119,9 +120,12 @@ class TestLibraryInspectorMeta(type):
 class TestLibraryInspector(object):
     __metaclass__ = TestLibraryInspectorMeta
 
-    def __init__(self, name):
+    def __init__(self, lib):
+        if isinstance(lib, robot.running.baselibrary.BaseLibrary):
+            self._library = lib
+            return
         try:
-            self._library = robot.running.TestLibrary(name)
+            self._library = robot.running.TestLibrary(lib)
         except robot.errors.DataError as e:
             raise TestLibraryImportError(str(e))
 
