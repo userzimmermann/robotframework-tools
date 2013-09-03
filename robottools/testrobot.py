@@ -66,6 +66,15 @@ class DebugKeyword(robot.running.Keyword):
                 break
         raise exc_type, exc_value, traceback
 
+class TestLibrary(TestLibraryInspector):
+    def __init__(self, lib, context):
+        TestLibraryInspector.__init__(self, lib)
+        self._context = context
+
+    def __getattr__(self, name):
+        keyword = TestLibraryInspector.__getattr__(self, name)
+        return Keyword(keyword._handler, self._context)
+
 class Keyword(KeywordInspector):
     def __init__(self, handler, context, debug=False):
         KeywordInspector.__init__(self, handler)
@@ -162,14 +171,14 @@ class TestRobot(object):
                 raise KeyError(str(e))
         for alias, lib in self._libraries.items():
             if alias == name:
-                return lib
+                return TestLibrary(lib._library, self._context)
             try:
                 keyword = lib[name]
-            except KeyError as e:
+            except KeyError:
                 pass
             else:
                 return Keyword(keyword._handler, self._context)
-        raise e
+        raise KeyError(name)
 
     def __getattr__(self, name):
         if name.isupper(): # Use as variable name
