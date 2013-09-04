@@ -1,10 +1,14 @@
 Robot Framework Tools
 =====================
 
-* A `testlibrary` framework for creating Dynamic Test Libraries.
-* A `TestLibraryInspector`.
-* An interactive `TestRobot`.
-* A `robotshell` extension for IPython.
+* A [`testlibrary`](#testlibrary) framework
+  for creating Dynamic Test Libraries.
+
+* A [`TestLibraryInspector`](#TestLibraryInspector).
+
+* An interactive [`TestRobot`](#TestRobot).
+
+* A [`robotshell`](#robotshell) extension for IPython.
 
 0. Installation
 ---------------
@@ -18,7 +22,7 @@ Robot Framework Tools
 * [`robotframework >= 2.8`](http://robotframework.org)
 
 
-1. Creating Dynamic Test Libraries
+1. Creating Dynamic Test Libraries  <a name="testlibrary"></a>
 ----------------------------------
 
     from robottools import testlibrary
@@ -139,3 +143,12 @@ To bypass the `default_keyword_options` for single Keywords:
     @TestLibrary.keyword.reset_options.some_option
     def some_keyword_without_default_options(self, arg, *rest):
         ...
+
+2. Inspecting Test Libraries  <a name="TestLibraryInspector"></a>
+----------------------------
+
+3. Using Robot Framework interactively  <a name="TestRobot"></a>
+--------------------------------------
+
+4. Using IPython as a Robot Framework shell  <a name="robotshell"></a>
+-------------------------------------------
