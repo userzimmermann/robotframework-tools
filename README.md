@@ -33,7 +33,9 @@ It features all the required methods:
 * `get_keyword_arguments`
 * `run_keyword`
 
-But the ``TestLibrary`` has no Keywords so far...
+### Keywords
+
+The ``TestLibrary`` has no Keywords so far...
 To add some just use the `TestLibrary.keyword` decorator:
 
     @TestLibrary.keyword
@@ -51,7 +53,9 @@ You may want to define your keyword methods
 at your Test Library class scope.
 Just derive your actual Dynamic Test Library class from `TestLibrary`:
 
-    class RealLibrary(TestLibrary):
+    # SomeLibrary.py
+
+    class SomeLibrary(TestLibrary):
         def no_keyword(self, ...):
             ...
 
@@ -61,3 +65,21 @@ Just derive your actual Dynamic Test Library class from `TestLibrary`:
             # Maybe call some non-Keyword method as normal:
             self.no_keyword(...)
             ...
+
+To get a simple interactive `SomeLibrary` overview just instantiate it:
+
+    In : lib = SomeLibrary()
+
+    In : lib.
+    lib.SomeKeyword                lib.keyword
+    lib.SomeOtherKeyword           lib.keywords
+    lib.context_handlers           lib.no_keyword
+    lib.get_keyword_arguments      lib.run_keyword
+    lib.get_keyword_documentation  lib.session_handlers
+    lib.get_keyword_names          lib.some_other_keyword
+
+You can inspect all Keywords in Robot CamelCase style
+(and call them for testing):
+
+    In : lib.SomeKeyword
+    Out: SomeLibrary.Some Keyword [ arg | *rest ]
