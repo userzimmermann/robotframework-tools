@@ -1,9 +1,10 @@
 Robot Framework Tools
 =====================
 
-* A simple framework for creating Dynamic Test Libraries.
-* Tools for inspecting Test Libraries and running interactive Robot sessions.
-* An interactive Robot shell extension for IPython.
+* A `testlibrary` framework for creating Dynamic Test Libraries.
+* A `TestLibraryInspector`.
+* An interactive `TestRobot`.
+* A `robotshell` extension for IPython.
 
 0. Installation
 ---------------
@@ -31,6 +32,7 @@ It features all the required methods:
 
 * `get_keyword_names`
 * `get_keyword_arguments`
+* `get_keyword_documentation`
 * `run_keyword`
 
 ### Keywords
@@ -83,3 +85,57 @@ You can inspect all Keywords in Robot CamelCase style
 
     In : lib.SomeKeyword
     Out: SomeLibrary.Some Keyword [ arg | *rest ]
+
+### Keyword Options
+
+When you apply custom decorators to your Keyword functions
+which don't return the original function objects,
+you would have to take care of preserving the original argspec for Robot.
+`testlibrary` can handle this for you.
+Just register your decorators as `custom_keyword_options`:
+
+    def some_decorator(func):
+        def wrapper(...):
+            return func(...)
+
+        # You still have to take care of the function(-->Keyword) name:
+        wrapper.func_name = func.func_name
+        return wrapper
+
+    TestLibrary = testlibrary(
+      custom_keyword_options=[
+        # Either just:
+        some_decorator,
+        # Or with some other name:
+        ('some_option', some_decorator),
+        ],
+      )
+
+    @TestLibrary.keyword.some_option
+    def some_keyword_with_options(self, arg, *rest):
+        ...
+
+There are predefined options. Currently:
+
+* `unicode_to_str` - Convert all `unicode` args (Robot's default) to `str`
+
+You can specify `default_keyword_options` that will always be applied:
+
+    TestLibrary = testlibrary(
+      custom_keyword_options=[
+        ('some_option', some_decorator),
+        ],
+      default_keyword_options=[
+        'unicode_to_str',
+        'some_option',
+      )
+
+To bypass the `default_keyword_options` for single Keywords:
+
+    @TestLibrary.keyword.no_options
+    def some_keyword_without_options(self, arg, *rest):
+        ...
+
+    @TestLibrary.keyword.reset_options.some_option
+    def some_keyword_without_default_options(self, arg, *rest):
+        ...
