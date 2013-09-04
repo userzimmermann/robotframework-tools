@@ -150,14 +150,14 @@ To bypass the `default_keyword_options` for single Keywords:
 
 2. Inspecting Test Libraries
 ----------------------------
-[2]: #inspecting-test-libraries
+[2]: #markdown-header-2-inspecting-test-libraries
 
 
 3. Using Robot Framework interactively
 --------------------------------------
-[3]: #using-robot-framework-interactively
+[3]: #markdown-header-3-using-robot-framework-interactively
 
 
 4. Using IPython as a Robot Framework shell
 -------------------------------------------
-[4]: #using-ipython-as-a-robot-framework-shell
+[4]: #markdown-header-4-using-ipython-as-a-robot-framework-shell
