@@ -19,14 +19,13 @@ Robot Framework Tools
 
 * [`python-moretools >= 0.1a23`](
     http://bitbucket.org/userzimmermann/python-moretools)
+
 * [`robotframework >= 2.8`](http://robotframework.org)
 
 
 1. Creating Dynamic Test Libraries
 ----------------------------------
 [1]: #markdown-header-1-creating-dynamic-test-libraries
-
-    :::python
 
     from robottools import testlibrary
 
@@ -44,7 +43,7 @@ It features all the required methods:
 
 ### Keywords
 
-The ``TestLibrary`` has no Keywords so far...
+The `TestLibrary` has no Keywords so far...
 To add some just use the `TestLibrary.keyword` decorator:
 
     @TestLibrary.keyword
@@ -71,21 +70,10 @@ Just derive your actual Dynamic Test Library class from `TestLibrary`:
         @TestLibrary.keyword
         def some_other_keyword(self, arg, *rest):
             ...
-            # Maybe call some non-Keyword method as normal:
-            self.no_keyword(...)
-            ...
 
 To get a simple interactive `SomeLibrary` overview just instantiate it:
 
     In : lib = SomeLibrary()
-
-    In : lib.
-    lib.SomeKeyword                lib.keyword
-    lib.SomeOtherKeyword           lib.keywords
-    lib.context_handlers           lib.no_keyword
-    lib.get_keyword_arguments      lib.run_keyword
-    lib.get_keyword_documentation  lib.session_handlers
-    lib.get_keyword_names          lib.some_other_keyword
 
 You can inspect all Keywords in Robot CamelCase style
 (and call them for testing):
@@ -152,12 +140,68 @@ To bypass the `default_keyword_options` for single Keywords:
 ----------------------------
 [2]: #markdown-header-2-inspecting-test-libraries
 
+    from robottools import TestLibraryInspector
+
+Now you can load any Test Library in two ways:
+
+    builtin = TestLibraryInspector('BuiltIn')
+    oslib = TestLibraryInspector.OperatingSystem
+
 
 3. Using Robot Framework interactively
 --------------------------------------
 [3]: #markdown-header-3-using-robot-framework-interactively
 
+    from robottools import TestRobot
+
+    test = TestRobot('Test')
+
+The `TestRobot` basically uses the same Robot Framework internals
+for loading Test Libraries and running Keywords
+as `pybot` and its alternatives,
+so you can expect the same behavior from your Keywords.
+
+All functionalitiy is exposed in CamelCase:
+
+    test.Import('SomeLibrary')
+
 
 4. Using IPython as a Robot Framework shell
 -------------------------------------------
 [4]: #markdown-header-4-using-ipython-as-a-robot-framework-shell
+
+    In : %load_ext robotshell
+
+Now all the `robottools.TestRobot` functionality
+is exposed as IPython magic functions...
+
+    [Robot.Default]
+    In : %Import SomeLibrary
+    Out: [Library] SomeLibrary
+
+As with a `robottools.TestRobot` you can call Keywords
+with or without the Test Library prefix.
+And there are two ways of separating the arguments:
+
+    [Robot.Default]
+    In : %SomeKeyword value ...
+    [TRACE] Arguments: [ 'value', '...' ]
+    [TRACE] Return: ...
+
+    [Robot.Default]
+    In : %SomeLibrary.SomeOtherKeyword | with some value | ...
+    [TRACE] Arguments: [ 'with some value', '...' ]
+    [TRACE] Return: ...
+
+You can create new `Robot`s and switch between them:
+
+    [Robot.Default]
+    In : %Robot Test
+    Out: [Robot] Test
+
+    [Robot.Test]
+    In : %Robot.Default
+    Out: [Robot] Default
+
+    [Robot.Default]
+    In :
