@@ -15,6 +15,14 @@ Robot Framework Tools
 
     python setup.py install
 
+Or with [pip](http://www.pip-installer.org):
+
+    pip install .
+
+Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
+
+    pip install robotframework-tools
+
 ### Requirements
 
 * [`moretools >= 0.1a25`](
