@@ -17,7 +17,7 @@ Robot Framework Tools
 
 ### Requirements
 
-* [`python-moretools >= 0.1a25`](
+* [`moretools >= 0.1a25`](
     http://bitbucket.org/userzimmermann/python-moretools)
 
 * [`robotframework >= 2.8`](http://robotframework.org)
