@@ -14,7 +14,7 @@ setup(
   license = 'GPLv3',
 
   install_requires = [
-    'python-moretools >= 0.1a23',
+    'python-moretools >= 0.1a25',
     'robotframework >= 2.8',
     ],
   packages = [
