@@ -9,7 +9,7 @@ setup(
     ),
   author = 'Stefan Zimmermann',
   author_email = 'zimmermann.code@gmail.com',
-  url = 'http://bitbucket.org/StefanZimmermann/robotframework-tools',
+  url = 'http://bitbucket.org/userzimmermann/robotframework-tools',
 
   license = 'GPLv3',
 
@@ -34,5 +34,6 @@ setup(
     'robottools', 'robot', 'framework', 'robotframework', 'tools',
     'test', 'automation', 'testautomation',
     'testlibrary', 'testcase', 'keyword', 'pybot',
+    'robotshell', 'ipython',
     ],
   )
