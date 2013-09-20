@@ -188,15 +188,16 @@ is exposed as IPython magic functions...
 
 As with a `robottools.TestRobot` you can call Keywords
 with or without the Test Library prefix.
+You can simply assign the return values to normal Python variables.
 And there are two ways of separating the arguments:
 
     [Robot.Default]
-    In : %SomeKeyword value ...
+    In : ret = %SomeKeyword value ...
     [TRACE] Arguments: [ 'value', '...' ]
     [TRACE] Return: ...
 
     [Robot.Default]
-    In : %SomeLibrary.SomeOtherKeyword | with some value | ...
+    In : ret = %SomeLibrary.SomeOtherKeyword | with some value | ...
     [TRACE] Arguments: [ 'with some value', '...' ]
     [TRACE] Return: ...
 
@@ -212,3 +213,10 @@ You can create new `Robot`s and switch between them:
 
     [Robot.Default]
     In :
+
+If a Keyword fails the traceback is just printed like in a Robot Log.
+If it fails unexpectedly you may want to debug it.
+Just turn on `%robot_debug` mode
+and the Keyword's exception will be re-raised.
+Combine it with IPython's automatic `%pdb` mode
+and you'll get a nice Test Library debugging environment.
