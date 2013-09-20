@@ -99,7 +99,7 @@ class TestLibraryType(object):
 HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
 
 def testlibrary(
-  custom_keyword_options = [],
+  register_keyword_options = [],
   default_keyword_options = [],
   context_handlers = [],
   session_handlers = []
@@ -108,7 +108,7 @@ def testlibrary(
     derived from :class:`TestLibraryType`.
 
     * Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
-    adding the `custom_keyword_options`.
+    adding the decorators from `register_keyword_options`.
     * Adds the `keyword` decorator to the Test Library class
     by instantiating the decorator class with the `default_keyword_options`.
 
@@ -130,7 +130,7 @@ def testlibrary(
     # the attributes dict for the Keyword decorator class generation
     decotypeattrs = {}
     # the additional custom Keyword decorator options
-    for decofunc in custom_keyword_options:
+    for decofunc in register_keyword_options:
         try:
             optionname = decofunc.func_name
         except AttributeError:

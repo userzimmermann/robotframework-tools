@@ -86,8 +86,7 @@ You can inspect all Keywords in Robot CamelCase style
 When you apply custom decorators to your Keyword functions
 which don't return the original function objects,
 you would have to take care of preserving the original argspec for Robot.
-`testlibrary` can handle this for you.
-Just register your decorators as `custom_keyword_options`:
+`testlibrary` can handle this for you:
 
     def some_decorator(func):
         def wrapper(...):
@@ -98,7 +97,7 @@ Just register your decorators as `custom_keyword_options`:
         return wrapper
 
     TestLibrary = testlibrary(
-      custom_keyword_options=[
+      register_keyword_options=[
         # Either just:
         some_decorator,
         # Or with some other name:
@@ -117,7 +116,7 @@ There are predefined options. Currently:
 You can specify `default_keyword_options` that will always be applied:
 
     TestLibrary = testlibrary(
-      custom_keyword_options=[
+      register_keyword_options=[
         ('some_option', some_decorator),
         ],
       default_keyword_options=[
