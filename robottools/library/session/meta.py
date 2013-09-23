@@ -127,11 +127,13 @@ class Meta(object):
         gen_suffix('upper', camelize(suffixes['']))
         gen_plural_suffix('upper')
         # Identifier name suffixes
-        gen_suffix('identifier', 'session', '_')
+        ## gen_suffix('identifier', 'session', '_')
+        gen_suffix('identifier', '', '_')
         gen_plural_suffix('identifier', '_')
         gen_suffix('upper_identifier', camelize(suffixes['identifier']))
         # Verbose name suffixes
-        gen_suffix('verbose', 'Session', ' ')
+        ## gen_suffix('verbose', 'Session', ' ')
+        gen_suffix('verbose', '', ' ')
         gen_plural_suffix('verbose', ' ')
 
         # Check explicit name variant definitions
