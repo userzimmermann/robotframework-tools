@@ -3,6 +3,12 @@ Robot Framework Tools
 
 * A [`testlibrary`][1] framework for creating Dynamic Test Libraries.
 
+* A [`ContextHandler`][1.1] framework for `testlibrary`
+  to create switchable sets of different Keyword implementations.
+
+* A [`SessionHandler`][1.2] framework for `testlibrary`
+  to auto-generate Keywords for session management.
+
 * A [`TestLibraryInspector`][2].
 
 * An interactive [`TestRobot`][3].
@@ -119,7 +125,7 @@ you would have to take care of preserving the original argspec for Robot.
 
 There are predefined options. Currently:
 
-* `unicode_to_str` - Convert all `unicode` args (Robot's default) to `str`
+* `unicode_to_str` - Convert all `unicode` values (pybot's default) to `str`.
 
 You can specify `default_keyword_options` that will always be applied:
 
@@ -141,6 +147,64 @@ To bypass the `default_keyword_options` for single Keywords:
     @TestLibrary.keyword.reset_options.some_option
     def some_keyword_without_default_options(self, arg, *rest):
         ...
+
+
+1.1 Adding switchable Keyword contexts
+--------------------------------------
+[1.1]: #markdown-header-2-adding-switchable-keyword-contexts
+
+    from robottools import ContextHandler
+
+
+
+
+1.2 Adding session management
+-----------------------------
+[1.2]: #markdown-header-2-adding-session-management
+
+    from robottools import SessionHandler
+
+Whenever your Test Library needs to deal with sessions,
+like network connections,
+which you want to open, switch, close,
+and when you don't always want to specify
+the actual session to use as a Keyword argument,
+just do:
+
+    class SomeConnection(SessionHandler):
+        # All methods starting with `open`
+        # will be turned into session opener Keywords.
+        # `self` will get the Test Library instance.
+        def open(self, host, *args):
+            return internal_connection_handler(host)
+
+        def open_in_a_different_way(self, host, *args):
+            return ...
+
+    TestLibrary = testlibrary(
+      session_handlers=[Connection],
+      )
+
+The following Keywords will be generated:
+
+* `TestLibrary.Open Some Connection [ host | *args ]`
+* `TestLibrary.Open Named Some Connection [ alias | host | *args ]`
+* `TestLibrary.Open Some Connection In A Different Way [ host | *args ]`
+* `TestLibrary.Open Named Some Connection In A Different Way
+   [ alias | host | *args ]`
+* `TestLibrary.Swith Some Connection [ alias ]`
+* `TestLibrary.Close Some Connection [ alias='' ]`
+
+You can access the currently active session instance,
+as returned from an opener Keyword,
+with an auto-generated property:
+
+    @TestLibrary.keyword
+    def some_keyword(self):
+        self.some_connection.do_something()
+
+If there is no active session,
+a `TestLibrary.SomeConnectionError` will be raised.
 
 
 2. Inspecting Test Libraries
