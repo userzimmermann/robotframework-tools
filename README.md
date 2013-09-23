@@ -155,7 +155,7 @@ To bypass the `default_keyword_options` for single Keywords:
 
     from robottools import ContextHandler
 
-
+TODO...
 
 
 1.2 Adding session management
@@ -217,6 +217,8 @@ Now you can load any Test Library in two ways:
     builtin = TestLibraryInspector('BuiltIn')
     oslib = TestLibraryInspector.OperatingSystem
 
+TODO...
+
 
 3. Using Robot Framework interactively
 --------------------------------------
@@ -234,6 +236,8 @@ so you can expect the same behavior from your Keywords.
 All functionalitiy is exposed in CamelCase:
 
     test.Import('SomeLibrary')
+
+TODO...
 
 
 4. Using IPython as a Robot Framework shell
@@ -283,3 +287,5 @@ Just turn on `%robot_debug` mode
 and the Keyword's exception will be re-raised.
 Combine it with IPython's automatic `%pdb` mode
 and you'll get a nice Test Library debugging environment.
+
+TODO...
