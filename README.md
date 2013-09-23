@@ -151,7 +151,7 @@ To bypass the `default_keyword_options` for single Keywords:
 
 1.1 Adding switchable Keyword contexts
 --------------------------------------
-[1.1]: #markdown-header-2-adding-switchable-keyword-contexts
+[1.1]: #markdown-header-11-adding-switchable-keyword-contexts
 
     from robottools import ContextHandler
 
@@ -160,7 +160,7 @@ TODO...
 
 1.2 Adding session management
 -----------------------------
-[1.2]: #markdown-header-2-adding-session-management
+[1.2]: #markdown-header-12-adding-session-management
 
     from robottools import SessionHandler
 
