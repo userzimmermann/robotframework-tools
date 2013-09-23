@@ -178,7 +178,7 @@ just do:
         def open(self, host, *args):
             return internal_connection_handler(host)
 
-        def open_in_a_different_way(self, host, *args):
+        def open_in_a_different_way(self, host):
             return ...
 
     TestLibrary = testlibrary(
@@ -189,9 +189,8 @@ The following Keywords will be generated:
 
 * `TestLibrary.Open Some Connection [ host | *args ]`
 * `TestLibrary.Open Named Some Connection [ alias | host | *args ]`
-* `TestLibrary.Open Some Connection In A Different Way [ host | *args ]`
-* `TestLibrary.Open Named Some Connection In A Different Way
-   [ alias | host | *args ]`
+* `TestLibrary.Open Some Connection In A Different Way [ host ]`
+* `TestLibrary.Open Named Some Connection In A Different Way [ alias | host ]`
 * `TestLibrary.Swith Some Connection [ alias ]`
 * `TestLibrary.Close Some Connection [ alias='' ]`
 
