@@ -59,6 +59,10 @@ class TestLibraryType(object):
         """Get the doc string of the Keyword
         given by its lower_case `name`.
         """
+        if name == '__intro__':
+            return ""
+        if name == '__init__':
+            return ""
         keyword = self.keywords[name]
         return keyword.__doc__
 
