@@ -31,6 +31,8 @@ Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 
 ### Requirements
 
+* [`path.py`](http://github.com/jaraco/path.py)
+
 * [`moretools >= 0.1a25`](
     http://bitbucket.org/userzimmermann/python-moretools)
 
