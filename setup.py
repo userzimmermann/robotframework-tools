@@ -15,7 +15,7 @@ setup(
 
   install_requires = [
     'path.py',
-    'moretools >= 0.1a25',
+    'moretools >= 0.1a26',
     'robotframework >= 2.8',
     ],
   packages = [
