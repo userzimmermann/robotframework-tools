@@ -35,14 +35,19 @@ setup(
 
   classifiers = [
     'Development Status :: 3 - Alpha',
+    'Intended Audience :: Developers',
     'License :: OSI Approved :: GNU General Public License (GPL)',
     'Operating System :: OS Independent',
-    'Programming Language :: Python',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 3',
+    'Topic :: Software Development',
+    'Topic :: Utilities',
     ],
   keywords = [
     'robottools', 'robot', 'framework', 'robotframework', 'tools',
     'test', 'automation', 'testautomation',
     'testlibrary', 'testcase', 'keyword', 'pybot',
     'robotshell', 'ipython',
+    'python3',
     ],
   )
