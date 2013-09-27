@@ -24,6 +24,12 @@
 
 from .plugin import RobotPlugin
 
+robot_plugin = None
+
 def load_ipython_extension(shell):
-    plugin = RobotPlugin(shell=shell)
-    shell.plugin_manager.register_plugin('robot', plugin)
+    global robot_plugin
+    robot_plugin = RobotPlugin(shell=shell)
+    try:
+        shell.plugin_manager.register_plugin('robot', robot_plugin)
+    except AttributeError:
+        pass

@@ -26,7 +26,12 @@ __all__ = ['RobotPlugin']
 import re
 import os
 
-from IPython.core.plugin import Plugin
+try:
+    from IPython.core.plugin import Plugin
+except ImportError:
+    class Plugin(object):
+        def __init__(self, shell):
+            self.shell = shell
 
 from robottools import TestRobot
 from robottools.testrobot import Keyword
