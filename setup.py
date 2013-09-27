@@ -25,6 +25,14 @@ setup(
     'robotshell',
     ],
 
+  use_2to3=True,
+  use_2to3_exclude_fixers=['lib2to3.fixes.fix_' + fix for fix in [
+    'dict',
+    'map',
+    'filter',
+    'reduce',
+    ]],
+
   classifiers = [
     'Development Status :: 3 - Alpha',
     'License :: OSI Approved :: GNU General Public License (GPL)',
