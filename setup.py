@@ -16,7 +16,8 @@ setup(
   install_requires = [
     'path.py',
     'moretools >= 0.1a26',
-    'robotframework >= 2.8',
+    'robotframework >= 2.8' if sys.version_info[0] < 3
+    else 'robotframework-python3',
     ],
   packages = [
     'robottools',
