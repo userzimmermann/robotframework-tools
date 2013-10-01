@@ -29,6 +29,14 @@ Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 
     pip install robotframework-tools
 
+### Python 3
+
+The Robot Framework Tools work with Python 3,
+although there is no official Python 3 release of Robot Framework yet,
+but you can try my unofficial compatibility fork:
+
+https://bitbucket.org/userzimmermann/robotframework-python3
+
 ### Requirements
 
 * [`path.py`](http://github.com/jaraco/path.py)
