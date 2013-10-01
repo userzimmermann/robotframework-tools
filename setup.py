@@ -1,11 +1,26 @@
 import sys
 from setuptools import setup
+from pkg_resources import require, DistributionNotFound
+
+if sys.version_info[0] == 3:
+    try:
+        require('robotframework-python3')
+    except DistributionNotFound:
+        sys.stderr.write(
+          "\n"
+          "Requires robotframework-python3."
+          " This is unofficial."
+          " You can get it from:"
+          "\n\n"
+          "https://bitbucket.org/userzimmermann/robotframework-python3"
+          "\n\n")
+        sys.exit(1)
 
 setup(
   name = 'robotframework-tools',
   version = '0.1a75',
   description = (
-    'Tools for Robot Framework and Test Libraries.'
+    'Python Tools for Robot Framework and Test Libraries.'
     ),
   author = 'Stefan Zimmermann',
   author_email = 'zimmermann.code@gmail.com',
