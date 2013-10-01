@@ -35,7 +35,7 @@ The Robot Framework Tools work with Python 3,
 although there is no official Python 3 release of Robot Framework yet,
 but you can try my unofficial compatibility fork:
 
-https://bitbucket.org/userzimmermann/robotframework-python3
+<https://bitbucket.org/userzimmermann/robotframework-python3>
 
 ### Requirements
 
