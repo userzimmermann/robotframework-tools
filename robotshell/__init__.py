@@ -21,15 +21,25 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+__all__ = ['Extension', 'load_robotshell']
 
 from .plugin import RobotPlugin
+
+from .robot import Extension
 
 robot_plugin = None
 
 def load_ipython_extension(shell):
     global robot_plugin
+    if robot_plugin:
+        return
     robot_plugin = RobotPlugin(shell=shell)
     try:
         shell.plugin_manager.register_plugin('robot', robot_plugin)
     except AttributeError:
         pass
+
+def load_robotshell(shell, extensions=[]):
+    load_ipython_extension(shell)
+    for extcls in extensions:
+        robot_plugin.register_extension(extcls)

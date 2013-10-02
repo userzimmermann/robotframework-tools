@@ -38,6 +38,8 @@ from robottools.testrobot import Keyword
 
 from .magic import RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic
 
+from .robot import ExtensionMagic
+
 class RobotPlugin(Plugin):
     # To support customization in derived Plugins
     robot_magic_name = 'Robot'
@@ -69,11 +71,19 @@ class RobotPlugin(Plugin):
     def Robot(self, name = None):
         if name and (not self.robot or name != self.robot.name):
             try:
+                old_magic_name = self.robot.magic_name
+            except AttributeError:
+                old_magic_name = None
+            try:
                 robot = self.robots[name]
             except KeyError:
                 robot = TestRobot(name)
                 self.robots[name] = robot
             self.robot = robot
+            try:
+                new_magic_name = robot.magic_name
+            except AttributeError:
+                new_magic_name = None
 
             robot_magic = RobotMagic(name, robot_plugin=self)
             self.shell.magics_manager.define_magic(
@@ -88,8 +98,8 @@ class RobotPlugin(Plugin):
                 self.register_robot_keyword_magics(alias, lib)
 
             self.shell.prompt_manager.in_template = re.sub(
-              r'^(\[%s.[^\]]+\]\n)?' % self.robot_magic_name,
-              '[%s.%s]\n' % (self.robot_magic_name, name),
+              r'^(\[%s.[^\]]+\]\n)?' % (old_magic_name or self.robot_magic_name),
+              '[%s.%s]\n' % (new_magic_name or self.robot_magic_name, name),
               self.shell.prompt_manager.in_template)
 
         return self.robot
@@ -129,3 +139,13 @@ class RobotPlugin(Plugin):
         for name in self.robot_keyword_cell_magics:
             del magics[name]
         self.robot_keyword_cell_magics = {}
+
+    def register_extension(self, extcls):
+        extrobot = extcls()
+        name = extrobot.magic_name
+        self.robots[name] = extrobot
+        self.Robot(name)
+
+        ext_magic = ExtensionMagic(extrobot, robot_plugin=self)
+        self.shell.magics_manager.define_magic(
+              str(ext_magic), ext_magic)

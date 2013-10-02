@@ -81,6 +81,10 @@ class RobotMagicBase(object):
     def __init__(self, robot_plugin):
         self.robot_plugin = robot_plugin
 
+    @property
+    def shell(self):
+        return self.robot_plugin.shell
+
 class RobotMagic(RobotMagicBase):
     def __init__(self, name=None, **baseargs):
         RobotMagicBase.__init__(self, **baseargs)
