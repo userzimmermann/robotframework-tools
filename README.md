@@ -192,7 +192,7 @@ just do:
             return ...
 
     TestLibrary = testlibrary(
-      session_handlers=[Connection],
+      session_handlers=[SomeConnection],
       )
 
 The following Keywords will be generated:
