@@ -29,10 +29,10 @@ Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 
     pip install robotframework-tools
 
-### Python 3
+### Python 3.x
 
-The Robot Framework Tools work with Python 3,
-although there is no official Python 3 release of Robot Framework yet,
+The Robot Framework Tools work with Python 3.x,
+although there is no official Python 3.x release of Robot Framework yet,
 but you can try my unofficial compatibility fork:
 
 <https://bitbucket.org/userzimmermann/robotframework-python3>
