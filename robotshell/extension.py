@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robotshell.robot
+"""robotshell.extension
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
@@ -56,7 +56,6 @@ class ExtensionMagic(RobotMagic):
             extname = self.robot(args_str)
             if extname:
                 magic = ExtensionMagic(
-                  self.robot, extname, robot_plugin=self.robot_plugin)
-                self.shell.magics_manager.define_magic(
-                  str(magic), magic)
+                  self.robot, extname, robot_shell=self.robot_shell)
+                self.line_magics[str(magic)] = magic
         self.robot_plugin.Robot(self.robot.magic_name)

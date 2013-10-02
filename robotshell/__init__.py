@@ -23,23 +23,19 @@
 """
 __all__ = ['Extension', 'load_robotshell']
 
-from .plugin import RobotPlugin
+from .shell import RobotShell
 
-from .robot import Extension
+from .extension import Extension
 
-robot_plugin = None
+robot_shell = None
 
 def load_ipython_extension(shell):
-    global robot_plugin
-    if robot_plugin:
+    global robot_shell
+    if robot_shell:
         return
-    robot_plugin = RobotPlugin(shell=shell)
-    try:
-        shell.plugin_manager.register_plugin('robot', robot_plugin)
-    except AttributeError:
-        pass
+    robot_shell = RobotShell(shell)
 
 def load_robotshell(shell, extensions=[]):
     load_ipython_extension(shell)
     for extcls in extensions:
-        robot_plugin.register_extension(extcls)
+        robot_shell.register_extension(extcls)

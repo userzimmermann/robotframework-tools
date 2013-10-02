@@ -25,19 +25,21 @@ __all__ = ['RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic']
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
+from .base import ShellBase
+
 @magics_class
 class RobotMagics(Magics):
-    def __init__(self, robot_plugin):
-        Magics.__init__(self, robot_plugin.shell)
+    def __init__(self, robot_shell):
+        Magics.__init__(self, robot_shell.shell)
 
-        self.robot_plugin = robot_plugin
+        self.robot_shell = robot_shell
 
     def robot_mode_magic(func):
         def magic(self, mode):
             attrname = func.func_name + '_mode'
             title = attrname.capitalize().replace('_', ' ')
 
-            current = getattr(self.robot_plugin, attrname)
+            current = getattr(self.robot_shell, attrname)
             if not mode:
                 value = not current
             else:
@@ -48,7 +50,7 @@ class RobotMagics(Magics):
                     value = True
                 else:
                     raise ValueError(mode)
-            setattr(self.robot_plugin, attrname, value)
+            setattr(self.robot_shell, attrname, value)
             print("%s is: %s" % (title, value and "ON" or "OFF"))
 
             func(self, mode)
@@ -75,15 +77,12 @@ class RobotMagics(Magics):
         except ValueError:
             libname = libname_as_alias
             alias = None
-        return self.robot_plugin.Import(libname, alias)
+        return self.robot_shell.Import(libname, alias)
 
-class RobotMagicBase(object):
-    def __init__(self, robot_plugin):
-        self.robot_plugin = robot_plugin
-
-    @property
-    def shell(self):
-        return self.robot_plugin.shell
+class RobotMagicBase(ShellBase):
+    def __init__(self, robot_shell):
+        ShellBase.__init__(self, robot_shell.shell)
+        self.robot_shell = robot_shell
 
 class RobotMagic(RobotMagicBase):
     def __init__(self, name=None, **baseargs):
@@ -97,12 +96,12 @@ class RobotMagic(RobotMagicBase):
     @property
     def robot(self):
         if self.name:
-            return self.robot_plugin.robots[self.name]
-        return self.robot_plugin.robot
+            return self.robot_shell.robots[self.name]
+        return self.robot_shell.robot
 
     @property
     def magic_name(self):
-        robot_magic_name = self.robot_plugin.robot_magic_name
+        robot_magic_name = self.robot_shell.robot_magic_name
         if self.name:
             return '%s.%s' % (robot_magic_name, self.name)
         return robot_magic_name
@@ -110,8 +109,8 @@ class RobotMagic(RobotMagicBase):
     def __str__(self):
         return self.magic_name
 
-    def __call__(self, magics, name):
-        return self.robot_plugin.Robot(self.name or name)
+    def __call__(self, name):
+        return self.robot_shell.Robot(self.name or name)
 
 class KeywordMagic(RobotMagicBase):
     def __init__(self, keyword, **baseargs):
@@ -125,7 +124,7 @@ class KeywordMagic(RobotMagicBase):
     def __str__(self):
         return self.keyword.name
 
-    def __call__(self, magics, args_str):
+    def __call__(self, args_str):
         if not args_str:
             args = ()
         elif any(args_str.startswith(c) for c in '[|'):
@@ -133,11 +132,11 @@ class KeywordMagic(RobotMagicBase):
         else:
             args = args_str.split()
 
-        if self.robot_plugin.robot_debug_mode:
+        if self.robot_shell.robot_debug_mode:
             return self.keyword.debug(*args)
         return self.keyword(*args)
 
 class KeywordCellMagic(KeywordMagic):
-    def __call__(self, magics, args_str):
+    def __call__(self, args_str):
         args = [s.strip() for s in args_str.strip().split('\n')]
         return self.keyword(*args)

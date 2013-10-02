@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robotshell.plugin
+"""robotshell.shell
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
@@ -26,21 +26,15 @@ __all__ = ['RobotPlugin']
 import re
 import os
 
-try:
-    from IPython.core.plugin import Plugin
-except ImportError:
-    class Plugin(object):
-        def __init__(self, shell):
-            self.shell = shell
-
 from robottools import TestRobot
 from robottools.testrobot import Keyword
 
+from .base import ShellBase
 from .magic import RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic
 
-from .robot import ExtensionMagic
+from .extension import ExtensionMagic
 
-class RobotPlugin(Plugin):
+class RobotShell(ShellBase):
     # To support customization in derived Plugins
     robot_magic_name = 'Robot'
 
@@ -48,16 +42,16 @@ class RobotPlugin(Plugin):
     robot_cell_magic_mode = False
 
     def __init__(self, shell, default_robot_name='Default'):
-        Plugin.__init__(self, shell=shell)
+        ShellBase.__init__(self, shell)
 
         for name, value in os.environ.items():
-            self.shell.magics_manager.define_magic(
-              '{%s}' % name, lambda magics, _, _value=value: _value)
+            self.line_magics['{%s}' % name] = (
+              lambda _, _value=value: _value)
 
-        self.shell.magics_manager.define_magic(
-          self.robot_magic_name, RobotMagic(robot_plugin=self))
+        self.line_magics[self.robot_magic_name] = RobotMagic(
+          robot_shell=self)
 
-        magics = RobotMagics(robot_plugin=self)
+        magics = RobotMagics(robot_shell=self)
         shell.register_magics(magics)
 
         self.robot = None
@@ -85,22 +79,22 @@ class RobotPlugin(Plugin):
             except AttributeError:
                 new_magic_name = None
 
-            robot_magic = RobotMagic(name, robot_plugin=self)
-            self.shell.magics_manager.define_magic(
-              str(robot_magic), robot_magic)
+            robot_magic = RobotMagic(name, robot_shell=self)
+            self.line_magics[str(robot_magic)] = robot_magic
 
             for var, value in robot._variables.items():
-                self.shell.magics_manager.define_magic(
-                  var, lambda self, _, _value=value: _value)
+                self.line_magics[var] = lambda _, _value=value: _value
 
             self.unregister_robot_keyword_magics()
             for alias, lib in robot._libraries.items():
                 self.register_robot_keyword_magics(alias, lib)
 
-            self.shell.prompt_manager.in_template = re.sub(
-              r'^(\[%s.[^\]]+\]\n)?' % (old_magic_name or self.robot_magic_name),
-              '[%s.%s]\n' % (new_magic_name or self.robot_magic_name, name),
-              self.shell.prompt_manager.in_template)
+            self.in_template = re.sub(
+              r'^(\[%s.[^\]]+\]\n)?' % (
+                old_magic_name or self.robot_magic_name),
+              '[%s.%s]\n' % (
+                new_magic_name or self.robot_magic_name, name),
+              self.in_template)
 
         return self.robot
 
@@ -110,32 +104,29 @@ class RobotPlugin(Plugin):
         return library
 
     def register_robot_keyword_magics(self, libalias, library):
-        define_magic = self.shell.magics_manager.define_magic
-        cell_magics = self.shell.magics_manager.magics['cell']
-
         for keyword in library:
             keywordname = keyword.name.replace(' ', '')
             for name in keywordname, '%s.%s' % (libalias, keywordname):
                 keyword = Keyword(keyword._handler, self.robot._context)
 
-                keyword_magic = KeywordMagic(keyword, robot_plugin=self)
+                keyword_magic = KeywordMagic(keyword, robot_shell=self)
                 self.robot_keyword_magics[name] = keyword_magic
 
-                define_magic(name, keyword_magic)
+                self.line_magics[name] = keyword_magic
 
                 ## keyword_cell_magic = KeywordCellMagic(
-                ##   keyword, robot_plugin=self)
+                ##   keyword, robot_shell=self)
                 ## self.robot_keyword_cell_magics[name] = keyword_cell_magic
 
                 ## cell_magics[name] = keyword_cell_magic
 
     def unregister_robot_keyword_magics(self):
-        magics = self.shell.magics_manager.magics['line']
+        magics = self.line_magics
         for name in self.robot_keyword_magics:
             del magics[name]
         self.robot_keyword_magics = {}
 
-        magics = self.shell.magics_manager.magics['cell']
+        magics = self.cell_magics
         for name in self.robot_keyword_cell_magics:
             del magics[name]
         self.robot_keyword_cell_magics = {}
@@ -146,6 +137,5 @@ class RobotPlugin(Plugin):
         self.robots[name] = extrobot
         self.Robot(name)
 
-        ext_magic = ExtensionMagic(extrobot, robot_plugin=self)
-        self.shell.magics_manager.define_magic(
-              str(ext_magic), ext_magic)
+        ext_magic = ExtensionMagic(extrobot, robot_shell=self)
+        self.line_magics[str(ext_magic)] = ext_magic
