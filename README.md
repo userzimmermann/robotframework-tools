@@ -202,7 +202,7 @@ The following Keywords will be generated:
 * `TestLibrary.Open Some Connection In A Different Way [ host ]`
 * `TestLibrary.Open Named Some Connection In A Different Way [ alias | host ]`
 * `TestLibrary.Swith Some Connection [ alias ]`
-* `TestLibrary.Close Some Connection [ alias='' ]`
+* `TestLibrary.Close Some Connection [ ]`
 
 You can access the currently active session instance,
 as returned from an opener Keyword,
@@ -214,6 +214,17 @@ with an auto-generated property:
 
 If there is no active session,
 a `TestLibrary.SomeConnectionError` will be raised.
+
+`Close Some Connection` will only release all references
+to the stored session object.
+To add custom logic just add a `close` method to your `SessionHandler`:
+
+    class SomeConnection(SessionHandler):
+        ...
+
+        def close(self, connection):
+            # `self` will get the Test Library instance.
+            ...
 
 
 2. Inspecting Test Libraries

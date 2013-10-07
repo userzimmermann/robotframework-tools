@@ -123,6 +123,7 @@ class HandlerMeta(type):
         - Includes the session management helper methods of :class:`Handler`
           and user-defined session opener methods
           (whose names start with 'open').
+        - Looks for an optional custom session close hook method named 'close'
         - All Keyword names include the handler-specific
           `meta.identifier_name`.
         """
@@ -131,6 +132,7 @@ class HandlerMeta(type):
         except AttributeError:
             return
 
+        close_func = None
         for func in clsattrs.values():
             try:
                 name = func.func_name
@@ -139,6 +141,8 @@ class HandlerMeta(type):
             else:
                 if name.startswith('open'):
                     cls.add_opener(func)
+                if name == 'close':
+                    close_func = func
 
         def switch_session(self, name):
             cls.switch_session(name)
@@ -147,7 +151,9 @@ class HandlerMeta(type):
         cls.keywords[keywordname] = switch_session
 
         def close_session(self):
-            cls.close_session()
+            session = cls.close_session()
+            if close_func:
+                close_func(self, session)
 
         keywordname = 'close_' + meta.identifier_name
         cls.keywords[keywordname] = close_session
@@ -197,4 +203,6 @@ class Handler(object):
         for name, session in cls.sessions.items():
             if session is cls.session:
                 del cls.sessions[name]
+        session = cls.session
         cls.session = None
+        return session
