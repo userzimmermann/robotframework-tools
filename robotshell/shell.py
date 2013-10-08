@@ -43,6 +43,7 @@ class RobotShell(ShellBase):
 
     def __init__(self, shell, default_robot_name='Default'):
         ShellBase.__init__(self, shell)
+        self.label = None
 
         for name, value in os.environ.items():
             self.line_magics['{%s}' % name] = (
@@ -62,22 +63,14 @@ class RobotShell(ShellBase):
         # Create initial default Test Robot
         self.Robot(default_robot_name)
 
-    def Robot(self, name = None):
+    def Robot(self, name=None, extname=None):
         if name and (not self.robot or name != self.robot.name):
-            try:
-                old_magic_name = self.robot.magic_name
-            except AttributeError:
-                old_magic_name = None
             try:
                 robot = self.robots[name]
             except KeyError:
                 robot = TestRobot(name)
                 self.robots[name] = robot
             self.robot = robot
-            try:
-                new_magic_name = robot.magic_name
-            except AttributeError:
-                new_magic_name = None
 
             robot_magic = RobotMagic(name, robot_shell=self)
             self.line_magics[str(robot_magic)] = robot_magic
@@ -89,12 +82,16 @@ class RobotShell(ShellBase):
             for alias, lib in robot._libraries.items():
                 self.register_robot_keyword_magics(alias, lib)
 
-            self.in_template = re.sub(
-              r'^(\[%s.[^\]]+\]\n)?' % (
-                old_magic_name or self.robot_magic_name),
-              '[%s.%s]\n' % (
-                new_magic_name or self.robot_magic_name, name),
-              self.in_template)
+        try:
+            label = self.robot.magic_name
+        except AttributeError:
+            label = '%s.%s' % (self.robot_magic_name, name)
+        else:
+            if extname:
+                label += '.' + extname
+        self.in_template = re.sub(
+          r'^(\[%s\]\n)?' % self.label, '[%s]\n' % label, self.in_template)
+        self.label = label
 
         return self.robot
 

@@ -48,14 +48,9 @@ class ExtensionMagic(RobotMagic):
         return magic_name
 
     def __call__(self, args_str):
-        ## name, args_str = args_str.split(None, 1)
-        ## self.robot(name, args_str)
-        if self.extname:
-            args_str = self.extname
-        if args_str:
-            extname = self.robot(args_str)
-            if extname:
-                magic = ExtensionMagic(
-                  self.robot, extname, robot_shell=self.robot_shell)
-                self.line_magics[str(magic)] = magic
-        self.robot_shell.Robot(self.robot.magic_name)
+        extname = self.robot(args_str)
+        if extname:
+            magic = ExtensionMagic(
+              self.robot, extname, robot_shell=self.robot_shell)
+            self.line_magics[str(magic)] = magic
+        self.robot_shell.Robot(self.robot.magic_name, extname)
