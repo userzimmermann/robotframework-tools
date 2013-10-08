@@ -39,18 +39,61 @@ from itertools import chain
 
 from moretools import simpledict, camelize, decamelize
 
-# A mapping type for storing Robot Library Keyword methods by name,
-# providing additional `__getattr__` access with CamelCase Keyword names
-KeywordsDict = simpledict(
-  'Keywords',
-  # convert lower_case keyword names to CamelCase attribute names
-  key_to_attr=camelize,
-  # convert CamelCase keyword attribute names back to lower_case
-  attr_to_key=decamelize)
+from robot.utils import normalize
+
+class KeywordName(str):
+    """:class:`str` wrapper to work with Keyword names in a Robot way.
+
+    - Converts the given raw Keyword name (usually a function name)
+      to Capitalized Robot Style.
+    - Uses :func:`robot.utils.normalize`d conversions
+      (plain lowercase without spaces and underscores)
+      for comparing and hashing.
+    """
+    def __new__(cls, name, convert=True):
+        if convert and type(name) is not KeywordName:
+            name = camelize(name, joiner=' ')
+        return str.__new__(cls, name)
+
+    def __init__(self, name, convert=True):
+        self.normalized = normalize(name, ignore='_')
+
+    def __eq__(self, name):
+        return self.normalized == normalize(name, ignore='_')
+
+    def __hash__(self):
+        return hash(self.normalized)
+
+class KeywordsDict(object):
+    """Store Keyword functions or :class:`Keyword` objects
+       with :class:`KeywordName` keys.
+    """
+    def __init__(self):
+        self._dict = {}
+
+    def __setitem__(self, name, keyword):
+        self._dict[KeywordName(name)] = keyword
+
+    def __getitem__(self, name):
+        return self._dict[normalize(name, ignore='_')]
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __iter__(self):
+        return iter(self._dict.items())
+
+    def __dir__(self):
+        """The Keyword names in CamelCase.
+        """
+        return [''.join(name.split()) for name in self._dict]
 
 class Keyword(object):
     def __init__(self, name, func, libinstance):
-        self.name = camelize(name, joiner=' ')
+        self.name = name
         self.func = func
         self.libinstance = libinstance
 
@@ -67,6 +110,12 @@ class Keyword(object):
         return '%s.%s' % (self.libname, self.name)
 
     def args(self):
+        # First look for custom override args list:
+        if self.func.args:
+            for arg in self.func.args:
+                yield arg
+            return
+
         argspec = self.func.argspec
         posargs = argspec.args[1:]
         defaults = argspec.defaults
@@ -116,9 +165,10 @@ class KeywordDecoratorType(object):
     - Options are added with `__getattr__`,
       which generates new decorator class instances.
     """
-    def __init__(self, keywords, *options):
-        """Initialize with a Test Library's :class:`KeywordsDict` instance
-           and additional `options` to apply to the decorated methods.
+    def __init__(self, keywords, *options, **meta):
+        """Initialize with a Test Library's :class:`KeywordsDict` instance,
+           additional `options` to apply to the decorated methods
+           and custom `meta` info like name and args list overrides.
         """
         self.keywords = keywords
 
@@ -126,6 +176,10 @@ class KeywordDecoratorType(object):
             if not hasattr(type(self), 'option_' + optionname):
                 raise InvalidKeywordOption(optionname)
         self.options = options
+
+        name = meta.get('name')
+        self.keyword_name = name and KeywordName(name, convert=False)
+        self.keyword_args = meta.get('args')
 
     @staticmethod
     def option_unicode_to_str(func):
@@ -155,15 +209,22 @@ class KeywordDecoratorType(object):
             raise AttributeError(name)
         return type(self)(self.keywords, name, *self.options)
 
-    def __call__(self, func, name = None):
+    def __call__(self, func=None, name=None, args=None):
         """The actual Keyword method decorator function.
 
-        - When manually called, an optional override `name` can be given.
+        - When manually called, optional override `name`
+          and `args` list can be given.
+        - If `func` is None a new decorator instance
+          with stored `name` and `args` is returned.
         - All Keyword options added to this decorator class instance
           are applied.
         - The Keyword method function is stored
           in the Test Library's `keywords` mapping.
         """
+        if not func:
+            return type(self)(
+              self.keywords, *self.options, name=name, args=args)
+
         original_func = func
         try:
             contexts = func.contexts
@@ -179,8 +240,10 @@ class KeywordDecoratorType(object):
         for optionname in self.options:
             decorator = getattr(type(self), 'option_' + optionname)
             func = decorator(func)
-        if not name:
-            name = func.func_name
+        if name:
+            name = KeywordName(name, convert=False)
+        else:
+            name = self.keyword_name or func.func_name
         if func.func_doc:
             # Update saved doc string
             doc = func.func_doc
@@ -195,6 +258,8 @@ class KeywordDecoratorType(object):
         keyword_method.func_doc = doc
         # Store original method argspec
         keyword_method.argspec = argspec
+        # Store optional override args list
+        keyword_method.args = args or self.keyword_args
         # Add method to the Library's Keywords mapping
         if contexts:
             try:
@@ -206,4 +271,5 @@ class KeywordDecoratorType(object):
         else:
             keyword_method.contexts = {}
             self.keywords[name] = keyword_method
+
         return original_func

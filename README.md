@@ -105,6 +105,14 @@ You can inspect all Keywords in Robot CamelCase style
     In : lib.SomeKeyword
     Out: SomeLibrary.Some Keyword [ arg | *rest ]
 
+By default the Keyword names and argument lists are auto-generated
+from the function definition.
+You can override that:
+
+    @TestLibrary.keyword(name='KEYword N@me', args=['f|r$t', 'se[ond', ...])
+    def function(self, *args):
+        ...
+
 ### Keyword Options
 
 When you apply custom decorators to your Keyword functions
