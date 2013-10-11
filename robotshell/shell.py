@@ -25,12 +25,14 @@ __all__ = ['RobotPlugin']
 
 import re
 import os
+from itertools import chain
 
 from robottools import TestRobot
 from robottools.testrobot import Keyword
 
 from .base import ShellBase
-from .magic import RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic
+from .magic import (
+  RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic, VariableMagic)
 
 from .extension import ExtensionMagic
 
@@ -59,6 +61,7 @@ class RobotShell(ShellBase):
         self.robots = {}
         self.robot_keyword_magics = {}
         self.robot_keyword_cell_magics = {}
+        self.robot_variable_magics = {}
 
         # Create initial default Test Robot
         self.Robot(default_robot_name)
@@ -75,10 +78,8 @@ class RobotShell(ShellBase):
             robot_magic = RobotMagic(name, robot_shell=self)
             self.line_magics[str(robot_magic)] = robot_magic
 
-            for var, value in robot._variables.items():
-                self.line_magics[var] = lambda _, _value=value: _value
-
-            self.unregister_robot_keyword_magics()
+            self.unregister_robot_magics()
+            self.register_robot_variable_magics()
             for alias, lib in robot._libraries.items():
                 self.register_robot_keyword_magics(alias, lib)
 
@@ -117,11 +118,22 @@ class RobotShell(ShellBase):
 
                 ## cell_magics[name] = keyword_cell_magic
 
-    def unregister_robot_keyword_magics(self):
+    def register_robot_variable_magics(self):
+        for var in self.robot._variables:
+            for name in [var, var + '=']:
+                magic = VariableMagic(var, robot_shell=self)
+                self.robot_variable_magics[name] = magic
+                self.line_magics[name] = magic
+
+    def unregister_robot_magics(self):
         magics = self.line_magics
-        for name in self.robot_keyword_magics:
+        for name in chain(
+          self.robot_keyword_magics,
+          self.robot_variable_magics
+          ):
             del magics[name]
         self.robot_keyword_magics = {}
+        self.robot_variable_magics = {}
 
         magics = self.cell_magics
         for name in self.robot_keyword_cell_magics:

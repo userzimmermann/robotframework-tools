@@ -21,7 +21,9 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic']
+__all__ = [
+  'RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic',
+  'VariableMagic']
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
@@ -84,6 +86,14 @@ class RobotMagicBase(ShellBase):
         ShellBase.__init__(self, robot_shell.shell)
         self.robot_shell = robot_shell
 
+    @property
+    def keyword_magics(self):
+        return self.robot_shell.robot_keyword_magics
+
+    @property
+    def robot(self):
+        return self.robot_shell.robot
+
 class RobotMagic(RobotMagicBase):
     def __init__(self, name=None, **baseargs):
         RobotMagicBase.__init__(self, **baseargs)
@@ -140,3 +150,20 @@ class KeywordCellMagic(KeywordMagic):
     def __call__(self, args_str):
         args = [s.strip() for s in args_str.strip().split('\n')]
         return self.keyword(*args)
+
+class VariableMagic(RobotMagicBase):
+    def __init__(self, variable, **baseargs):
+        RobotMagicBase.__init__(self, **baseargs)
+        self.variable = variable
+
+    def __str__(self):
+        return self.variable
+
+    def __call__(self, args_str):
+        if not args_str:
+            return self.robot._variables[self.variable]
+
+        args_str = args_str.lstrip('=').lstrip()
+        result = self.robot_shell.robot_keyword_magics['RunKeyword'](args_str)
+        self.robot._variables[self.variable] = result
+        return result
