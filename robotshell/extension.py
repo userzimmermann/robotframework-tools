@@ -48,6 +48,8 @@ class ExtensionMagic(RobotMagic):
         return magic_name
 
     def __call__(self, args_str):
+        if self.extname:
+            args_str = self.extname
         extname = self.robot(args_str)
         if extname:
             magic = ExtensionMagic(
