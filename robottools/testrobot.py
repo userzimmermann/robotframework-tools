@@ -166,7 +166,7 @@ class TestRobot(object):
         return lib
 
     def __getitem__(self, name):
-        if name.startswith('$'):
+        if any(name.startswith(c) for c in '$@'):
             try:
                 return self._variables[name]
             except DataError as e:
@@ -196,7 +196,7 @@ class TestRobot(object):
             name = name[2:-1] # Strip ${}
             if isidentifier(name):
                 names.append(name.upper())
-        for alias, lib in self._libraries:
+        for alias, lib in self._libraries.items():
             names.append(alias)
             # dir() returns the Library's CamelCase Keyword names
             names.extend(dir(lib))
