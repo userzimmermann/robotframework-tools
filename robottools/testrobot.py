@@ -151,6 +151,8 @@ class TestRobot(object):
         self._context = Context(testrobot=self)
         self._libraries = {}
 
+        self.Import('BuiltIn')
+
     @property
     def __doc__(self):
         return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
