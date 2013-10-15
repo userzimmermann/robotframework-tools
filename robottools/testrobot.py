@@ -46,6 +46,7 @@ init_global_variables(RobotSettings())
 
 LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
 
+#HACK: To dynamically (un)register `Output`s:
 LOGGER.disable_message_cache()
 
 class Output(AbstractLogger):
@@ -56,9 +57,11 @@ class Output(AbstractLogger):
         return self.set_level(level)
 
     def __enter__(self):
+        #HACK:
         LOGGER.register_logger(self)
 
     def __exit__(self, *exc):
+        #HACK:
         LOGGER.unregister_logger(self)
 
     def message(self, message):
@@ -109,16 +112,14 @@ class Keyword(KeywordInspector):
             runner = DebugKeyword(self.name, args)
         else:
             runner = robot.running.Keyword(self.name, args)
-        #HACK: For the Robot BuiltIn Library
-        EXECUTION_CONTEXTS._contexts = [self._context]
-        with self._context.output:
+        #HACK: `with` registers Context to EXECUTION_CONTEXTS
+        # and Output to LOGGER:
+        with self._context as ctx:
             try:
-                return runner.run(self._context)
+                return runner.run(ctx)
             # Raised by robot.running.Keyword:
             except HandlerExecutionFailed as e:
                 pass
-        #HACK:
-        EXECUTION_CONTEXTS._contexts = []
 
     def debug(self, *args, **kwargs):
         keyword = Keyword(self._handler, self._context, debug=True)
@@ -130,6 +131,19 @@ class Context(object):
         self.dry_run = False
         self.in_teardown = False
         self.test = None
+
+    def __enter__(self):
+        #HACK: For the Robot BuiltIn Library
+        EXECUTION_CONTEXTS._contexts = [self]
+        #HACK: Registers output to LOGGER
+        self.output.__enter__()
+        return self
+
+    def __exit__(self, *exc):
+        #HACK: Unregisters output from LOGGER
+        self.output.__exit__(*exc)
+        #HACK:
+        EXECUTION_CONTEXTS._contexts = []
 
     @property
     def variables(self):
@@ -189,6 +203,7 @@ class TestRobot(object):
 
     def Import(self, lib, alias=None):
         if type(lib) is not TestLibraryInspector:
+            #HACK: `with` registers Output to LOGGER
             with self._output:
                 lib = TestLibraryInspector(lib)
         self._libraries[alias or lib.name] = lib
