@@ -227,12 +227,13 @@ class TestRobot(object):
         raise KeyError(name)
 
     def __getattr__(self, name):
-        if name.isupper(): # Use as variable name
-            name = '${%s}' % name
         try:
             return self[name]
         except KeyError as e:
-            raise AttributeError(str(e))
+            try:
+                return self._variables['${%s}' % name]
+            except DataError:
+                raise AttributeError(str(e))
 
     def __dir__(self):
         names = []
