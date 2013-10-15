@@ -30,10 +30,13 @@ from moretools import isidentifier
 
 from robot.errors import DataError, HandlerExecutionFailed
 ## from robot.utils.error import ErrorDetails, PythonErrorDetails
+from robot.model import TestSuite
 from robot.conf import RobotSettings
 from robot.variables import GLOBAL_VARIABLES, init_global_variables
-from robot.output.loggerhelper import LEVELS as LOG_LEVELS, AbstractLogger
+from robot.output import LOGGER, LEVELS as LOG_LEVELS
+from robot.output.loggerhelper import AbstractLogger
 from robot.running import EXECUTION_CONTEXTS
+from robot.running.namespace import Namespace
 import robot.running
 
 from robottools.library.inspector import (
@@ -43,11 +46,25 @@ init_global_variables(RobotSettings())
 
 LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
 
+LOGGER.disable_message_cache()
+
 class Output(AbstractLogger):
+    def __init__(self):
+        AbstractLogger.__init__(self)
+
+    def set_log_level(self, level):
+        return self.set_level(level)
+
+    def __enter__(self):
+        LOGGER.register_logger(self)
+
+    def __exit__(self, *exc):
+        LOGGER.unregister_logger(self)
+
     def message(self, message):
         level = message.level
-        print('[%s]%s %s' % (
-          message.level, ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)),
+        print("[%s]%s %s" % (
+          level, ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)),
           message.message))
 
 class DebugKeyword(robot.running.Keyword):
@@ -94,11 +111,12 @@ class Keyword(KeywordInspector):
             runner = robot.running.Keyword(self.name, args)
         #HACK: For the Robot BuiltIn Library
         EXECUTION_CONTEXTS._contexts = [self._context]
-        try:
-            return runner.run(self._context)
-        # Raised by robot.running.Keyword:
-        except HandlerExecutionFailed as e:
-            pass
+        with self._context.output:
+            try:
+                return runner.run(self._context)
+            # Raised by robot.running.Keyword:
+            except HandlerExecutionFailed as e:
+                pass
         #HACK:
         EXECUTION_CONTEXTS._contexts = []
 
@@ -109,8 +127,6 @@ class Keyword(KeywordInspector):
 class Context(object):
     def __init__(self, testrobot):
         self.testrobot = testrobot
-
-        self.output = Output()
         self.dry_run = False
         self.in_teardown = False
         self.test = None
@@ -118,6 +134,14 @@ class Context(object):
     @property
     def variables(self):
         return self.testrobot._variables
+
+    @property
+    def output(self):
+        return self.testrobot._output
+
+    @property
+    def namespace(self):
+        return self.testrobot._namespace
 
     @property
     def keywords(self):
@@ -148,7 +172,11 @@ class TestRobot(object):
     def __init__(self, name):
         self.name = name
         self._variables = GLOBAL_VARIABLES.copy()
+        self._output = Output()
         self._context = Context(testrobot=self)
+        self._suite = TestSuite(name)
+        self._namespace = Namespace(
+          self._suite, self._variables, None, [], None)
         self._libraries = {}
 
         self.Import('BuiltIn')
@@ -161,7 +189,8 @@ class TestRobot(object):
 
     def Import(self, lib, alias=None):
         if type(lib) is not TestLibraryInspector:
-            lib = TestLibraryInspector(lib)
+            with self._output:
+                lib = TestLibraryInspector(lib)
         self._libraries[alias or lib.name] = lib
         return lib
 
