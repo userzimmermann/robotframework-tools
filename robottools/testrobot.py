@@ -25,6 +25,7 @@ __all__ = ['TestRobot']
 
 import sys
 import warnings
+import logging
 
 from moretools import isidentifier
 
@@ -35,6 +36,7 @@ from robot.conf import RobotSettings
 from robot.variables import GLOBAL_VARIABLES, init_global_variables
 from robot.output import LOGGER, LEVELS as LOG_LEVELS
 from robot.output.loggerhelper import AbstractLogger
+from robot.output.pyloggingconf import RobotHandler
 from robot.running import EXECUTION_CONTEXTS
 from robot.running.namespace import Namespace
 import robot.running
@@ -49,9 +51,22 @@ LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
 #HACK: To dynamically (un)register `Output`s:
 LOGGER.disable_message_cache()
 
+class LoggingHandler(RobotHandler):
+    def __enter__(self):
+        #HACK: Adapted from robot.output.pyloggingconf.initialize()
+        value = self._old_logging_raiseExceptions = logging.raiseExceptions
+        logging.raiseExceptions = not value
+        logging.getLogger().addHandler(self)
+
+    def __exit__(self, *exc):
+        logging.getLogger().removeHandler(self)
+        logging.raiseExceptions = self._old_logging_raiseExceptions
+        del self._old_logging_raiseExceptions
+
 class Output(AbstractLogger):
     def __init__(self):
         AbstractLogger.__init__(self)
+        self.logging_handler = LoggingHandler()
 
     def set_log_level(self, level):
         return self.set_level(level)
@@ -59,9 +74,12 @@ class Output(AbstractLogger):
     def __enter__(self):
         #HACK:
         LOGGER.register_logger(self)
+        # Catch global logging:
+        self.logging_handler.__enter__()
 
     def __exit__(self, *exc):
         #HACK:
+        self.logging_handler.__exit__(*exc)
         LOGGER.unregister_logger(self)
 
     def message(self, message):
