@@ -54,8 +54,8 @@ LOGGER.disable_message_cache()
 class LoggingHandler(RobotHandler):
     def __enter__(self):
         #HACK: Adapted from robot.output.pyloggingconf.initialize()
-        value = self._old_logging_raiseExceptions = logging.raiseExceptions
-        logging.raiseExceptions = not value
+        self._old_logging_raiseExceptions = logging.raiseExceptions
+        logging.raiseExceptions = False
         logging.getLogger().addHandler(self)
 
     def __exit__(self, *exc):
