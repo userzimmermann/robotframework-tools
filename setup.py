@@ -18,7 +18,7 @@ if sys.version_info[0] == 3:
 
 setup(
   name = 'robotframework-tools',
-  version = '0.1a89',
+  version = '0.1a90',
   description = (
     'Python Tools for Robot Framework and Test Libraries.'
     ),
@@ -38,6 +38,8 @@ setup(
     'robottools',
     'robottools.library',
     'robottools.library.session',
+    'robottools.library.inspector',
+    'robottools.testrobot',
     'robotshell',
     ],
 
