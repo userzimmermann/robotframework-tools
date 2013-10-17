@@ -27,6 +27,9 @@ from collections import OrderedDict
 from itertools import chain
 from moretools import camelize, simpledict
 
+from . import TestLibraryInspector
+from .keyword import KeywordInspector
+
 
 TestLibrariesDict = simpledict('TestLibrariesDict', dicttype=OrderedDict)
 
