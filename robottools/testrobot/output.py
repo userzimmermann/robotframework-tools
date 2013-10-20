@@ -23,18 +23,29 @@
 """
 __all__ = ['Output']
 
+import re
+import sys
 import logging
 
 from robot.output import LOGGER, LEVELS as LOG_LEVELS
 from robot.output.loggerhelper import AbstractLogger
 from robot.output.pyloggingconf import RobotHandler
+from robot.output.highlighting import Highlighter
+
+from .highlighting import Highlighter
 
 
 LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
 
 #HACK: To dynamically (un)register `Output`s:
 LOGGER.disable_message_cache()
+LOGGER.disable_automatic_console_logger()
 
+LOG_LEVEL_COLORS = {
+  'FAIL': 'red',
+  'ERROR': 'red',
+  'WARN': 'yellow',
+  }
 
 class LoggingHandler(RobotHandler):
     def __enter__(self):
@@ -53,6 +64,7 @@ class Output(AbstractLogger):
     def __init__(self):
         AbstractLogger.__init__(self)
         self.logging_handler = LoggingHandler()
+        self.stream = sys.__stdout__
 
     def set_log_level(self, level):
         return self.set_level(level)
@@ -68,8 +80,21 @@ class Output(AbstractLogger):
         self.logging_handler.__exit__(*exc)
         LOGGER.unregister_logger(self)
 
+    _re_msg_label = re.compile(r'^\[(%s)\] *' % '|'.join(LOG_LEVELS))
+
     def message(self, message):
-        level = message.level
-        print("[%s]%s %s" % (
-          level, ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)),
-          message.message))
+        msg = message.message
+        try:
+            _, level, msg = self._re_msg_label.split(msg)
+        except ValueError:
+            level = message.level
+        self.stream.write("[")
+        try:
+            color = LOG_LEVEL_COLORS[level]
+        except KeyError:
+            self.stream.write(level)
+        else:
+            with Highlighter(color, self.stream) as stream:
+                stream.write(level)
+        self.stream.write("]%s %s\n" % (
+          ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)), msg))
