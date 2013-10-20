@@ -26,6 +26,23 @@ __all__ = ['ContextHandler']
 from .session.meta import Meta
 from .keywords import KeywordsDict
 
+
+class Context(object):
+    def __init__(self, name, handler):
+        self.name = name
+        self.handler = handler
+
+    def __call__(self, func):
+        try:
+            func.contexts.add(self)
+        except AttributeError:
+            func.contexts = set([self])
+        return func
+
+    def __repr__(self):
+        return "%s.%s" % (self.handler.__name__, self.name)
+
+
 class ContextHandlerMeta(type):
     ## def __new__(metacls, clsname, bases, clsattrs):
     ##     if clsname == 'ContextHandler': # The handler base class itself
@@ -68,6 +85,7 @@ class ContextHandlerMeta(type):
         keyword_name = switch_context.func_name = 'switch_' + clsname.lower()
         cls.keywords[keyword_name] = switch_context
 
+
 class ContextHandler(object):
     __metaclass__ = ContextHandlerMeta
 
@@ -85,17 +103,3 @@ class ContextHandler(object):
                 return context
         raise KeyError(name)
 
-class Context(object):
-    def __init__(self, name, handler):
-        self.name = name
-        self.handler = handler
-
-    def __call__(self, func):
-        try:
-            func.contexts.add(self)
-        except AttributeError:
-            func.contexts = set([self])
-        return func
-
-    def __repr__(self):
-        return "%s.%s" % (self.handler.__name__, self.name)
