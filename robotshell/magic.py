@@ -27,13 +27,30 @@ __all__ = [
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
+from robottools.testrobot.output import LOG_LEVELS
+
 from .base import ShellBase
+
+
+class RobotMagicsMeta(type(Magics)):
+    def __new__(mcs, name, bases, attrs):
+        for level in LOG_LEVELS:
+
+            def LEVEL(self, _, _level=level):
+                self.robot_shell.robot._output.set_log_level(_level)
+
+            LEVEL.__name__ = level
+            attrs[level] = line_magic(LEVEL)
+
+        return type(Magics).__new__(mcs, name, bases, attrs)
+
 
 @magics_class
 class RobotMagics(Magics):
+    __metaclass__ = RobotMagicsMeta
+
     def __init__(self, robot_shell):
         Magics.__init__(self, robot_shell.shell)
-
         self.robot_shell = robot_shell
 
     def robot_mode_magic(func):
@@ -81,6 +98,7 @@ class RobotMagics(Magics):
             alias = None
         return self.robot_shell.Import(libname, alias)
 
+
 class RobotMagicBase(ShellBase):
     def __init__(self, robot_shell):
         ShellBase.__init__(self, robot_shell.shell)
@@ -93,6 +111,7 @@ class RobotMagicBase(ShellBase):
     @property
     def robot(self):
         return self.robot_shell.robot
+
 
 class RobotMagic(RobotMagicBase):
     def __init__(self, name=None, **baseargs):
@@ -122,6 +141,7 @@ class RobotMagic(RobotMagicBase):
     def __call__(self, name):
         return self.robot_shell.Robot(self.name or name)
 
+
 class KeywordMagic(RobotMagicBase):
     def __init__(self, keyword, **baseargs):
         RobotMagicBase.__init__(self, **baseargs)
@@ -146,10 +166,12 @@ class KeywordMagic(RobotMagicBase):
             return self.keyword.debug(*args)
         return self.keyword(*args)
 
+
 class KeywordCellMagic(KeywordMagic):
     def __call__(self, args_str):
         args = [s.strip() for s in args_str.strip().split('\n')]
         return self.keyword(*args)
+
 
 class VariableMagic(RobotMagicBase):
     def __init__(self, variable, **baseargs):
