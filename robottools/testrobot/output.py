@@ -61,8 +61,8 @@ class LoggingHandler(RobotHandler):
 
 
 class Output(AbstractLogger):
-    def __init__(self):
-        AbstractLogger.__init__(self)
+    def __init__(self, log_level='INFO'):
+        AbstractLogger.__init__(self, level=log_level)
         self.logging_handler = LoggingHandler()
         self.stream = sys.__stdout__
 
