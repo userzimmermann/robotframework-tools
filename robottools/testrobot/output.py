@@ -88,6 +88,8 @@ class Output(AbstractLogger):
             _, level, msg = self._re_msg_label.split(msg)
         except ValueError:
             level = message.level
+        if not self._is_logged(level):
+            return
         self.stream.write("[")
         try:
             color = LOG_LEVEL_COLORS[level]
