@@ -41,6 +41,7 @@ setup(
     'robottools.library.inspector',
     'robottools.testrobot',
     'robotshell',
+    'robotshell.magic',
     ],
 
   use_2to3=True,
