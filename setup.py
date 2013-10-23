@@ -17,24 +17,24 @@ if sys.version_info[0] == 3:
         sys.exit(1)
 
 setup(
-  name = 'robotframework-tools',
-  version = '0.1a95',
-  description = (
+  name='robotframework-tools',
+  version='0.1a95',
+  description=(
     'Python Tools for Robot Framework and Test Libraries.'
     ),
-  author = 'Stefan Zimmermann',
-  author_email = 'zimmermann.code@gmail.com',
-  url = 'http://bitbucket.org/userzimmermann/robotframework-tools',
+  author='Stefan Zimmermann',
+  author_email='zimmermann.code@gmail.com',
+  url='http://bitbucket.org/userzimmermann/robotframework-tools',
 
-  license = 'GPLv3',
+  license='GPLv3',
 
-  install_requires = [
+  install_requires=[
     'path.py',
     'moretools >= 0.1a26',
     'robotframework >= 2.8' if sys.version_info[0] < 3
     else 'robotframework-python3',
     ],
-  packages = [
+  packages=[
     'robottools',
     'robottools.library',
     'robottools.library.session',
@@ -52,7 +52,7 @@ setup(
     'reduce',
     ]],
 
-  classifiers = [
+  classifiers=[
     'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: GNU General Public License (GPL)',
@@ -62,7 +62,7 @@ setup(
     'Topic :: Software Development',
     'Topic :: Utilities',
     ],
-  keywords = [
+  keywords=[
     'robottools', 'robot', 'framework', 'robotframework', 'tools',
     'test', 'automation', 'testautomation',
     'testlibrary', 'testcase', 'keyword', 'pybot',
