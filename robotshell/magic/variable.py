@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robotshell.magic
+"""robotshell.magic.variable
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
