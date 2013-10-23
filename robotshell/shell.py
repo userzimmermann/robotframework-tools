@@ -83,13 +83,16 @@ class RobotShell(ShellBase):
             for alias, lib in robot._libraries.items():
                 self.register_robot_keyword_magics(alias, lib)
 
-        try:
-            label = self.robot.magic_name
-        except AttributeError:
-            label = '%s.%s' % (self.robot_magic_name, name)
+        if self.robot is None:
+            label = self.robot_magic_name
         else:
-            if extname:
-                label += '.' + extname
+            try:
+                label = self.robot.magic_name
+            except AttributeError:
+                label = '%s.%s' % (self.robot_magic_name, name)
+            else:
+                if extname:
+                    label += '.' + extname
         self.in_template = re.sub(
           r'^(\[%s\]\n)?' % self.label, '[%s]\n' % label, self.in_template)
         self.label = label
@@ -100,6 +103,21 @@ class RobotShell(ShellBase):
         library = self.robot.Import(libname, alias)
         self.register_robot_keyword_magics(alias or libname, library)
         return library
+
+    def Close(self):
+        if self.robot is None:
+            return
+        try:
+            extclose = self.robot.close
+        except AttributeError:
+            del self.line_magics['%s.%s' % (
+              self.robot_magic_name, self.robot.name)]
+            del self.robots[self.robot.name]
+            self.robot = None
+            return self.Robot()
+
+        extname = extclose()
+        return self.Robot(extname=extname)
 
     def register_robot_keyword_magics(self, libalias, library):
         for keyword in library:

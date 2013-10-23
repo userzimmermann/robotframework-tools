@@ -99,3 +99,7 @@ class RobotMagics(Magics):
             libname = libname_as_alias
             alias = None
         return self.robot_shell.Import(libname, alias)
+
+    @line_magic
+    def Close(self, _):
+        self.robot_shell.Close()

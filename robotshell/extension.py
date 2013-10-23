@@ -36,6 +36,8 @@ class Extension(TestRobot):
             self.magic_name = type(self).__name__
         TestRobot.__init__(self, self.magic_name)
 
+    def close(self):
+        return None
 
 class ExtensionMagic(RobotMagic):
     def __init__(self, robot, extname=None, **baseargs):
