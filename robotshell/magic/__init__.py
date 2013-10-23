@@ -29,7 +29,9 @@ from IPython.core.magic import Magics, magics_class, line_magic
 
 from robottools.testrobot.output import LOG_LEVELS
 
-from .base import ShellBase
+from .robot import RobotMagic
+from .keyword import KeywordMagic, KeywordCellMagic
+from .variable import VariableMagic
 
 
 class RobotMagicsMeta(type(Magics)):
@@ -97,95 +99,3 @@ class RobotMagics(Magics):
             libname = libname_as_alias
             alias = None
         return self.robot_shell.Import(libname, alias)
-
-
-class RobotMagicBase(ShellBase):
-    def __init__(self, robot_shell):
-        ShellBase.__init__(self, robot_shell.shell)
-        self.robot_shell = robot_shell
-
-    @property
-    def keyword_magics(self):
-        return self.robot_shell.robot_keyword_magics
-
-    @property
-    def robot(self):
-        return self.robot_shell.robot
-
-
-class RobotMagic(RobotMagicBase):
-    def __init__(self, name=None, **baseargs):
-        RobotMagicBase.__init__(self, **baseargs)
-        self.name = name
-
-    @property
-    def __doc__(self):
-        return self.robot.__doc__
-
-    @property
-    def robot(self):
-        if self.name:
-            return self.robot_shell.robots[self.name]
-        return self.robot_shell.robot
-
-    @property
-    def magic_name(self):
-        robot_magic_name = self.robot_shell.robot_magic_name
-        if self.name:
-            return '%s.%s' % (robot_magic_name, self.name)
-        return robot_magic_name
-
-    def __str__(self):
-        return self.magic_name
-
-    def __call__(self, name):
-        return self.robot_shell.Robot(self.name or name)
-
-
-class KeywordMagic(RobotMagicBase):
-    def __init__(self, keyword, **baseargs):
-        RobotMagicBase.__init__(self, **baseargs)
-        self.keyword = keyword
-
-    @property
-    def __doc__(self):
-        return self.keyword.__doc__
-
-    def __str__(self):
-        return self.keyword.name
-
-    def __call__(self, args_str):
-        if not args_str:
-            args = ()
-        elif any(args_str.startswith(c) for c in '[|'):
-            args = [s.strip() for s in args_str.strip('[|]').split('|')]
-        else:
-            args = args_str.split()
-
-        if self.robot_shell.robot_debug_mode:
-            return self.keyword.debug(*args)
-        return self.keyword(*args)
-
-
-class KeywordCellMagic(KeywordMagic):
-    def __call__(self, args_str):
-        args = [s.strip() for s in args_str.strip().split('\n')]
-        return self.keyword(*args)
-
-
-class VariableMagic(RobotMagicBase):
-    def __init__(self, variable, **baseargs):
-        RobotMagicBase.__init__(self, **baseargs)
-        self.variable = variable
-
-    def __str__(self):
-        return self.variable
-
-    def __call__(self, args_str):
-        if not args_str:
-            return self.robot._variables[self.variable]
-
-        args_str = args_str.lstrip('=').lstrip()
-        result = self.robot_shell.robot_keyword_magics['RunKeyword'](args_str)
-        self.robot._variables[self.variable] = result
-        return result

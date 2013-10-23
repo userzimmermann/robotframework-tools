@@ -27,6 +27,7 @@ from robottools import TestRobot
 
 from .magic import RobotMagic
 
+
 class Extension(TestRobot):
     magic_name = None
 
@@ -34,6 +35,7 @@ class Extension(TestRobot):
         if not self.magic_name:
             self.magic_name = type(self).__name__
         TestRobot.__init__(self, self.magic_name)
+
 
 class ExtensionMagic(RobotMagic):
     def __init__(self, robot, extname=None, **baseargs):
