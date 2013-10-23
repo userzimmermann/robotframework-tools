@@ -18,7 +18,7 @@ if sys.version_info[0] == 3:
 
 setup(
   name = 'robotframework-tools',
-  version = '0.1a94',
+  version = '0.1a95',
   description = (
     'Python Tools for Robot Framework and Test Libraries.'
     ),
