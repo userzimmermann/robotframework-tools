@@ -29,6 +29,10 @@ from .magic import RobotMagic
 
 
 class Extension(TestRobot):
+    """Base class for robotshell extensions.
+
+    - Load with ``robotshell.load_robotshell(extensions=[<class>,...]``.
+    """
     magic_name = None
 
     def __init__(self):
@@ -38,6 +42,7 @@ class Extension(TestRobot):
 
     def close(self):
         return None
+
 
 class ExtensionMagic(RobotMagic):
     def __init__(self, robot, extname=None, **baseargs):
