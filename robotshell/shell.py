@@ -23,9 +23,12 @@
 """
 __all__ = ['RobotPlugin']
 
+import __builtin__
 import re
 import os
 from itertools import chain
+
+from robot.errors import DataError
 
 from robottools import TestRobot
 from robottools.testrobot import Keyword
@@ -66,12 +69,23 @@ class RobotShell(ShellBase):
         # Create initial default Test Robot
         self.Robot(default_robot_name)
 
+    def shell_variable(self, key):
+        name = key.strip('$@{}')
+        try:
+            return self.shell.user_ns[name]
+        except KeyError:
+            try:
+                return getattr(__builtin__, name)
+            except AttributeError:
+                raise DataError(key)
+
     def Robot(self, name=None, extname=None):
         if name and (not self.robot or name != self.robot.name):
             try:
                 robot = self.robots[name]
             except KeyError:
-                robot = TestRobot(name)
+                robot = TestRobot(
+                  name, variable_getters=[self.shell_variable])
                 self.robots[name] = robot
             self.robot = robot
 
