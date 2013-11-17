@@ -152,10 +152,10 @@ class RobotShell(ShellBase):
 
     def register_robot_variable_magics(self):
         for var in self.robot._variables:
-            for name in [var, var + '=']:
-                magic = VariableMagic(var, robot_shell=self)
-                self.robot_variable_magics[name] = magic
-                self.line_magics[name] = magic
+            magic = VariableMagic(var, robot_shell=self)
+            name = str(magic)
+            self.robot_variable_magics[name] = magic
+            self.line_magics[name] = magic
 
     def unregister_robot_magics(self):
         magics = self.line_magics

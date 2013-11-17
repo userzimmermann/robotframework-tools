@@ -32,7 +32,8 @@ class VariableMagic(RobotMagicBase):
         self.variable = variable
 
     def __str__(self):
-        return self.variable
+        #Remove braces from $/@{...} for magic name:
+        return self.variable[0] + self.variable[2:-1]
 
     def __call__(self, args_str):
         if not args_str:
