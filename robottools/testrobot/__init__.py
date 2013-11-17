@@ -37,6 +37,7 @@ from robot.running.namespace import Namespace
 
 from robottools import TestLibraryInspector
 
+from .variables import variablesclass
 from .output import Output
 from .context import Context
 from .library import TestLibrary
@@ -47,9 +48,11 @@ init_global_variables(RobotSettings())
 
 
 class TestRobot(object):
-    def __init__(self, name):
+    def __init__(self, name, variable_getters=None):
         self.name = name
         self._variables = GLOBAL_VARIABLES.copy()
+        self._variables.__class__ = variablesclass(
+          extra_getters=variable_getters)
         self._output = Output()
         self._context = Context(testrobot=self)
         self._suite = TestSuite(name)
