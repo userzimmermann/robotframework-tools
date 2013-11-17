@@ -23,6 +23,7 @@
 """
 __all__ = ['Context']
 
+from robot.errors import DataError
 from robot.running import EXECUTION_CONTEXTS
 
 from .keyword import Keyword
