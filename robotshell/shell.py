@@ -23,7 +23,11 @@
 """
 __all__ = ['RobotPlugin']
 
-import __builtin__
+try:
+    import builtins
+except ImportError:
+    import __builtin__ as builtins
+
 import re
 import os
 from itertools import chain
@@ -75,7 +79,7 @@ class RobotShell(ShellBase):
             return self.shell.user_ns[name]
         except KeyError:
             try:
-                return getattr(__builtin__, name)
+                return getattr(builtins, name)
             except AttributeError:
                 raise DataError(key)
 
