@@ -38,7 +38,13 @@ class Extension(TestRobot):
     def __init__(self):
         if not self.magic_name:
             self.magic_name = type(self).__name__
-        TestRobot.__init__(self, self.magic_name)
+
+        from . import robot_shell
+        if not robot_shell:
+            raise RuntimeError("robotshell is not running.")
+        TestRobot.__init__(
+          self, self.magic_name,
+          variable_getters=[robot_shell.shell_variable])
 
     def close(self):
         return None
