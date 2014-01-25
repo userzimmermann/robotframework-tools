@@ -276,7 +276,7 @@ TODO...
     In : %load_ext robotshell
 
 Now all the `robottools.TestRobot` functionality
-is exposed as IPython magic functions...
+is exposed as IPython `%magic` functions...
 
     [Robot.Default]
     In : %Import SomeLibrary
@@ -317,4 +317,22 @@ and the Keyword's exception will be re-raised.
 Combine it with IPython's automatic `%pdb` mode
 and you'll get a nice Test Library debugging environment.
 
-TODO...
+### Variables
+
+Robot Framework uses `${...}` and `@{...}` syntax for accessing variables.
+In `%magic` function call parameters
+IPython already substitutes Python variables inside `{...}`
+with their `str()` conversion.
+This conflicts with Robot variable syntax.
+To access a Robot variable you need to use double braces:
+
+    %Keyword ${{var}}
+
+Or to expand a list variable:
+
+    %Keyword @{{listvar}}
+
+This way you can also pass Python variables directly to a Robot Keyword.
+If the `Robot` can't find the varibale in its own dictionary,
+lookup is first extended to IPython's `user_ns` (shell level)
+and finally to Python's `builtins`.
