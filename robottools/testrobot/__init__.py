@@ -19,6 +19,8 @@
 
 """robottools.testrobot
 
+- Provides the interactive TestRobot interface.
+
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['TestRobot']
@@ -44,13 +46,27 @@ from .library import TestLibrary
 from .keyword import Keyword
 
 
-init_global_variables(RobotSettings())
-
-
 class TestRobot(object):
+    """An interactive Robot Framework interface.
+    """
     def __init__(self, name, variable_getters=None):
+        """Initialize with a `name`
+           and optional additional variable lookup functions.
+
+        - If a Variable is not found in the Robot's Variables dictionary,
+          the `variable_getters` will be called in the given order
+          with the Variable string in Robot syntax ($/@{...})
+          until no `LookupError` or `DataError` is raised.
+          (Used by the `robot_shell` to extend Variables lookup
+           to IPython's `user_ns` and Python's `builtins`).
+
+        :param variable_getters: A sequence of callables.
+        """
         self.name = name
+        if not GLOBAL_VARIABLES: #HACK
+            init_global_variables(RobotSettings())
         self._variables = GLOBAL_VARIABLES.copy()
+        #HACK even more to extend variable lookup:
         self._variables.__class__ = variablesclass(
           extra_getters=variable_getters)
         self._output = Output()
@@ -64,11 +80,15 @@ class TestRobot(object):
 
     @property
     def __doc__(self):
+        """Dynamic doc string listing imported Test Libraries.
+        """
         return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
           '* [Import] ' + lib.name
           for alias, lib in self._libraries.items())))
 
     def Import(self, lib, alias=None):
+        """Import a Test Library with an optional `alias` name.
+        """
         if type(lib) is not TestLibraryInspector:
             #HACK: `with` registers Output to LOGGER
             with self._output:
@@ -77,6 +97,11 @@ class TestRobot(object):
         return TestLibrary(lib._library, self._context)
 
     def __getitem__(self, name):
+        """Get variables (with $/@{...} syntax),
+           Test Libraries and Keywords by name.
+
+        - Keyword names can be in any case (like in a Test Script).
+        """
         if any(name.startswith(c) for c in '$@'):
             try:
                 return self._variables[name]
@@ -94,6 +119,10 @@ class TestRobot(object):
         raise KeyError(name)
 
     def __getattr__(self, name):
+        """Get Robot Variables, Test Libraries and Keywords by name.
+
+        - Keyword names can be in any case (lower_case, CamelCase, ...).
+        """
         try:
             return self[name]
         except KeyError as e:
@@ -103,6 +132,10 @@ class TestRobot(object):
                 raise AttributeError(str(e))
 
     def __dir__(self):
+        """List all Robot Variables (UPPER_CASE),
+           Test Libraries and Keyword (CamelCase) names,
+           which are valid Python identifiers.
+        """
         names = []
         for name in self._variables:
             name = name[2:-1] # Strip ${}

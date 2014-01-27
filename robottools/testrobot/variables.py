@@ -35,7 +35,7 @@ class VariablesBase(robot.variables.Variables):
             for getter in self._extra_getters:
                 try:
                     return getter(key)
-                except (KeyError, DataError):
+                except (LookupError, DataError):
                     pass
         raise DataError(key)
 
