@@ -2,19 +2,6 @@ import sys
 from setuptools import setup
 from pkg_resources import require, DistributionNotFound
 
-if sys.version_info[0] == 3:
-    try:
-        require('robotframework-python3')
-    except DistributionNotFound:
-        sys.stderr.write(
-          "\n"
-          "Requires robotframework-python3."
-          " This is unofficial."
-          " You can get it from:"
-          "\n\n"
-          "https://bitbucket.org/userzimmermann/robotframework-python3"
-          "\n\n")
-        sys.exit(1)
 
 setup(
   name='robotframework-tools',
@@ -32,7 +19,7 @@ setup(
     'path.py',
     'moretools >= 0.1a26',
     'robotframework >= 2.8' if sys.version_info[0] < 3
-    else 'robotframework-python3',
+    else 'robotframework-python3 >= 2.8.3',
     ],
   packages=[
     'robottools',
