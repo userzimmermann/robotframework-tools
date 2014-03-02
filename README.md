@@ -125,7 +125,7 @@ you would have to take care of preserving the original argspec for Robot.
             return func(...)
 
         # You still have to take care of the function(-->Keyword) name:
-        wrapper.func_name = func.func_name
+        wrapper.__name__ = func.__name__
         return wrapper
 
     TestLibrary = testlibrary(
