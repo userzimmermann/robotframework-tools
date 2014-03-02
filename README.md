@@ -333,6 +333,6 @@ Or to expand a list variable:
     %Keyword @{{listvar}}
 
 This way you can also pass Python variables directly to a Robot Keyword.
-If the `Robot` can't find the varibale in its own dictionary,
+If the `Robot` can't find the variable in its own dictionary,
 lookup is first extended to IPython's `user_ns` (shell level)
 and finally to Python's `builtins`.
