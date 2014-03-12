@@ -23,7 +23,7 @@ The Robot Test Library session handler framework.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = 'Handler',
+__all__ = ['Handler']
 
 import inspect
 import re
@@ -33,6 +33,7 @@ from ..keywords import KeywordsDict
 
 # the session handler meta information management
 from .meta import Meta
+
 
 class HandlerMeta(type):
     """The custom type class for :class:`Handler`.
@@ -157,6 +158,7 @@ class HandlerMeta(type):
 
         keywordname = 'close_' + meta.identifier_name
         cls.keywords[keywordname] = close_session
+
 
 class Handler(object):
     """The base class for custom Robot Test Library session handler types.

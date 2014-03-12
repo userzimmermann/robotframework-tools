@@ -23,9 +23,10 @@ The Robot Test Library session handler meta information management.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = 'Meta',
+__all__ = ['Meta']
 
 from moretools import camelize, decamelize
+
 
 class Meta(object):
     """The meta information for a session handler
