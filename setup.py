@@ -25,6 +25,7 @@ setup(
     'robottools',
     'robottools.library',
     'robottools.library.session',
+    'robottools.library.context',
     'robottools.library.inspector',
     'robottools.testrobot',
     'robotshell',
