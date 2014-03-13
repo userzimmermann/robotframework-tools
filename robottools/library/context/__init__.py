@@ -21,10 +21,15 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['ContextHandler', 'contextmethod']
+__all__ = [
+  'ContextHandler',
+  # From .method:
+  'contextmethod']
 
-from .session.meta import Meta
-from .keywords import KeywordsDict
+from robottools.library.session.meta import Meta
+from robottools.library.keywords import KeywordsDict
+
+from .method import *
 
 
 class Context(object):
@@ -102,33 +107,3 @@ class ContextHandler(object):
             if context.name == name:
                 return context
         raise KeyError(name)
-
-
-class contextmethod(object):
-    def __init__(self, *handlers):
-        self.handlers = handlers
-
-    def __call__(self, func):
-        handlers = self.handlers
-        ctxfuncs = {}
-
-        def method(self, *args, **kwargs):
-            for context in self.contexts:
-                if context.handler in handlers:
-                    break
-            else:
-                #TODO
-                raise RuntimeError
-            ctxfunc = ctxfuncs[context]
-            return ctxfunc(self, *args, **kwargs)
-
-        for handler in handlers:
-            for context in handler.contexts:
-                def ctxdeco(ctxfunc, _context=context):
-                    ctxfuncs[_context] = ctxfunc
-                    return method
-
-                setattr(method, context.name, ctxdeco)
-
-        method.__name__ = func.__name__
-        return method
