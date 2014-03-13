@@ -111,7 +111,6 @@ class contextmethod(object):
     def __call__(self, func):
         handlers = self.handlers
         ctxfuncs = {}
-        results = {}
 
         def method(self, *args, **kwargs):
             for context in self.contexts:
@@ -121,8 +120,7 @@ class contextmethod(object):
                 #TODO
                 raise RuntimeError
             ctxfunc = ctxfuncs[context]
-            results[context.name] = ctxfunc(self, *args, **kwargs)
-            return results
+            return ctxfunc(self, *args, **kwargs)
 
         for handler in handlers:
             for context in handler.contexts:
