@@ -76,6 +76,17 @@ class ContextHandlerMeta(type):
 
         cls.keywords = KeywordsDict()
 
+        switch_func = None
+        # Look for a custom switch hook method:
+        for func in clsattrs.values():
+            try:
+                name = func.func_name
+            except AttributeError: # No function object
+                pass
+            else:
+                if name == 'switch':
+                    switch_func = func
+
         def switch_context(self, name):
             for current in self.contexts:
                 if current.handler is cls:
@@ -84,6 +95,8 @@ class ContextHandlerMeta(type):
                 if context.name == name:
                     self.contexts.remove(current)
                     self.contexts.append(context)
+                    if switch_func: # Custom switch hook
+                        switch_func(self, name)
                     return
             raise ValueError(name)
 
