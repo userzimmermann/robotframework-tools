@@ -150,6 +150,16 @@ def testlibrary(
     for handlercls in context_handlers:
         handlers[handlercls.__name__] = handlercls()
 
+        # Create a property for getting the currently active context name:
+        def context(self, _cls=handlercls):
+            for current in self.contexts:
+                if current.handler == _cls:
+                    return current.name
+            #TODO
+            raise RuntimeError
+
+        clsattrs[handlercls.__name__.lower()] = property(context)
+
         # import the handler's auto-generated keywords
         for keywordname, func in handlercls.keywords:
             clsattrs[keywordname] = keyword_decorator(
