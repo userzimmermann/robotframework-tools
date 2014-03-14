@@ -78,6 +78,14 @@ class contextmethod(object):
     - A @contextmethod.combined(Handler) decorated method
       will call all context specific implementations
       and return a `dict` containing the results by Context name keys.
+    - contextmethod.combined decorated methods will get an additional
+      .result decorator for defining a hook method
+      processing the results dict before final return::
+
+       @method.result
+       def result_method(self, results_dict):
+           ...
+           return results_dict # or whatever...
 
     - A @contextmethod.combined.lazy(Handler) decorated method
       will return a :class:`LazyDict` which will call
@@ -117,6 +125,10 @@ class contextmethod(object):
                     for context, ctxfunc in ctxfuncs.items():
                         results[context.name] = ctxfunc(
                           self, *args, **kwargs)
+                # Check if .result decorator was used
+                # to define a custom hook method:
+                if method.result is not resultdeco:
+                    results = method.result(self, results)
                 return results
             # Default behavior (only call 1 method implementation):
             for context in self.contexts:
@@ -136,6 +148,12 @@ class contextmethod(object):
                     return ctxfunc
 
                 setattr(method, context.name, ctxdeco)
+
+        def resultdeco(resultfunc):
+            method.result = resultfunc
+            return resultfunc
+
+        method.result = resultdeco
 
         method.__name__ = func.__name__
         return method
