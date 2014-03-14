@@ -5,7 +5,7 @@ from pkg_resources import require, DistributionNotFound
 
 setup(
   name='robotframework-tools',
-  version='0.1a101',
+  version='0.1a102',
   description=(
     'Python Tools for Robot Framework and Test Libraries.'
     ),
