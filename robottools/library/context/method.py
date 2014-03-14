@@ -41,6 +41,7 @@ class LazyDict(dict):
     """A `dict` wrapper checking values for being of type :class:`Lazy`.
 
     - Lazy values will be evaluated on first [key] access.
+    - Lazy values don't show up in :meth:`.values()`.
     """
     def __getitem__(self, key):
         value = dict.__getitem__(self, key)
@@ -48,6 +49,11 @@ class LazyDict(dict):
             value = value()
             self[key] = value
             return value
+
+    def values(self):
+        for value in dict.values(self):
+            if type(value) is not Lazy:
+                yield value
 
 
 class contextmethod(object):
