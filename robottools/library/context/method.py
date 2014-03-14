@@ -19,20 +19,100 @@
 
 """robottools.context.method
 
+Provides :class:`contextmethod` for creating `testlibrary` method decorators
+to separate method implementations for different contexts
+of :class:`ContextHandler`s.
+
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['contextmethod']
 
+from functools import partial
+
+
+class Lazy(partial):
+    """Just a little `partial` wrapper
+       to support unique lazy value type checking in :class:`LazyDict`.
+    """
+    pass
+
+
+class LazyDict(dict):
+    """A `dict` wrapper checking values for being of type :class:`Lazy`.
+
+    - Lazy values will be evaluated on first [key] access.
+    """
+    def __getitem__(self, key):
+        value = dict.__getitem__(self, key)
+        if type(value) is Lazy:
+            value = value()
+            self[key] = value
+            return value
+
 
 class contextmethod(object):
-    def __init__(self, *handlers):
+    """Class for creating `testlibrary` method decorators
+       to separate method implementations for different contexts
+       of :class:`ContextHandler`s.
+
+    - Decorated methods get Context name attributes for decorating
+      the Context specific method implementations::
+
+       @contextmethod(Handler)
+       def method(self, ...):
+           pass
+
+       @method.<context name>
+       def context_method(self, ...):
+           ...
+
+    - By default, on method call only the implementation
+      matching the currently active Context will be called.
+
+    - A @contextmethod.combined(Handler) decorated method
+      will call all context specific implementations
+      and return a `dict` containing the results by Context name keys.
+
+    - A @contextmethod.combined.lazy(Handler) decorated method
+      will return a :class:`LazyDict` which will call
+      the context specific implementations on first ['<context name>'] access.
+    """
+    def __init__(self, *handlers, **options):
+        """Create a decorator for the given `handlers`.
+
+        - Currently only 1 Handler supported :( - will change soon :)
+        - `options` are implicitly given
+          by derived :class:`combined` and :class:`lazy`.
+        """
         self.handlers = handlers
+        self.combined = options.pop('combined', False)
+        self.lazy = options.pop('lazy', False)
 
     def __call__(self, func):
+        """The actual decoration logic.
+        """
         handlers = self.handlers
+        combined = self.combined
+        lazy = self.lazy
+        # To collect the context specific method implementations
+        # decorated with @method.<context name>:
         ctxfuncs = {}
 
+        # The wrapper method returned by this decorator
         def method(self, *args, **kwargs):
+            if combined:
+                if lazy:
+                    results = LazyDict()
+                    for context, ctxfunc in ctxfuncs.items():
+                        results[context.name] = Lazy(
+                          ctxfunc, self, *args, **kwargs)
+                else:
+                    results = {}
+                    for context, ctxfunc in ctxfuncs.items():
+                        results[context.name] = ctxfunc(
+                          self, *args, **kwargs)
+                return results
+            # Default behavior (only call 1 method implementation):
             for context in self.contexts:
                 if context.handler in handlers:
                     break
@@ -42,13 +122,28 @@ class contextmethod(object):
             ctxfunc = ctxfuncs[context]
             return ctxfunc(self, *args, **kwargs)
 
+        # Create method.<context name> decorators:
         for handler in handlers:
             for context in handler.contexts:
                 def ctxdeco(ctxfunc, _context=context):
                     ctxfuncs[_context] = ctxfunc
-                    return method
+                    return ctxfunc
 
                 setattr(method, context.name, ctxdeco)
 
         method.__name__ = func.__name__
         return method
+
+
+class combined(contextmethod):
+    def __init__(self, *handlers, **options):
+        contextmethod.__init__(self, *handlers, combined=True, **options)
+
+
+class lazy(combined):
+    def __init__(self, *handlers):
+        combined.__init__(self, *handlers, lazy=True)
+
+
+combined.lazy = lazy
+contextmethod.combined = combined
