@@ -21,6 +21,8 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import with_metaclass
+
 __all__ = [
   'RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic',
   'VariableMagic']
@@ -48,16 +50,14 @@ class RobotMagicsMeta(type(Magics)):
 
 
 @magics_class
-class RobotMagics(Magics):
-    __metaclass__ = RobotMagicsMeta
-
+class RobotMagics(with_metaclass(RobotMagicsMeta, Magics)):
     def __init__(self, robot_shell):
         Magics.__init__(self, robot_shell.shell)
         self.robot_shell = robot_shell
 
     def robot_mode_magic(func):
         def magic(self, mode):
-            attrname = func.func_name + '_mode'
+            attrname = func.__name__ + '_mode'
             title = attrname.capitalize().replace('_', ' ')
 
             current = getattr(self.robot_shell, attrname)
@@ -76,7 +76,7 @@ class RobotMagics(Magics):
 
             func(self, mode)
 
-        magic.func_name = func.func_name
+        magic.__name__ = func.__name__
         return magic
 
     @line_magic

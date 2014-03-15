@@ -21,6 +21,8 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import reraise
+
 __all__ = ['Keyword']
 
 import sys
@@ -50,7 +52,7 @@ class DebugKeyword(robot.running.Keyword):
                 traceback = traceback.tb_next
             else:
                 break
-        raise exc_value, None, traceback
+        reraise(exc_type, exc_value, traceback)
 
 
 class Keyword(KeywordInspector):

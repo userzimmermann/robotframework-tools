@@ -23,6 +23,8 @@ The Robot Test Library session handler framework.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import with_metaclass
+
 __all__ = ['Handler']
 
 import inspect
@@ -73,12 +75,13 @@ class HandlerMeta(type):
 
         return type.__new__(metacls, clsname, bases, clsattrs)
 
+    #TODO: (cls, name, func) ?
     def add_opener(cls, func):
         """Add Keywords for opening (un)named sessions
            for a user-defined session opener method `func`
            (methods whose names start with 'open').
         """
-        suffix = re.sub('^open($|_)', '', func.func_name)
+        suffix = re.sub('^open($|_)', '', func.__name__)
         keywordname = 'open%s_' + cls.meta.identifier_name
         if suffix:
             keywordname += '_' + suffix
@@ -92,13 +95,13 @@ class HandlerMeta(type):
             session = func(self, *args, **kwargs)
             cls.add_session(session)
 
-        open_session.func_doc %= (
+        open_session.__doc__ %= (
           cls.meta.verbose_name, cls.meta.plural_verbose_name)
 
         open_session.argspec = argspec
         # Use custom doc string if defined
-        if func.func_doc:
-            open_session.func_doc = func.func_doc
+        if func.__doc__:
+            open_session.__doc__ = func.__doc__
         cls.keywords[keywordname % ''] = open_session
 
         def open_named_session(self, name, *args, **kwargs):
@@ -109,7 +112,7 @@ class HandlerMeta(type):
             session = func(self, *args, **kwargs)
             cls.add_named_session(name, session)
 
-        open_named_session.func_doc %= (
+        open_named_session.__doc__ %= (
           cls.meta.verbose_name, cls.meta.plural_verbose_name)
 
         named_argspec = deepcopy(argspec)
@@ -135,18 +138,13 @@ class HandlerMeta(type):
             return
 
         switch_func = close_func = None
-        for func in clsattrs.values():
-            try:
-                name = func.func_name
-            except AttributeError: # No function object
-                pass
-            else:
-                if name.startswith('open'):
-                    cls.add_opener(func)
-                elif name == 'switch':
-                    switch_func = func
-                elif name == 'close':
-                    close_func = func
+        for name, func in clsattrs.items():
+            if name.startswith('open'):
+                cls.add_opener(func)
+            elif name == 'switch':
+                switch_func = func
+            elif name == 'close':
+                close_func = func
 
         def switch_session(self, name):
             session = cls.switch_session(name)
@@ -165,10 +163,9 @@ class HandlerMeta(type):
         cls.keywords[keywordname] = close_session
 
 
-class Handler(object):
+class Handler(with_metaclass(HandlerMeta, object)):
     """The base class for custom Robot Test Library session handler types.
     """
-    __metaclass__ = HandlerMeta
 
     @classmethod
     def add_session(cls, session):

@@ -21,6 +21,8 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import with_metaclass
+
 __all__ = [
   'ROBOT_LIBRARIES',
   'TestLibraryImportError', 'TestLibraryInspector',
@@ -66,9 +68,9 @@ class TestLibraryInspectorMeta(type):
         return list(ROBOT_LIBRARIES)
 
 
-class TestLibraryInspector(object):
-    __metaclass__ = TestLibraryInspectorMeta
-
+class TestLibraryInspector(
+  with_metaclass(TestLibraryInspectorMeta, object)
+  ):
     def __init__(self, lib):
         if isinstance(lib, robot.running.baselibrary.BaseLibrary):
             self._library = lib

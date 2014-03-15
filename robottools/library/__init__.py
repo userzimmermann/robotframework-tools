@@ -136,7 +136,7 @@ def testlibrary(
     # the additional custom Keyword decorator options
     for decofunc in register_keyword_options:
         try:
-            optionname = decofunc.func_name
+            optionname = decofunc.__name__
         except AttributeError:
             optionname, decofunc = decofunc
         decotypeattrs['option_' + optionname] = staticmethod(decofunc)

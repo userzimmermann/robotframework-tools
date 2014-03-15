@@ -16,6 +16,7 @@ setup(
   license='GPLv3',
 
   install_requires=[
+    'six',
     'path.py',
     'moretools >= 0.1a26',
     'robotframework >= 2.8' if sys.version_info[0] < 3
@@ -31,14 +32,6 @@ setup(
     'robotshell',
     'robotshell.magic',
     ],
-
-  use_2to3=True,
-  use_2to3_exclude_fixers=['lib2to3.fixes.fix_' + fix for fix in [
-    'dict',
-    'map',
-    'filter',
-    'reduce',
-    ]],
 
   classifiers=[
     'Development Status :: 3 - Alpha',

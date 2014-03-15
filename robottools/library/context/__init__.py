@@ -21,6 +21,8 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import with_metaclass
+
 __all__ = [
   'ContextHandler',
   # From .method:
@@ -76,16 +78,8 @@ class ContextHandlerMeta(type):
 
         cls.keywords = KeywordsDict()
 
-        switch_func = None
         # Look for a custom switch hook method:
-        for func in clsattrs.values():
-            try:
-                name = func.func_name
-            except AttributeError: # No function object
-                pass
-            else:
-                if name == 'switch':
-                    switch_func = func
+        switch_func = clsattrs.get('switch')
 
         def switch_context(self, name):
             for current in self.contexts:
@@ -100,13 +94,11 @@ class ContextHandlerMeta(type):
                     return
             raise ValueError(name)
 
-        keyword_name = switch_context.func_name = 'switch_' + clsname.lower()
+        keyword_name = switch_context.__name__ = 'switch_' + clsname.lower()
         cls.keywords[keyword_name] = switch_context
 
 
-class ContextHandler(object):
-    __metaclass__ = ContextHandlerMeta
-
+class ContextHandler(with_metaclass(ContextHandlerMeta, object)):
     def __init__(self):
         try:
             default = type(self).default

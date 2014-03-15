@@ -21,11 +21,13 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import PY3
+
 __all__ = ['RobotPlugin']
 
-try:
+if PY3:
     import builtins
-except ImportError:
+else:
     import __builtin__ as builtins
 
 import re

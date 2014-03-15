@@ -29,6 +29,8 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import PY3
+
 __all__ = [
   'KeywordsDict', 'Keyword',
   'KeywordDecoratorType', 'InvalidKeywordOption']
@@ -183,14 +185,17 @@ class KeywordDecoratorType(object):
 
     @staticmethod
     def option_unicode_to_str(func):
-        """Creates a wrapper method for Keyword method `func`
+        """[PY2] Creates a wrapper method for Keyword method `func`
            which converts all unicode args to str.
         """
+        if PY3:
+            return func
+
         def method(self, *args, **kwargs):
             iargs = (type(a) is unicode and str(a) or a for a in args)
             return func(self, *iargs, **kwargs)
 
-        method.func_name = func.func_name
+        method.__name__ = func.__name__
         return method
 
     @property
@@ -231,7 +236,7 @@ class KeywordDecoratorType(object):
         except AttributeError:
             contexts = None
         # Save original doc string
-        doc = func.func_doc
+        doc = func.__doc__
         try:
             argspec = func.argspec
         except AttributeError:
@@ -243,19 +248,19 @@ class KeywordDecoratorType(object):
         if name:
             name = KeywordName(name, convert=False)
         else:
-            name = self.keyword_name or func.func_name
-        if func.func_doc:
+            name = self.keyword_name or func.__name__
+        if func.__doc__:
             # Update saved doc string
-            doc = func.func_doc
+            doc = func.__doc__
 
         # Use at least one wrapper to make the assignments below always work
         def keyword_method(self, *args, **kwargs):
             return func(self, *args, **kwargs)
 
         # Keep existing (or explicitly given) method name
-        keyword_method.func_name = name
+        keyword_method.__name__ = name
         # Keep method doc string
-        keyword_method.func_doc = doc
+        keyword_method.__doc__ = doc
         # Store original method argspec
         keyword_method.argspec = argspec
         # Store optional override args list
