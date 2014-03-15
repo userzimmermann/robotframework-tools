@@ -1,0 +1,12 @@
+~$
+\.orig$
+\.diff$
+\.rej$
+
+\.pyc$
+__pycache__/
+
+PKG-INFO
+^dist/
+\.egg-info
+^\.tox/
