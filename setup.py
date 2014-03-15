@@ -3,9 +3,14 @@ from setuptools import setup
 from pkg_resources import require, DistributionNotFound
 
 
+VERSION = open('VERSION').read().strip()
+
+REQUIRES = open('requirements.txt').read()
+
+
 setup(
   name='robotframework-tools',
-  version='0.1a102',
+  version=VERSION,
   description=(
     'Python Tools for Robot Framework and Test Libraries.'
     ),
@@ -15,13 +20,10 @@ setup(
 
   license='GPLv3',
 
-  install_requires=[
-    'six',
-    'path.py',
-    'moretools >= 0.1a26',
+  install_requires=REQUIRES + (
     'robotframework >= 2.8' if sys.version_info[0] < 3
-    else 'robotframework-python3 >= 2.8.3',
-    ],
+    else 'robotframework-python3 >= 2.8.3'
+    ),
   packages=[
     'robottools',
     'robottools.library',
