@@ -48,7 +48,7 @@ class LazyDict(dict):
         if type(value) is Lazy:
             value = value()
             self[key] = value
-            return value
+        return value
 
     def values(self):
         for value in dict.values(self):
