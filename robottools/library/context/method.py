@@ -88,6 +88,8 @@ class contextmethod(object):
 
         # The wrapper method returned by this decorator
         def method(self, *args, **kwargs):
+            # First call the decorated main func as prerequisite:
+            func(self, *args, **kwargs)
             if combined:
                 if lazy:
                     results = LazyDict()
