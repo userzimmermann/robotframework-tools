@@ -31,7 +31,7 @@ from .magic import RobotMagic
 class Extension(TestRobot):
     """Base class for robotshell extensions.
 
-    - Load with ``robotshell.load_robotshell(extensions=[<class>,...]``.
+    - Load with ``robotshell.load_robotshell(extensions=[<class>,...])``.
     """
     magic_name = None
 
@@ -42,6 +42,7 @@ class Extension(TestRobot):
         from . import robot_shell
         if not robot_shell:
             raise RuntimeError("robotshell is not running.")
+        self.robot_shell = robot_shell
         TestRobot.__init__(
           self, self.magic_name,
           variable_getters=[robot_shell.shell_variable])
