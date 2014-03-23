@@ -24,13 +24,15 @@
 from six import with_metaclass
 
 __all__ = [
-  'RobotMagics', 'RobotMagic', 'KeywordMagic', 'KeywordCellMagic',
+  'RobotMagics', 'RobotMagicBase', 'RobotMagic',
+  'KeywordMagic', 'KeywordCellMagic',
   'VariableMagic']
 
 from IPython.core.magic import Magics, magics_class, line_magic
 
 from robottools.testrobot.output import LOG_LEVELS
 
+from .base import RobotMagicBase
 from .robot import RobotMagic
 from .keyword import KeywordMagic, KeywordCellMagic
 from .variable import VariableMagic

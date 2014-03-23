@@ -21,19 +21,23 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['Extension', 'load_robotshell']
+__all__ = ['RobotMagicBase', 'Extension', 'load_robotshell']
 
 from .shell import RobotShell
 
+from .magic import RobotMagicBase
 from .extension import Extension
 
+
 robot_shell = None
+
 
 def load_ipython_extension(shell):
     global robot_shell
     if robot_shell:
         return
     robot_shell = RobotShell(shell)
+
 
 def load_robotshell(shell, extensions=[]):
     load_ipython_extension(shell)
