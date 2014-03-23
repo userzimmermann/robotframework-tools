@@ -27,38 +27,7 @@ of :class:`ContextHandler`s.
 """
 __all__ = ['contextmethod']
 
-from functools import partial
-
-
-class Lazy(partial):
-    """Just a little `partial` wrapper
-       to support unique lazy value type checking in :class:`LazyDict`.
-    """
-    pass
-
-
-class LazyDict(dict):
-    """A `dict` wrapper checking values for being of type :class:`Lazy`.
-
-    - Lazy values will be evaluated on first [key] access.
-    - Lazy values don't show up in :meth:`.values()` and :meth:`.items()`.
-    """
-    def __getitem__(self, key):
-        value = dict.__getitem__(self, key)
-        if type(value) is Lazy:
-            value = value()
-            self[key] = value
-        return value
-
-    def values(self):
-        for value in dict.values(self):
-            if type(value) is not Lazy:
-                yield value
-
-    def items(self):
-        for key, value in dict.items(self):
-            if type(value) is not Lazy:
-                yield key, value
+from moretools import Lazy, LazyDict
 
 
 class contextmethod(object):
