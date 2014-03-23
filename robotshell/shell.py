@@ -45,6 +45,7 @@ from .magic import (
 
 from .extension import ExtensionMagic
 
+
 class RobotShell(ShellBase):
     # To support customization in derived Plugins
     robot_magic_name = 'Robot'
