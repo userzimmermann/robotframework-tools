@@ -21,7 +21,7 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-from six import reraise
+from six import reraise, text_type as unicode
 
 __all__ = ['Keyword']
 
@@ -66,8 +66,8 @@ class Keyword(KeywordInspector):
         return KeywordInspector.__doc__.fget(self)
 
     def __call__(self, *args, **kwargs):
-        args = list(map(str, args))
-        args.extend('%s=%s' % item for item in kwargs.items())
+        args = list(map(unicode, args))
+        args.extend(u'%s=%s' % item for item in kwargs.items())
         if self._debug:
             runner = DebugKeyword(self.name, args)
         else:
