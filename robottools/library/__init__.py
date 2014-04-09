@@ -46,7 +46,7 @@ class TestLibraryType(object):
         """Get all lower_case Keyword names for Robot Framework
         from the `self.keywords` mapping.
         """
-        return [name for name, kw in self.keywords]
+        return [str(name) for name, kw in self.keywords]
 
     def run_keyword(self, name, args, kwargs={}):
         """Run the Keyword given by its lower_case `name`
