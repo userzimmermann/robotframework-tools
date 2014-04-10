@@ -49,7 +49,7 @@ from .keyword import Keyword
 class TestRobot(object):
     """An interactive Robot Framework interface.
     """
-    def __init__(self, name, variable_getters=None):
+    def __init__(self, name, BuiltIn=True, variable_getters=None):
         """Initialize with a `name`
            and optional additional variable lookup functions.
 
@@ -76,7 +76,8 @@ class TestRobot(object):
           self._suite, self._variables, None, [], None)
         self._libraries = {}
 
-        self.Import('BuiltIn')
+        if BuiltIn:
+            self.Import('BuiltIn')
 
     @property
     def __doc__(self):
