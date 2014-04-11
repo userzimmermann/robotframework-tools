@@ -25,10 +25,6 @@
 """
 __all__ = ['TestRobot']
 
-import sys
-import warnings
-import logging
-
 from moretools import isidentifier
 
 from robot.errors import DataError
