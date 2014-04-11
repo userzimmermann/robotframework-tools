@@ -77,3 +77,8 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
         except KeyError:
             return None
         return keyword if type(keyword) is Keyword else None
+
+    def _arguments_from_kw(self, keyword):
+        if type(keyword) is Keyword:
+            return list(keyword.arguments)
+        return RobotRemoteServer._arguments_from_kw(self, keyword)
