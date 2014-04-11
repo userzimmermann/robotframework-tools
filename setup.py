@@ -34,6 +34,9 @@ setup(
     'robotshell',
     'robotshell.magic',
     ],
+  py_modules=[
+    'ToolsLibrary',
+    ],
 
   classifiers=[
     'Development Status :: 3 - Alpha',
