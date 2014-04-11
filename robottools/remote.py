@@ -27,7 +27,6 @@ __all__ = ['RemoteRobot']
 
 from itertools import chain
 
-from robot.errors import DataError
 from robotremoteserver import RobotRemoteServer
 
 from robottools import TestRobot
@@ -73,8 +72,8 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
 
     def import_remote_library(self, name):
         if name not in self.allow_import:
-            raise DataError(
-              "Importing Remote Library '%s' is not allowed.")
+            raise RuntimeError(
+              "Importing Remote Library '%s' is not allowed." % name)
         self.Import(name)
 
     def get_keyword_names(self):
