@@ -37,15 +37,13 @@ from .highlighting import Highlighter
 
 LOG_LEVELS_MAX_WIDTH = max(map(len, LOG_LEVELS))
 
-#HACK: To dynamically (un)register `Output`s:
-LOGGER.disable_message_cache()
-LOGGER.disable_automatic_console_logger()
 
 LOG_LEVEL_COLORS = {
   'FAIL': 'red',
   'ERROR': 'red',
   'WARN': 'yellow',
   }
+
 
 class LoggingHandler(RobotHandler):
     def __enter__(self):
@@ -70,7 +68,9 @@ class Output(AbstractLogger):
         return self.set_level(level)
 
     def __enter__(self):
-        #HACK:
+        #HACK: Dynamically (un)register Output:
+        LOGGER.disable_message_cache()
+        LOGGER.disable_automatic_console_logger()
         LOGGER.register_logger(self)
         # Catch global logging:
         self.logging_handler.__enter__()
