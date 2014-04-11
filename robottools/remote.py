@@ -41,19 +41,19 @@ class RemoteLibrary(object):
         return list(chain(*map(dir, self.robot._libraries.values())))
 
     def get_keyword_arguments(self, name):
-        keyword = self[name]
+        keyword = self.robot[name]
         return list(keyword.arguments)
 
     def get_keyword_documentation(self, name):
-        keyword = self[name]
+        keyword = self.robot[name]
         return keyword.doc
 
     def run_keyword(self, name, *args, **kwargs):
-        keyword = self[name]
+        keyword = self.robot[name]
         return keyword(*args, **kwargs)
 
     def __getattr__(self, name):
-        keyword = self[name]
+        keyword = self.robot[name]
 
 
 class RemoteRobot(TestRobot, RobotRemoteServer):
