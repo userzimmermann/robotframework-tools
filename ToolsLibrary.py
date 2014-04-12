@@ -34,8 +34,12 @@ class ToolsLibrary(TestLibrary):
         lib = robot.running.TestLibrary(name, args)
         key = (name, lib.positional_args, lib.named_args)
         key = cache._norm_path_key(key)
-        index = cache._keys.index(key)
-        cache._keys.pop(index)
-        cache._items.pop(index)
+        try:
+            index = cache._keys.index(key)
+        except ValueError:
+            pass
+        else:
+            cache._keys.pop(index)
+            cache._items.pop(index)
 
         BUILTIN.import_library(name, *args)
