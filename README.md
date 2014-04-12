@@ -286,6 +286,37 @@ TODO...
 ---------------------------------
 [4]: #markdown-header-4-using-robot-framework-remotely
 
+    from robottools.remote import RemoteRobot
+
+`RemoteRobot` is derived from `robottools.TestRobot`
+and `robotremoteserver.RobotRemoteServer`.
+The `__init__()` method shares most of its arguments
+with `RobotRemoteServer`:
+
+The differences:
+
+* Instead of a single pre-initialized Test Library instance,
+  you can provide a sequence of multiple Test Library names,
+  which will be imported and initialized using `TestRobot.Import()`.
+* The additional argument `allow_import`
+  takes a sequence of Test Library names,
+  which can later be imported remotely
+  via the `Import Remote Library` Keyword described below.
+
+Once initialized the `RemoteRobot` will immediately start its service.
+To access it from your Test Scripts,
+you can use Robot Framework's standard `Remote` Library.
+Once connected it will provide all the Keywords from the Test Libraries
+imported by the `RemoteRobot`.
+Besides `RobotRemoteServer`'s additional `Stop Remote Server` Keyword
+`RemoteRobot` further provides these extra Keywords:
+
+* `Import Remote Library [ name ]`
+
+  After using this Keyword the `Remote` Library must be reloaded
+  to make the new Keywords accessible.
+  You can do this via `ToolsLibrary.Reload Library`.
+
 
 5. Using the ToolsLibrary
 -------------------------
