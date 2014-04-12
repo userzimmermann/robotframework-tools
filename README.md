@@ -286,7 +286,7 @@ TODO...
 
 5. Using the ToolsLibrary
 -------------------------
-[4]: #markdown-header-5-using-the-tools-library
+[5]: #markdown-header-5-using-the-toolslibrary
 
 
 6. Using IPython as a Robot Framework shell
