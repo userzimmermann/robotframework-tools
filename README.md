@@ -1,6 +1,9 @@
 Robot Framework Tools
 =====================
 
+Python Tools for [Robot Framework](http://robotframework.org)
+and Test Libraries.
+
 * A [`testlibrary`][1] framework for creating Dynamic Test Libraries.
 
 * A [`ContextHandler`][1.1] framework for `testlibrary`
@@ -13,7 +16,14 @@ Robot Framework Tools
 
 * An interactive [`TestRobot`][3].
 
-* A [`robotshell`][4] extension for IPython.
+* A [`RemoteRobot`][4], combining `TestRobot`
+  with external [`RobotRemoteServer`](
+    https://pypi.python.org/pypi/robotremoteserver)
+
+* A [`ToolsLibrary`][5],
+  accompanying Robot Framework's standard Test Libraries.
+
+* A [`robotshell`][6] extension for [IPython](http://ipython.org).
 
 
 0. Installation
@@ -269,9 +279,19 @@ All functionalitiy is exposed in CamelCase:
 TODO...
 
 
-4. Using IPython as a Robot Framework shell
+4. Using Robot Framework remotely
+---------------------------------
+[4]: #markdown-header-4-using-robot-framework-remotely
+
+
+5. Using the ToolsLibrary
+-------------------------
+[4]: #markdown-header-5-using-the-tools-library
+
+
+6. Using IPython as a Robot Framework shell
 -------------------------------------------
-[4]: #markdown-header-4-using-ipython-as-a-robot-framework-shell
+[6]: #markdown-header-6-using-ipython-as-a-robot-framework-shell
 
     In : %load_ext robotshell
 
