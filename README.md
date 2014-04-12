@@ -1,8 +1,8 @@
 Robot Framework Tools
 =====================
 
-Python Tools for [Robot Framework](http://robotframework.org)
-and Test Libraries.
+[Python](http://python.org) Tools for [Robot Framework](
+  http://robotframework.org) and Test Libraries.
 
 * A [`testlibrary`][1] framework for creating Dynamic Test Libraries.
 
@@ -26,8 +26,28 @@ and Test Libraries.
 * A [`robotshell`][6] extension for [IPython](http://ipython.org).
 
 
-0. Installation
----------------
+0. Setup
+--------
+
+Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
+
+### Requirements
+
+* [`path.py`](https://pypi.python.org/pypi/path.py)
+* [`moretools >= 0.1a34`](https://pypi.python.org/pypi/moretools)
+* [`robotframework >= 2.8`](https://pypi.python.org/pypi/robotframework)
+  * __Python 3.x__: [`robotframework-python3 >= 2.8.3`](
+      https://pypi.python.org/pypi/robotframework-python3)
+
+Additional requirements for `RemoteRobot`:
+
+* [`robotremoteserver`](https://pypi.python.org/pypi/robotremoteserver)
+
+Additional requirements for `robotshell`:
+
+* [`ipython`](https://pypi.python.org/pypi/ipython)
+
+### Installation
 
     python setup.py install
 
@@ -38,23 +58,6 @@ Or with [pip](http://www.pip-installer.org):
 Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 
     pip install robotframework-tools
-
-### Python 3.x
-
-The Robot Framework Tools work with Python 3.x,
-although there is no official Python 3.x release of Robot Framework yet,
-but you can try my unofficial compatibility fork:
-
-<https://bitbucket.org/userzimmermann/robotframework-python3>
-
-### Requirements
-
-* [`path.py`](http://github.com/jaraco/path.py)
-
-* [`moretools >= 0.1a25`](
-    http://bitbucket.org/userzimmermann/python-moretools)
-
-* [`robotframework >= 2.8`](http://robotframework.org)
 
 
 1. Creating Dynamic Test Libraries
