@@ -322,6 +322,20 @@ Besides `RobotRemoteServer`'s additional `Stop Remote Server` Keyword
 -------------------------
 [5]: #markdown-header-5-using-the-toolslibrary
 
+The `ToolsLibrary` is a Dynamic Test Library,
+which provides these additional general purpose Keywords:
+
+* `Reload Library [ name | *args]`
+
+The `ToolsLibrary` is based on `robottools.testlibrary`.
+To use it directly in __Python__:
+
+    from ToolsLibrary import ToolsLibrary
+    
+    tools = ToolsLibrary()
+
+Then you can call the Keywords in `tools.CamelCase(...)` style.
+
 
 6. Using IPython as a Robot Framework shell
 -------------------------------------------
