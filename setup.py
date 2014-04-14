@@ -1,6 +1,6 @@
 import sys
+
 from setuptools import setup
-from pkg_resources import require, DistributionNotFound
 
 
 VERSION = open('VERSION').read().strip()
