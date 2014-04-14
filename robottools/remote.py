@@ -53,7 +53,10 @@ class RemoteLibrary(object):
         return keyword(*args, **kwargs)
 
     def __getattr__(self, name):
-        keyword = self.robot[name]
+        try:
+            return self.robot[name]
+        except KeyError:
+            raise AttributeError(name)
 
 
 class RemoteRobot(TestRobot, RobotRemoteServer):
