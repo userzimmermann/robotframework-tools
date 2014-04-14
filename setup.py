@@ -7,6 +7,11 @@ VERSION = open('VERSION').read().strip()
 
 REQUIRES = open('requirements.txt').read()
 
+EXTRAS = {name: open('requirements.%s.txt' % name).read() for name in [
+  'remote',
+  'robotshell',
+  ]}
+
 
 setup(
   name='robotframework-tools',
@@ -24,6 +29,8 @@ setup(
     'robotframework >= 2.8' if sys.version_info[0] < 3
     else 'robotframework-python3 >= 2.8.3'
     ),
+  extras_require=EXTRAS,
+
   packages=[
     'robottools',
     'robottools.library',
