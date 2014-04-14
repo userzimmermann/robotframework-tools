@@ -29,7 +29,12 @@ Robot Framework Tools
 0. Setup
 --------
 
-Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
+* Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
+
+* Package name: `robotframework-tools`
+* Package extra features:
+  * `[remote]`: `RemoteRobot`
+  * `[robotshell]`
 
 ### Requirements
 
@@ -39,11 +44,11 @@ Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
   * __Python 3.x__: [`robotframework-python3 >= 2.8.3`](
       https://pypi.python.org/pypi/robotframework-python3)
 
-Additional requirements for `RemoteRobot`:
+Extra requirements for `[remote]`:
 
 * [`robotremoteserver`](https://pypi.python.org/pypi/robotremoteserver)
 
-Additional requirements for `robotshell`:
+Extra requirements for `[robotshell]`:
 
 * [`ipython`](https://pypi.python.org/pypi/ipython)
 
@@ -58,6 +63,10 @@ Or with [pip](http://www.pip-installer.org):
 Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 
     pip install robotframework-tools
+
+* With all extra features:
+
+        pip install robotframework-tools[remote,robotshell]
 
 
 1. Creating Dynamic Test Libraries
