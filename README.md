@@ -31,12 +31,12 @@ Robot Framework Tools
 
 Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
 
-Package name: `robotframework-tools`
+Package name: __robotframework-tools__
 
 Package extra features:
 
-* `[remote]`: `RemoteRobot`
-* `[robotshell]`
+* __[remote]__: `RemoteRobot`
+* __[robotshell]__
 
 ### Requirements
 
@@ -46,11 +46,11 @@ Package extra features:
   * __Python 3.x__: [`robotframework-python3 >= 2.8.3`](
       https://pypi.python.org/pypi/robotframework-python3)
 
-Extra requirements for `[remote]`:
+Extra requirements for __[remote]__:
 
 * [`robotremoteserver`](https://pypi.python.org/pypi/robotremoteserver)
 
-Extra requirements for `[robotshell]`:
+Extra requirements for __[robotshell]__:
 
 * [`ipython`](https://pypi.python.org/pypi/ipython)
 
