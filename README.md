@@ -29,12 +29,13 @@ Robot Framework Tools
 0. Setup
 --------
 
-* Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
+Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
 
-* Package name: `robotframework-tools`
-* Package extra features:
-  * `[remote]`: `RemoteRobot`
-  * `[robotshell]`
+Package name: `robotframework-tools`
+Package extra features:
+
+* `[remote]`: `RemoteRobot`
+* `[robotshell]`
 
 ### Requirements
 
