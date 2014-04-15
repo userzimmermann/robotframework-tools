@@ -26,8 +26,8 @@ Robot Framework Tools
 * A [`robotshell`][6] extension for [IPython](http://ipython.org).
 
 
-0. Setup
---------
+# 0. Setup
+----------
 
 Supported __Python__ versions: __2.7.x__, __3.3.x__ and later
 
@@ -71,8 +71,8 @@ Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
         pip install robotframework-tools[remote,robotshell]
 
 
-1. Creating Dynamic Test Libraries
-----------------------------------
+# 1. Creating Dynamic Test Libraries
+------------------------------------
 [1]: #markdown-header-1-creating-dynamic-test-libraries
 
     from robottools import testlibrary
@@ -191,8 +191,8 @@ To bypass the `default_keyword_options` for single Keywords:
         ...
 
 
-1.1 Adding switchable Keyword contexts
---------------------------------------
+## 1.1 Adding switchable Keyword contexts
+-----------------------------------------
 [1.1]: #markdown-header-11-adding-switchable-keyword-contexts
 
     from robottools import ContextHandler
@@ -200,8 +200,8 @@ To bypass the `default_keyword_options` for single Keywords:
 TODO...
 
 
-1.2 Adding session management
------------------------------
+## 1.2 Adding session management
+--------------------------------
 [1.2]: #markdown-header-12-adding-session-management
 
     from robottools import SessionHandler
@@ -259,8 +259,8 @@ To add custom logic just add a `close` method to your `SessionHandler`:
             ...
 
 
-2. Inspecting Test Libraries
-----------------------------
+# 2. Inspecting Test Libraries
+------------------------------
 [2]: #markdown-header-2-inspecting-test-libraries
 
     from robottools import TestLibraryInspector
@@ -273,8 +273,8 @@ Now you can load any Test Library in two ways:
 TODO...
 
 
-3. Using Robot Framework interactively
---------------------------------------
+# 3. Using Robot Framework interactively
+----------------------------------------
 [3]: #markdown-header-3-using-robot-framework-interactively
 
     from robottools import TestRobot
@@ -293,8 +293,8 @@ All functionalitiy is exposed in CamelCase:
 TODO...
 
 
-4. Using Robot Framework remotely
----------------------------------
+# 4. Using Robot Framework remotely
+-----------------------------------
 [4]: #markdown-header-4-using-robot-framework-remotely
 
     from robottools.remote import RemoteRobot
@@ -329,8 +329,8 @@ Besides `RobotRemoteServer`'s additional `Stop Remote Server` Keyword
   You can do this via `ToolsLibrary.Reload Library`.
 
 
-5. Using the ToolsLibrary
--------------------------
+# 5. Using the ToolsLibrary
+---------------------------
 [5]: #markdown-header-5-using-the-toolslibrary
 
 The `ToolsLibrary` is a Dynamic Test Library,
@@ -348,8 +348,8 @@ To use it directly in __Python__:
 Then you can call the Keywords in `tools.CamelCase(...)` style.
 
 
-6. Using IPython as a Robot Framework shell
--------------------------------------------
+# 6. Using IPython as a Robot Framework shell
+---------------------------------------------
 [6]: #markdown-header-6-using-ipython-as-a-robot-framework-shell
 
     In : %load_ext robotshell
