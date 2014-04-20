@@ -21,6 +21,7 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+__all__ = ['ToolsLibrary']
 
 import robot.running
 from robot.running.namespace import IMPORTER
