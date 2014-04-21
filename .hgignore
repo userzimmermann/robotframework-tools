@@ -17,3 +17,7 @@ PKG-INFO
 \.suo$
 \.pyproj$
 \.vs.scc$
+
+log\.html$
+report\.html$
+output\.xml$
