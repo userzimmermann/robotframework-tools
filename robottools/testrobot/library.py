@@ -25,7 +25,7 @@ __all__ = ['TestLibrary']
 
 from robottools.library.inspector import TestLibraryInspector
 
-from . keyword import Keyword
+from .keyword import Keyword
 
 
 class TestLibrary(TestLibraryInspector):
