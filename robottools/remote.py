@@ -62,9 +62,11 @@ class RemoteLibrary(object):
 class RemoteRobot(TestRobot, RobotRemoteServer):
     def __init__(
       self, libraries, host='127.0.0.1', port=8270, port_file=None,
-      allow_stop=True, allow_import=None
+      allow_stop=True, allow_import=None,
+      register_keywords=True,
       ):
         TestRobot.__init__(self, name='Remote', BuiltIn=False)
+        self.register_keywords = bool(register_keywords)
         for lib in libraries:
             self.Import(lib)
         self.allow_import = list(allow_import or [])
@@ -73,11 +75,23 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
           self, RemoteLibrary(robot=self),
           host, port, port_file, allow_stop)
 
+    def _register_keywords(self, lib):
+        for keywordname in dir(lib):
+            self.register_function(self[keywordname], keywordname)
+
+    def _register_functions(self):
+        RobotRemoteServer._register_functions(self)
+        if self.register_keywords:
+            for lib in self._libraries.values():
+                self._register_keywords(lib)
+
     def import_remote_library(self, name):
         if name not in self.allow_import:
             raise RuntimeError(
               "Importing Remote Library '%s' is not allowed." % name)
-        self.Import(name)
+        lib = self.Import(name)
+        if self.register_keywords:
+            self._register_keywords(lib)
 
     def get_keyword_names(self):
         return RobotRemoteServer.get_keyword_names(self) + [
