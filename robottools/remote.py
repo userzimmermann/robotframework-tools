@@ -63,10 +63,11 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
     def __init__(
       self, libraries, host='127.0.0.1', port=8270, port_file=None,
       allow_stop=True, allow_import=None,
-      register_keywords=True,
+      register_keywords=True, introspection=True,
       ):
         TestRobot.__init__(self, name='Remote', BuiltIn=False)
         self.register_keywords = bool(register_keywords)
+        self.introspection = bool(introspection)
         for lib in libraries:
             self.Import(lib)
         self.allow_import = list(allow_import or [])
@@ -94,6 +95,8 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
         if self.register_keywords:
             for lib in self._libraries.values():
                 self._register_library_keywords(lib)
+        if self.introspection:
+            self.register_introspection_functions()
 
     def import_remote_library(self, name):
         if name not in self.allow_import:
