@@ -106,24 +106,6 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
         if self.introspection:
             self.register_introspection_functions()
 
-    @keyword
-    def import_remote_library(self, name):
-        """Remotely import the Test Library with given `name`.
-
-        Does the same remotely as `BuiltIn.Import Library` does locally.
-        The Test Library must be allowed on server side.
-
-        The `Remote` client library must be reloaded
-        to make the new Keywords accessible.
-        This can be done with `ToolsLibrary.Reload Library`.
-        """
-        if name not in self.allow_import:
-            raise RuntimeError(
-              "Importing Remote Library '%s' is not allowed." % name)
-        lib = self.Import(name)
-        if self.register_keywords:
-            self._register_keywords(lib)
-
     def get_keyword_names(self):
         return (self._library.get_keyword_names()
                 + TestLibrary.get_keyword_names(self))
@@ -151,3 +133,6 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
             return TestRobot.__getattr__(self, name)
         except AttributeError:
             return TestLibrary.__getattr__(self, name)
+
+
+from . import keywords
