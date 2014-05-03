@@ -361,6 +361,12 @@ which provides these additional general purpose Keywords:
 
 * `Reload Library [ name | *args]`
 
+  >Reload an already imported Test Library
+  >with given `name` and optional `args`.
+  >
+  >This also leads to a reload of the Test Library Keywords,
+  >which allows Test Libraries to dynamically extend or change them.
+
 The `ToolsLibrary` is based on `robottools.testlibrary`.
 To use it directly in __Python__:
 
