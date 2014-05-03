@@ -29,7 +29,7 @@ from itertools import chain
 
 from robotremoteserver import RobotRemoteServer
 
-from robottools import TestRobot
+from robottools import TestRobot, testlibrary
 from robottools.testrobot import Keyword
 
 
@@ -59,13 +59,21 @@ class RemoteLibrary(object):
             raise AttributeError(name)
 
 
-class RemoteRobot(TestRobot, RobotRemoteServer):
+TestLibrary = testlibrary()
+keyword = TestLibrary.keyword
+
+
+keyword(RobotRemoteServer.stop_remote_server)
+
+
+class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
     def __init__(
       self, libraries, host='127.0.0.1', port=8270, port_file=None,
       allow_stop=True, allow_import=None,
       register_keywords=True, introspection=True,
       ):
         TestRobot.__init__(self, name='Remote', BuiltIn=False)
+        TestLibrary.__init__(self)
         self.register_keywords = bool(register_keywords)
         self.introspection = bool(introspection)
         for lib in libraries:
@@ -98,6 +106,7 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
         if self.introspection:
             self.register_introspection_functions()
 
+    @keyword
     def import_remote_library(self, name):
         """Remotely import the Test Library with given `name`.
 
@@ -116,21 +125,29 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
             self._register_keywords(lib)
 
     def get_keyword_names(self):
-        return RobotRemoteServer.get_keyword_names(self) + [
-          'import_remote_library']
+        return (self._library.get_keyword_names()
+                + TestLibrary.get_keyword_names(self))
 
     def _get_keyword(self, name):
-        if name == 'stop_remote_server':
-            return self.stop_remote_server
-        if name == 'import_remote_library':
-            return self.import_remote_library
         try:
             keyword = self[name]
         except KeyError:
-            return None
+            try:
+                return self.keywords[name]
+            except KeyError:
+                return None
         return keyword if type(keyword) is Keyword else None
 
     def _arguments_from_kw(self, keyword):
         if type(keyword) is Keyword:
             return list(keyword.arguments)
         return RobotRemoteServer._arguments_from_kw(self, keyword)
+
+    def __dir__(self):
+        return TestRobot.__dir__(self) + TestLibrary.__dir__(self)
+
+    def __getattr__(self, name):
+        try:
+            return TestRobot.__getattr__(self, name)
+        except AttributeError:
+            return TestLibrary.__getattr__(self, name)
