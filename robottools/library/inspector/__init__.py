@@ -71,12 +71,12 @@ class TestLibraryInspectorMeta(type):
 class TestLibraryInspector(
   with_metaclass(TestLibraryInspectorMeta, object)
   ):
-    def __init__(self, lib):
+    def __init__(self, lib, *args):
         if isinstance(lib, robot.running.baselibrary.BaseLibrary):
             self._library = lib
             return
         try:
-            self._library = robot.running.TestLibrary(lib)
+            self._library = robot.running.TestLibrary(lib, args)
         except robot.errors.DataError as e:
             raise TestLibraryImportError(str(e))
 
