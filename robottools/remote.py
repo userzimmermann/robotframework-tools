@@ -75,15 +75,25 @@ class RemoteRobot(TestRobot, RobotRemoteServer):
           self, RemoteLibrary(robot=self),
           host, port, port_file, allow_stop)
 
-    def _register_keywords(self, lib):
+    def _register_keyword(self, name, keyword):
+        for funcname, func in [
+          (name, keyword),
+          (name + '.__repr__', keyword.__repr__),
+          # To support IPython's ...? help system on xmlrpc.client side:
+          (name + '.getdoc', lambda: keyword.__doc__),
+          (name + '.__nonzero__', lambda: True),
+          ]:
+            self.register_function(func, funcname)
+
+    def _register_library_keywords(self, lib):
         for keywordname in dir(lib):
-            self.register_function(self[keywordname], keywordname)
+            self._register_keyword(keywordname, self[keywordname])
 
     def _register_functions(self):
         RobotRemoteServer._register_functions(self)
         if self.register_keywords:
             for lib in self._libraries.values():
-                self._register_keywords(lib)
+                self._register_library_keywords(lib)
 
     def import_remote_library(self, name):
         if name not in self.allow_import:
