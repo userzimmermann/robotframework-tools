@@ -38,6 +38,7 @@ setup(
     'robottools.library.context',
     'robottools.library.inspector',
     'robottools.testrobot',
+    'robottools.remote',
     'robotshell',
     'robotshell.magic',
     ],
