@@ -342,9 +342,14 @@ Besides `RobotRemoteServer`'s additional `Stop Remote Server` Keyword
 
 * `Import Remote Library [ name ]`
 
-  After using this Keyword the `Remote` Library must be reloaded
-  to make the new Keywords accessible.
-  You can do this via `ToolsLibrary.Reload Library`.
+  >Remotely import the Test Library with given `name`.
+  >
+  >Does the same remotely as `BuiltIn.Import Library` does locally.
+  >The Test Library must be allowed on server side.
+  >
+  >The `Remote` client library must be reloaded
+  >to make the new Keywords accessible.
+  >This can be done with `ToolsLibrary.Reload Library`.
 
 
 # 5. Using the ToolsLibrary
