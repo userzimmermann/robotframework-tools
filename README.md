@@ -300,9 +300,17 @@ TODO...
     from robottools.remote import RemoteRobot
 
 `RemoteRobot` is derived from `robottools.TestRobot`
-and `robotremoteserver.RobotRemoteServer`.
-The `__init__()` method shares most of its arguments
+and external `robotremoteserver.RobotRemoteServer`,
+which is derived from Python's `SimpleXMLRPCServer`.
+The `__init__()` method shares most of its basic arguments
 with `RobotRemoteServer`:
+
+    def __init__(
+      self, libraries, host='127.0.0.1', port=8270, port_file=None,
+      allow_stop=True, allow_import=None,
+      register_keywords=True, introspection=True,
+      ):
+        ...
 
 The differences:
 
@@ -313,12 +321,22 @@ The differences:
   takes a sequence of Test Library names,
   which can later be imported remotely
   via the `Import Remote Library` Keyword described below.
+* `RemoteRobot` also directly registers Keywords as remote methods
+  (`RobotRemoteServer` only registers a __Dynamic Library API__).
+  You can change this by setting `register_keywords=False`.
+* `RemoteRobot` calls `SimpleXMLRPCServer.register_introspection_functions()`.
+  You can change this by setting `introspection=False`.
 
 Once initialized the `RemoteRobot` will immediately start its service.
-To access it from your Test Scripts,
+You can connect with any XML-RPC client
+like Python's `xmlrpc.client.ServerProxy`
+(__Python 2.7__: `xmlrpclib.ServerProxy`).
+
+To access the `RemoteRobot` from your Test Scripts,
 you can use Robot Framework's standard `Remote` Library.
 Once connected it will provide all the Keywords from the Test Libraries
 imported by the `RemoteRobot`.
+
 Besides `RobotRemoteServer`'s additional `Stop Remote Server` Keyword
 `RemoteRobot` further provides these extra Keywords:
 
