@@ -29,8 +29,8 @@ from .keyword import Keyword
 
 
 class TestLibrary(TestLibraryInspector):
-    def __init__(self, lib, context):
-        TestLibraryInspector.__init__(self, lib)
+    def __init__(self, lib, args, context):
+        TestLibraryInspector.__init__(self, lib, *args)
         self._context = context
 
     def __getattr__(self, name):
