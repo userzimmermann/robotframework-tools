@@ -120,8 +120,8 @@ class RobotShell(ShellBase):
 
         return self.robot
 
-    def Import(self, libname, alias=None):
-        library = self.robot.Import(libname, alias)
+    def Import(self, libname, args=None, alias=None):
+        library = self.robot.Import(libname, args, alias=alias)
         self.register_robot_keyword_magics(alias or libname, library)
         return library
 

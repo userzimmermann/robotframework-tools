@@ -92,15 +92,22 @@ class RobotMagics(with_metaclass(RobotMagicsMeta, Magics)):
         pass
 
     @line_magic
-    def Import(self, libname_as_alias):
+    def Import(self, libname_and_args_as_alias):
         try:
-            libname, _as_, alias = libname_as_alias.split()
-            if _as_ != 'as':
+            libname_and_args, _as_, alias = (
+              libname_and_args_as_alias.rsplit(None, 2))
+            if _as_ != 'AS':
                 raise ValueError
         except ValueError:
-            libname = libname_as_alias
+            libname_and_args = libname_and_args_as_alias
             alias = None
-        return self.robot_shell.Import(libname, alias)
+        try:
+            libname, args = libname_and_args.split(None, 1)
+            args = args.split()
+        except ValueError:
+            libname = libname_and_args
+            args = None
+        return self.robot_shell.Import(libname, args, alias=alias)
 
     @line_magic
     def Close(self, _):
