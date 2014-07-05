@@ -83,13 +83,13 @@ class TestRobot(object):
           '* [Import] ' + lib.name
           for alias, lib in self._libraries.items())))
 
-    def Import(self, lib, alias=None):
+    def Import(self, lib, args=None, alias=None):
         """Import a Test Library with an optional `alias` name.
         """
         if type(lib) is not TestLibraryInspector:
             #HACK: `with` registers Output to LOGGER
             with self._output:
-                lib = TestLibraryInspector(lib)
+                lib = TestLibraryInspector(lib, *(args or ()))
         self._libraries[alias or lib.name] = lib
         return TestLibrary(lib._library, self._context)
 
