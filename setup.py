@@ -34,6 +34,7 @@ setup(
   packages=[
     'robottools',
     'robottools.library',
+    'robottools.library.keywords',
     'robottools.library.session',
     'robottools.library.context',
     'robottools.library.inspector',
