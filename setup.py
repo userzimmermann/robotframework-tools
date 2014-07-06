@@ -27,7 +27,7 @@ setup(
 
   install_requires=REQUIRES + (
     'robotframework >= 2.8' if sys.version_info[0] < 3
-    else 'robotframework-python3 >= 2.8.3'
+    else 'robotframework-python3 >= 2.8.4'
     ),
   extras_require=EXTRAS,
 
