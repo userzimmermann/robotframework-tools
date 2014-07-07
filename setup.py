@@ -1,20 +1,19 @@
-import sys
-
-from setuptools import setup
+from six import PY2
 
 
-VERSION = open('VERSION').read().strip()
+PROJECT = 'robotframework-tools'
 
-REQUIRES = open('requirements.txt').read()
+exec(open('zetup.py'))
 
-EXTRAS = {name: open('requirements.%s.txt' % name).read() for name in [
-  'remote',
-  'robotshell',
-  ]}
+
+REQUIRES += (
+  'robotframework >= 2.8' if PY2
+  else 'robotframework-python3 >= 2.8.4'
+  )
 
 
 setup(
-  name='robotframework-tools',
+  name=PROJECT,
   version=VERSION,
   description=(
     'Python Tools for Robot Framework and Test Libraries.'
@@ -25,10 +24,7 @@ setup(
 
   license='GPLv3',
 
-  install_requires=REQUIRES + (
-    'robotframework >= 2.8' if sys.version_info[0] < 3
-    else 'robotframework-python3 >= 2.8.4'
-    ),
+  install_requires=REQUIRES,
   extras_require=EXTRAS,
 
   packages=[
