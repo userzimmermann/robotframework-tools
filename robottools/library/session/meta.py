@@ -29,9 +29,8 @@ import inspect
 import re
 from copy import deepcopy
 
-from .metaoptions import Meta
-
 from robottools.library.keywords import KeywordsDict
+from .metaoptions import Meta
 
 
 class SessionHandlerMeta(type):
