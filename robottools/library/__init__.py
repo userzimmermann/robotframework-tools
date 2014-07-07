@@ -113,19 +113,19 @@ def testlibrary(
   session_handlers = []
   ):
     """Creates the actual base type for a user-defined Robot Test Library
-    derived from :class:`TestLibraryType`.
+       derived from :class:`TestLibraryType`.
 
-    * Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
-    adding the decorators from `register_keyword_options`.
-    * Adds the `keyword` decorator to the Test Library class
-    by instantiating the decorator class with the `default_keyword_options`.
+    - Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
+      adding the decorators from `register_keyword_options`.
+    - Adds the `keyword` decorator to the Test Library class
+      by instantiating the decorator class with the `default_keyword_options`.
 
-    * For every handler in `session_handlers`
-    its generated open_/switch_/close_session Keywords
-    (with `Handler.meta.identifier_name` substituting 'session')
-    will be added to the Test Library's Keywords.
+    - For every handler in `session_handlers`
+      its generated open_/switch_/close_session Keywords
+      (with `Handler.meta.identifier_name` substituting 'session')
+      will be added to the Test Library's Keywords.
 
-    :returns: type.
+    :returns: class.
     """
     # the attributes dict for the Test Library base class generation
     clsattrs = {}
