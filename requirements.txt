@@ -1,3 +1,3 @@
 six
 path.py
-moretools >= 0.1a36
+moretools >= 0.1a38
