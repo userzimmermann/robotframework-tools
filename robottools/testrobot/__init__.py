@@ -19,7 +19,7 @@
 
 """robottools.testrobot
 
-- Provides the interactive TestRobot interface.
+Provides the interactive TestRobot interface.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
@@ -56,6 +56,7 @@ class TestRobot(object):
           (Used by the `robot_shell` to extend Variables lookup
            to IPython's `user_ns` and Python's `builtins`).
 
+        :param BuiltIn: Import RFW's BuiltIn Library by default?
         :param variable_getters: A sequence of callables.
         """
         self.name = name
@@ -70,6 +71,8 @@ class TestRobot(object):
         self._suite = TestSuite(name)
         self._namespace = Namespace(
           self._suite, self._variables, None, [], None)
+        # Store .library.TestLibrary wrapper instances by alias
+        #  on self.Import():
         self._libraries = {}
 
         if BuiltIn:
@@ -86,12 +89,15 @@ class TestRobot(object):
     def Import(self, lib, args=None, alias=None):
         """Import a Test Library with an optional `alias` name.
         """
-        if type(lib) is not TestLibraryInspector:
+        if not isinstance(lib, TestLibraryInspector):
             #HACK: `with` registers Output to LOGGER
             with self._output:
                 lib = TestLibraryInspector(lib, *(args or ()))
+        # Put lib in testrobot's derived lib wrapper
+        #  for calling Keywords with running context:
+        lib = TestLibrary(lib._library, context=self._context)
         self._libraries[alias or lib.name] = lib
-        return TestLibrary(lib._library, self._context)
+        return lib
 
     def __getitem__(self, name):
         """Get variables (with $/@{...} syntax),
@@ -106,27 +112,29 @@ class TestRobot(object):
                 raise KeyError(str(e))
         for alias, lib in self._libraries.items():
             if alias == name:
-                return TestLibrary(lib._library, self._context)
+                return lib
             try:
                 keyword = lib[name]
             except KeyError:
                 pass
             else:
-                return Keyword(keyword._handler, self._context)
-        raise KeyError(name)
+                return Keyword(keyword._handler, context=self._context)
+        raise KeyError("No Test Library or Keyword named '%s'." % name)
 
     def __getattr__(self, name):
         """Get Robot Variables, Test Libraries and Keywords by name.
 
         - Keyword names can be in any case (lower_case, CamelCase, ...).
         """
-        try:
+        try: # Delegate to self.__getitem__:
             return self[name]
-        except KeyError as e:
+        except KeyError:
             try:
                 return self._variables['${%s}' % name]
             except DataError:
-                raise AttributeError(str(e))
+                raise AttributeError(
+                  "No Test Library, Keyword or Variable named '%s'."
+                  % name)
 
     def __dir__(self):
         """List all Robot Variables (UPPER_CASE),
@@ -140,7 +148,7 @@ class TestRobot(object):
                 names.append(name.upper())
         for alias, lib in self._libraries.items():
             names.append(alias)
-            # dir() returns the Library's CamelCase Keyword names
+            # dir() returns the Library's CamelCase Keyword names:
             names.extend(dir(lib))
         return names
 

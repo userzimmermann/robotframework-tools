@@ -29,11 +29,10 @@ from .keyword import Keyword
 
 
 class TestLibrary(TestLibraryInspector):
-    def __init__(self, lib, args, context):
-        TestLibraryInspector.__init__(self, lib, *args)
+    def __init__(self, lib, args=None, context=None):
+        TestLibraryInspector.__init__(self, lib, *(args or ()))
         self._context = context
 
     def __getattr__(self, name):
         keyword = TestLibraryInspector.__getattr__(self, name)
-        return Keyword(keyword._handler, self._context)
-
+        return Keyword(keyword._handler, context=self._context)
