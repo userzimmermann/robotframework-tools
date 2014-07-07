@@ -26,7 +26,7 @@ Python Tools for Robot Framework and Test Libraries.
 
 from robottools.library import *
 from robottools.library.keywords import *
-from robottools.library.session import Handler as SessionHandler
+from robottools.library.session import SessionHandler
 from robottools.library.context import *
 
 from robottools.library.inspector import *

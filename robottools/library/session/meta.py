@@ -17,184 +17,146 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robottools.session.meta
+"""robottools.library.session.meta
 
-The Robot Test Library session handler meta information management.
+Provides testlibrary()'s session handler metaclass.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['Meta']
+__all__ = ['SessionHandlerMeta']
 
-from moretools import camelize, decamelize
+import inspect
+import re
+from copy import deepcopy
+
+from .metaoptions import Meta
+
+from robottools.library.keywords import KeywordsDict
 
 
-class Meta(object):
-    """The meta information for a session handler
+class SessionHandlerMeta(type):
+    """The metaclass for :class:`Handler`.
 
-    - Based on the handler's class name
-      and a user-defined `Handler.Meta` class.
+    - For user-derived handler classes
+      it generates the handler specific meta information
+      (using :class:`.meta.Meta`),
+      the session storage, the actual Robot Keywords for session management,
+      and a session exception type.
     """
-    def __init__(self, handlerclsname = None, metadefs = None):
-        """Generate several variants of a session handler name
-           for use in identifiers and message strings.
-
-        - Based on the `handlerclsname`
-          and/or the attributes of the optional
-          `Handler.Meta` class in `metadefs`,
-          which can define name (variant) prefixes/suffixes
-          and/or explicit name variants.
+    def __new__(mcs, clsname, bases, clsattrs):
+        """Generate meta information, session exception type,
+           and session/keywords storage
+           for :class:`Handler` derived classes.
         """
-        # Check all prefix definitions and generate actual prefix strings
-        prefixes = {}
+        if clsname == 'Handler': # The handler base class itself
+            return type.__new__(mcs, clsname, bases, clsattrs)
 
-        def gen_prefix(key, default, append = ''):
-            """Check the prefix definition
-               for name variant identified by `key`.
+        try: # Has a user-defined `Handler.Meta` class?
+            options = clsattrs['Meta']
+        except KeyError:
+            meta = Meta(handlerclsname=clsname)
+        else:
+            meta = Meta(handlerclsname=clsname, options=options)
+        clsattrs['meta'] = meta
 
-            - Set to `default` if not defined.
-            - Always `append` the given extra string.
+        excname = meta.upper_identifier_name + 'Error'
+        clsattrs['SessionError'] = type(excname, (RuntimeError,), {})
+
+        # The handler's dictionary of opened sessions
+        clsattrs['sessions'] = {}
+        # The handler's currently active session
+        clsattrs['session'] = None
+
+        # For storing the handler's session management Keywords
+        clsattrs['keywords'] = KeywordsDict()
+
+        return type.__new__(mcs, clsname, bases, clsattrs)
+
+    #TODO: (cls, name, func) ?
+    def add_opener(cls, func):
+        """Add Keywords for opening (un)named sessions
+           for a user-defined session opener method `func`
+           (methods whose names start with 'open').
+        """
+        suffix = re.sub('^open($|_)', '', func.__name__)
+        keywordname = 'open%s_' + cls.meta.identifier_name
+        if suffix:
+            keywordname += '_' + suffix
+        argspec = inspect.getargspec(func)
+
+        def open_session(self, *args, **kwargs):
+            """Open an unnamed %s.
+
+            - Automatically closes active unnamed %s.
             """
-            try:
-                prefix = getattr(
-                  metadefs, (key and key + '_') + 'name_prefix')
-            except AttributeError:
-                prefix = default
-            else:
-                prefix = prefix and str(prefix) or ''
-            if prefix and not prefix.endswith(append):
-                prefix += append
-            # Finally add to the prefixes dictionary
-            prefixes[key] = prefix
+            session = func(self, *args, **kwargs)
+            cls.add_session(session)
 
-        def gen_plural_prefix(key, append = ''):
-            """Check the prefix definition
-               for plural name variant identified by plural_`key`.
+        open_session.__doc__ %= (
+          cls.meta.verbose_name, cls.meta.plural_verbose_name)
 
-            - Set to singular `key` prefix if not defined.
-            - Always `append` the given extra string.
+        open_session.argspec = argspec
+        # Use custom doc string if defined
+        if func.__doc__:
+            open_session.__doc__ = func.__doc__
+        cls.keywords[keywordname % ''] = open_session
+
+        def open_named_session(self, name, *args, **kwargs):
+            """Open a named %s.
+
+            - Automatically closes active unnamed %s.
             """
-            plural_key = 'plural' + (key and '_' + key)
-            default = prefixes[key]
-            gen_prefix(plural_key, default, append)
+            session = func(self, *args, **kwargs)
+            cls.add_named_session(name, session)
 
-        # Base name prefixes
-        gen_prefix('', '', '_')
-        gen_plural_prefix('', '_')
-        gen_prefix('upper', camelize(prefixes['']))
-        gen_plural_prefix('upper')
-        # Identifier name prefixes
-        gen_prefix('identifier', '', '_')
-        gen_plural_prefix('identifier', '_')
-        gen_prefix('upper_identifier', camelize(prefixes['identifier']))
-        # Verbose name prefixes
-        gen_prefix('verbose', '', ' ')
-        gen_plural_prefix('verbose', ' ')
+        open_named_session.__doc__ %= (
+          cls.meta.verbose_name, cls.meta.plural_verbose_name)
 
-        # Check all suffix definitions and generate actual suffix strings
-        suffixes = {}
+        named_argspec = deepcopy(argspec)
+        named_argspec.args.insert(1, 'name') # (after self)
+        open_named_session.argspec = named_argspec
+        cls.keywords[keywordname % '_named'] = open_named_session
 
-        def gen_suffix(key, default, prepend = ''):
-            """Check the suffix definition
-               for name variant identified by `key`.
+    def __init__(cls, clsname, bases, clsattrs):
+        """Generate the actual session management keywords
+           for :class:`Handler` derived classes.
 
-            - Set to `default` if not defined.
-            - Always `prepend` the given extra string.
-            """
-            try:
-                suffix = getattr(metadefs, key + '_name_suffix')
-            except AttributeError:
-                suffix = default
-            else:
-                suffix = suffix and str(suffix) or ''
-            if suffix and not suffix.startswith(prepend):
-                suffix = prepend + suffix
-            # Finally add to the suffixes dictionary
-            suffixes[key] = suffix
+        - Includes the session management helper methods of :class:`Handler`
+          and user-defined session opener methods
+          (whose names start with 'open').
+        - Looks for optional custom session switch/close hook methods
+          named 'switch'/'close'
+        - All Keyword names include the handler-specific
+          `meta.identifier_name`.
+        """
+        try:
+            meta = cls.meta
+        except AttributeError:
+            return
 
-        def gen_plural_suffix(key, prepend = ''):
-            """Check the suffix definition
-               for plural name variant identified by plural_`key`.
+        switch_func = close_func = None
+        for name, func in clsattrs.items():
+            if name.startswith('open'):
+                cls.add_opener(func)
+            elif name == 'switch':
+                switch_func = func
+            elif name == 'close':
+                close_func = func
 
-            - Set to singular `key` suffix + 's' if not defined.
-            - Always `prepend` the given extra string.
-            """
-            plural_key = 'plural' + (key and '_' + key)
-            default = suffixes[key] and suffixes[key] + 's'
-            gen_suffix(plural_key, default, prepend)
+        def switch_session(self, name):
+            session = cls.switch_session(name)
+            if switch_func:
+                switch_func(self, session)
 
-        # Identifier name suffixes
-        gen_suffix('', '', '_')
-        gen_plural_suffix('', '_')
-        gen_suffix('upper', camelize(suffixes['']))
-        gen_plural_suffix('upper')
-        # Identifier name suffixes
-        ## gen_suffix('identifier', 'session', '_')
-        gen_suffix('identifier', '', '_')
-        gen_plural_suffix('identifier', '_')
-        gen_suffix('upper_identifier', camelize(suffixes['identifier']))
-        # Verbose name suffixes
-        ## gen_suffix('verbose', 'Session', ' ')
-        gen_suffix('verbose', '', ' ')
-        gen_plural_suffix('verbose', ' ')
+        keywordname = 'switch_' + meta.identifier_name
+        cls.keywords[keywordname] = switch_session
 
-        # Check explicit name variant definitions
-        variants = {}
-        for variantkey in (
-          '', 'plural', 'upper', 'plural_upper',
-          'identifier', 'plural_identifier', 'upper_identifier',
-          'verbose', 'plural_verbose'
-          ):
-            defname = (variantkey and variantkey + '_') + 'name'
-            variant = getattr(metadefs, defname, None)
-            # Non-empty string or None
-            variant = variant and (str(variant) or None) or None
-            variants[variantkey] = variant
+        def close_session(self):
+            session = cls.close_session()
+            if close_func:
+                close_func(self, session)
 
-        # Create final base name (helper) variants
-        # (NOT stored in final meta object (self))
-        key = ''
-        name = (
-          variants[key]
-          or prefixes[key] + decamelize(handlerclsname) + suffixes[key])
-        key = 'plural'
-        plural_name = (
-          variants[key] and prefixes[key] + variants[key] + suffixes[key]
-          or None)
-        key = 'upper'
-        upper_name = (
-          variants[key]
-          or variants[''] and camelize(variants[''])
-          or prefixes[key] + handlerclsname + suffixes[key])
-        key = 'plural_upper'
-        plural_upper_name = (
-          variants[key]
-          or variants['plural']
-          and prefixes[key] + camelize(variants['plural']) + (
-            suffixes[key] or (not variants['plural'] and 's' or ''))
-          or None)
+        keywordname = 'close_' + meta.identifier_name
+        cls.keywords[keywordname] = close_session
 
-        # Create final identifier/verbose name variants
-        # (stored in final meta object (self))
-        key = 'identifier'
-        self.identifier_name = (
-          variants[key]
-          or prefixes[key] + name + suffixes[key])
-        key = 'plural_identifier'
-        self.plural_identifier_name = (
-          variants[key]
-          or prefixes[key] + (plural_name or name) + (
-            suffixes[key] or (not plural_name and 's' or '')))
-        key = 'upper_identifier'
-        self.upper_identifier_name = (
-          variants[key]
-          or prefixes[key] + upper_name + suffixes[key])
-        key = 'verbose'
-        self.verbose_name = (
-          variants[key]
-          or prefixes[key] + upper_name + suffixes[key])
-        key = 'plural_verbose'
-        self.plural_verbose_name = (
-          variants[key]
-          or prefixes[key] + (plural_upper_name or upper_name) + (
-            suffixes[key] or (not plural_upper_name and 's' or '')))
 
