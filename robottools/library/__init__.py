@@ -17,30 +17,32 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robottools
+"""robottools.library
+
+Dynamic Test Library creation framework.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = (
+__all__ = [
   'TestLibraryType', 'testlibrary',
   # from .keywords
   'KeywordDecoratorType', 'InvalidKeywordOption',
-  )
+  ]
 
-from functools import partial
 from collections import OrderedDict
 from moretools import simpledict
 
 from .keywords import (
   KeywordsDict, Keyword,
-  KeywordDecoratorType, InvalidKeywordOption,
-  )
+  KeywordDecoratorType, InvalidKeywordOption)
+
 
 class TestLibraryType(object):
     """A base class for Robot Test Libraries.
-    * Should not be initialized directly.
-    * :func:`testlibrary` dynamically creates derived classes
-    for use as a base for a custom Test Library.
+
+    - Should not be initialized directly.
+    - :func:`testlibrary` dynamically creates derived classes
+        for use as a base for a custom Test Library.
     """
     def get_keyword_names(self):
         """Get all lower_case Keyword names for Robot Framework
@@ -99,8 +101,10 @@ class TestLibraryType(object):
         """
         return dir(self.keywords)
 
+
 # Ordered name-mapped storage of user-defined session/context handlers
 HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
+
 
 def testlibrary(
   register_keyword_options = [],
