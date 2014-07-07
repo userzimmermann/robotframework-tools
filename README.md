@@ -40,10 +40,11 @@ Package extra features:
 
 ### Requirements
 
+* [`six`](https://pypi.python.org/pypi/six)
 * [`path.py`](https://pypi.python.org/pypi/path.py)
-* [`moretools >= 0.1a34`](https://pypi.python.org/pypi/moretools)
-* [`robotframework >= 2.8`](https://pypi.python.org/pypi/robotframework)
-  * __Python 3.x__: [`robotframework-python3 >= 2.8.3`](
+* [`moretools>=0.1a38`](https://pypi.python.org/pypi/moretools)
+* [`robotframework>=2.8`](https://pypi.python.org/pypi/robotframework)
+  * __Python 3.x__: [`robotframework-python3>=2.8.3`](
       https://pypi.python.org/pypi/robotframework-python3)
 
 Extra requirements for __[remote]__:
