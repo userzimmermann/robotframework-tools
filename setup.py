@@ -1,4 +1,4 @@
-from six import PY2
+import sys
 
 
 PROJECT = 'robotframework-tools'
@@ -7,7 +7,7 @@ exec(open('zetup.py'))
 
 
 REQUIRES += (
-  'robotframework >= 2.8' if PY2
+  'robotframework >= 2.8' if sys.version_info[0] == 2
   else 'robotframework-python3 >= 2.8.4'
   )
 
