@@ -24,6 +24,8 @@ Python Tools for Robot Framework and Test Libraries.
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 
+from robottools import setup
+
 from robottools.library import *
 from robottools.library.keywords import *
 from robottools.library.session import SessionHandler
@@ -32,3 +34,10 @@ from robottools.library.context import *
 from robottools.library.inspector import *
 
 from robottools.testrobot import *
+
+
+__version__ = setup.VERSION
+
+__requires__ = setup.REQUIRES
+
+__extras__ = setup.EXTRAS
