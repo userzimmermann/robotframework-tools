@@ -1,15 +1,4 @@
-import sys
-
-
-PROJECT = 'robotframework-tools'
-
-exec(open('zetup.py'))
-
-
-REQUIRES += (
-  'robotframework >= 2.8' if sys.version_info[0] == 2
-  else 'robotframework-python3 >= 2.8.4'
-  )
+exec(open('__init__.py'))
 
 
 setup(
@@ -27,8 +16,12 @@ setup(
   install_requires=REQUIRES,
   extras_require=EXTRAS,
 
+  package_dir={
+    'robottools.setup': '.',
+    },
   packages=[
     'robottools',
+    'robottools.setup',
     'robottools.library',
     'robottools.library.keywords',
     'robottools.library.session',
@@ -42,6 +35,9 @@ setup(
   py_modules=[
     'ToolsLibrary',
     ],
+  package_data={
+    'robottools.setup': SETUP_DATA,
+    },
 
   classifiers=[
     'Development Status :: 3 - Alpha',
