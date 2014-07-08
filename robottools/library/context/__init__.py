@@ -28,7 +28,7 @@ __all__ = [
   # From .method:
   'contextmethod']
 
-from robottools.library.session.meta import Meta
+from robottools.library.session.metaoptions import Meta
 from robottools.library.keywords import KeywordsDict
 
 from .method import *

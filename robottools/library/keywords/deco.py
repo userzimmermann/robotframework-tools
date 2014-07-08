@@ -37,7 +37,7 @@ from .errors import InvalidKeywordOption, KeywordNotDefined
 
 
 class KeywordDecoratorType(object):
-    """The base type for a Test Library's `keyword` decorator.
+    """The base class for a Test Library's `keyword` decorator.
 
     - Stores the Keyword method function
       in the Test Library's `keywords` mapping,
