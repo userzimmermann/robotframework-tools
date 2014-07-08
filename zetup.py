@@ -18,15 +18,56 @@
 # along with zetup.py. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
+if sys.version_info[0] == 3:
+    # Just for simpler PY2/3 compatible code:
+    unicode = str
+
 import os
 import re
 from collections import OrderedDict
-from pkg_resources import parse_requirements
+from pkg_resources import parse_version, parse_requirements
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+
+class Version(str):
+    """Manage and compare version strings
+       using :func:`pkg_resources.parse_version`.
+    """
+    @staticmethod
+    def _parsed(value):
+        """Parse a version `value` if needed.
+        """
+        if isinstance(value, (str, unicode)):
+            value = parse_version(value)
+        return value
+
+    @property
+    def parsed(self):
+        """The version string as parsed version tuple.
+        """
+        return parse_version(self)
+
+    def __eq__(self, other):
+        return self.parsed == self._parsed(other)
+
+    def __ne__(self, other):
+        return self.parsed != self._parsed(other)
+
+    def __lt__(self, other):
+        return self.parsed < self._parsed(other)
+
+    def __le__(self, other):
+        return self.parsed <= self._parsed(other)
+
+    def __gt__(self, other):
+        return self.parsed > self._parsed(other)
+
+    def __ge__(self, other):
+        return self.parsed >= self._parsed(other)
 
 
 class Requirements(str):
@@ -55,16 +96,29 @@ class Requirements(str):
         return str(self)
 
 
-VERSION = open('VERSION').read().strip()
+class Extras(OrderedDict):
+    """Package extra features/requirements manager.
+    """
+    def __repr__(self):
+        return "\n\n".join((
+          "[%s]\n" % key + '\n'.join(map(str, reqs))
+          for key, reqs in self.items()))
+
+
+SETUP_DATA = ['VERSION', 'requirements.txt']
+
+VERSION = Version(open('VERSION').read().strip())
 
 REQUIRES = Requirements(open('requirements.txt').read())
 
 # Extra requirements to use with setup's extras_require=
-EXTRAS = OrderedDict()
+EXTRAS = Extras()
 _re = re.compile(r'^requirements\.(?P<name>[^\.]+)\.txt$')
 for fname in sorted(os.listdir('.')):
     match = _re.match(fname)
     if match:
+        SETUP_DATA.append(fname)
+
         EXTRAS[match.group('name')] = Requirements(open(fname).read())
 
 
@@ -111,7 +165,7 @@ else:
     class README_Builder(JinjaBuilder):
         def __init__(self):
             JinjaBuilder.__init__(self, FileSystemLoader('.'), context={
-                'REQUIRES': self.REQUIRES(REQUIRES),
+              'REQUIRES': self.REQUIRES(REQUIRES),
               'EXTRAS': self.EXTRAS(),
               'INSTALL': self.INSTALL(),
               })
