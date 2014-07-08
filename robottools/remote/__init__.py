@@ -29,8 +29,12 @@ from itertools import chain
 
 from robotremoteserver import RobotRemoteServer
 
+import robottools
 from robottools import TestRobot, testlibrary
 from robottools.testrobot import Keyword
+
+from robottools import __version__, __requires__
+__requires__ += robottools.__extras__['remote']
 
 
 class RemoteLibrary(object):
