@@ -19,7 +19,7 @@
 
 """robottools.remote.keywords
 
-- Defines extra Keywords for RemoteRobot.
+Defines extra Keywords for RemoteRobot.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """

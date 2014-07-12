@@ -19,13 +19,11 @@
 
 """robottools.remote
 
-- Provides the RemoteRobot, combining TestRobot with RobotRemoteServer.
+Home of the RemoteRobot, based on TestRobot and RobotRemoteServer.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['RemoteRobot']
-
-from itertools import chain
 
 from robotremoteserver import RobotRemoteServer
 
@@ -36,33 +34,10 @@ from robottools.testrobot import Keyword
 from robottools import __version__, __requires__
 __requires__ += robottools.__extras__['remote']
 
-
-class RemoteLibrary(object):
-    def __init__(self, robot):
-        self.robot = robot
-
-    def get_keyword_names(self):
-        return list(chain(*map(dir, self.robot._libraries.values())))
-
-    def get_keyword_arguments(self, name):
-        keyword = self.robot[name]
-        return list(keyword.arguments)
-
-    def get_keyword_documentation(self, name):
-        keyword = self.robot[name]
-        return keyword.doc
-
-    def run_keyword(self, name, *args, **kwargs):
-        keyword = self.robot[name]
-        return keyword(*args, **kwargs)
-
-    def __getattr__(self, name):
-        try:
-            return self.robot[name]
-        except KeyError:
-            raise AttributeError(name)
+from .library import RemoteLibrary
 
 
+# Additional base for RemoteRobot, to handle its own Keywords:
 TestLibrary = testlibrary()
 keyword = TestLibrary.keyword
 
@@ -71,11 +46,27 @@ keyword(RobotRemoteServer.stop_remote_server)
 
 
 class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
+    """Makes Test Libraries remotely accessible via XML-RPC.
+
+    - Can handle multiple Test Libraries.
+    - Usable with Robot Framework's standard RemoteLibrary.
+    """
     def __init__(
       self, libraries, host='127.0.0.1', port=8270, port_file=None,
       allow_stop=True, allow_import=None,
       register_keywords=True, introspection=True,
       ):
+        """Takes a sequence of Test Library names to import,
+           RobotRemoteServer's additional __init__ options
+           and these optional extra args:
+
+        :param allow_import: Sequence of Test Library names
+          allowed for keyword `Import Remote Library`.
+        :param register_keywords: Register imported Test Library Keywords
+          directly as remote methods besides Dynamic Robot API methods?
+        :param introspection: Call
+          SimpleXMLRPCServer.register_introspection_functions()?
+        """
         TestRobot.__init__(self, name='Remote', BuiltIn=False)
         TestLibrary.__init__(self)
         self.register_keywords = bool(register_keywords)
@@ -83,7 +74,8 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
         for lib in libraries:
             self.Import(lib)
         self.allow_import = list(allow_import or [])
-
+        # Initialize the remote base with a .library.RemoteLibrary proxy
+        #  (base only accepts a single library instance):
         RobotRemoteServer.__init__(
           self, RemoteLibrary(robot=self),
           host, port, port_file, allow_stop)
@@ -139,4 +131,6 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
             return TestLibrary.__getattr__(self, name)
 
 
+# Load RemoteRobot's extra Keywords
+#  (registered with TestLibrary.keyword decorator on module level):
 from . import keywords
