@@ -27,4 +27,4 @@ __path__ = [Path(robottools.__path__[0]).abspath().dirname()]
 __file__ = __path__[0] / '__init__.py'
 
 with __path__[0]:
-    exec(open(__file__))
+    exec(open(__file__).read())

@@ -1,8 +1,8 @@
-exec(open('__init__.py'))
+exec(open('__init__.py').read())
 
 
 setup(
-  name=PROJECT,
+  name=NAME,
   version=VERSION,
   description=(
     'Python Tools for Robot Framework and Test Libraries.'
