@@ -1,3 +1,3 @@
 six
-path.py
+path.py # path
 moretools >= 0.1a38
