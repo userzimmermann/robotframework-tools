@@ -133,7 +133,9 @@ class Requirements(str):
         """Return a new manager instance
            with additional requirements from `text`.
         """
-        return type(self)('%s\n%s' % (self, text))
+        return type(self)('%s\n%s' % (
+          '\n'.join('%s # %s' % (req, req.modname) for req in self),
+          text))
 
     def __repr__(self):
         return str(self)
