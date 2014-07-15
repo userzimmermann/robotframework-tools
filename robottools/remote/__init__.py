@@ -25,7 +25,6 @@ Home of the RemoteRobot, based on TestRobot and RobotRemoteServer.
 """
 __all__ = ['RemoteRobot']
 
-import robottools
 from robottools import __version__, __requires__, __extras__
 
 __requires__ += __extras__['remote'].checked
