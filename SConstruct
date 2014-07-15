@@ -1,4 +1,4 @@
-exec(open('__init__.py'))
+exec(open('__init__.py').read())
 
 
 env = Environment(BUILDERS={'README': README_Builder()})
