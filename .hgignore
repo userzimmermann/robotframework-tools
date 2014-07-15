@@ -11,6 +11,11 @@ PKG-INFO
 \.egg-info
 ^\.tox/
 
+^\.scon[sf]
+
+^\.ipynb
+\.ipynb$
+
 ^\$tf/
 ^BuildProcessTemplates/
 \.sln$
