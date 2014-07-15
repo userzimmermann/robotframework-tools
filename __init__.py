@@ -24,10 +24,6 @@ Python Tools for Robot Framework and Test Libraries.
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 import sys
-import os
-
-
-NAME = 'robotframework-tools'
 
 
 try:
