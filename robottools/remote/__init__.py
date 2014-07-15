@@ -26,12 +26,10 @@ Home of the RemoteRobot, based on TestRobot and RobotRemoteServer.
 __all__ = ['RemoteRobot']
 
 import robottools
-from robottools import __version__, __requires__
+from robottools import __version__, __requires__, __extras__
 
-extras = robottools.__extras__['remote']
-extras.check()
-__requires__ += robottools.__extras__['remote']
-del extras
+__requires__ += __extras__['remote'].checked
+del __extras__
 
 
 from robotremoteserver import RobotRemoteServer
