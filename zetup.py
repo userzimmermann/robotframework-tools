@@ -18,21 +18,40 @@
 # along with zetup.py. If not, see <http://www.gnu.org/licenses/>.
 
 import sys
-if sys.version_info[0] == 3:
-    # Just for simpler PY2/3 compatible code:
-    unicode = str
-
 import os
 import re
 from collections import OrderedDict
 from pkg_resources import (
-  parse_version, parse_requirements,
+  get_distribution, parse_version, parse_requirements,
   DistributionNotFound, VersionConflict)
+
+if sys.version_info[0] == 3:
+    from configparser import ConfigParser
+    # Just for simpler PY2/3 compatible code:
+    unicode = str
+else:
+    from ConfigParser import ConfigParser
 
 try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
+
+
+class Distribution(str):
+    def find(self, modpath, raise_=True):
+        dist = get_distribution(self)
+        if os.path.realpath(dist.location) \
+          != os.path.realpath(os.path.dirname(modpath)):
+            return None
+        if dist.parsed_version != VERSION.parsed:
+            if raise_:
+                raise VersionConflict(
+                  "Version of distribution %s"
+                  " doesn't match %s.__version__ %s."
+                  % (dist, PACKAGE, VERSION))
+            return None
+        return dist
 
 
 class Version(str):
@@ -118,6 +137,11 @@ class Requirements(str):
                 return False
         return True
 
+    @property
+    def checked(self):
+        self.check()
+        return self
+
     def __iter__(self):
         return iter(self._list)
 
@@ -154,7 +178,38 @@ class Extras(OrderedDict):
           for key, reqs in self.items()))
 
 
-SETUP_DATA = ['VERSION', 'requirements.txt']
+config = ConfigParser()
+config.read('zetup.cfg')
+
+DISTRIBUTION = Distribution(config.sections()[0])
+
+config = dict(config.items(DISTRIBUTION))
+
+TITLE = config.get('title', DISTRIBUTION)
+DESCRIPTION = config['description'].replace('\n', ' ')
+
+AUTHOR = re.match(r'^([^<]+)<([^>]+)>$', config['author'])
+AUTHOR, EMAIL = map(str.strip, AUTHOR.groups())
+URL = config['url']
+
+LICENSE = config['license']
+
+PYTHON = config['python'].split()
+
+PACKAGE = config.get('package', DISTRIBUTION)
+
+CLASSIFIERS = config['classifiers'].strip() \
+  .replace('\n::', ' ::').split('\n')
+CLASSIFIERS.append('Programming Language :: Python')
+for pyversion in PYTHON:
+    CLASSIFIERS.append('Programming Language :: Python :: ' + pyversion)
+
+KEYWORDS = config['keywords'].split()
+if any(pyversion.startswith('3') for pyversion in PYTHON):
+    KEYWORDS.append('python3')
+
+
+ZETUP_DATA = ['zetup.cfg', 'VERSION', 'requirements.txt']
 
 VERSION = Version(open('VERSION').read().strip())
 
@@ -166,9 +221,30 @@ _re = re.compile(r'^requirements\.(?P<name>[^\.]+)\.txt$')
 for fname in sorted(os.listdir('.')):
     match = _re.match(fname)
     if match:
-        SETUP_DATA.append(fname)
+        ZETUP_DATA.append(fname)
 
         EXTRAS[match.group('name')] = open(fname).read()
+
+
+def zetup(**setup_options):
+    """Run setup() with options from zetup.cfg
+       and explicit override `setup_options`.
+    """
+    for option, value in [
+      ('name', DISTRIBUTION),
+      ('version', VERSION),
+      ('description', DESCRIPTION),
+      ('author', AUTHOR),
+      ('author_email', EMAIL),
+      ('url', URL),
+      ('license', LICENSE),
+      ('install_requires', REQUIRES),
+      ('extras_require', EXTRAS),
+      ('classifiers', CLASSIFIERS),
+      ('keywords', KEYWORDS),
+      ]:
+        setup_options.setdefault(option, value)
+    return setup(**setup_options)
 
 
 # If installed with pip, add all build directories and src/ subdirs
@@ -214,12 +290,29 @@ else:
     class README_Builder(JinjaBuilder):
         def __init__(self):
             JinjaBuilder.__init__(self, FileSystemLoader('.'), context={
+              'SETUP': self.SETUP(),
               'REQUIRES': self.REQUIRES(REQUIRES),
               'EXTRAS': self.EXTRAS(),
               'INSTALL': self.INSTALL(),
               })
 
-        def REQUIRES(self, reqs):
+        def SETUP(self):
+            mdtext = (
+              "Supported __Python__ versions: %s"
+              "\n\n"
+              "### Requirements"
+              "\n\n%s\n\n"
+              % (", ".join("__%s__" % pyversion for pyversion in PYTHON),
+                 self.REQUIRES()))
+            if EXTRAS:
+                mdtext += "%s\n\n" % self.EXTRAS()
+            mdtext += (
+              "### Installation"
+              "\n\n%s"
+              % self.INSTALL())
+            return mdtext
+
+        def REQUIRES(self, reqs=REQUIRES):
             return '\n'.join(
               "* [`%s`](\n"
               "    https://pypi.python.org/pypi/%s)" % (
@@ -244,14 +337,14 @@ else:
               "  https://pypi.python.org/pypi/%s):"
               "\n\n"
               "    pip install %s"
-              % tuple(2 * [NAME]))
+              % tuple(2 * [DISTRIBUTION]))
             if EXTRAS:
               mdtext += (
                 "\n\n"
                 "* With all extra features:"
                 "\n\n"
                 "        pip install %s[%s]"
-                % (NAME, ','.join(EXTRAS)))
+                % (DISTRIBUTION, ','.join(EXTRAS)))
             return mdtext
 
 
