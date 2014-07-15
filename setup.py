@@ -3,11 +3,11 @@ exec(open('__init__.py').read())
 
 zetup(
   package_dir={
-    'robottools.setup': '.',
+    'robottools.zetup': '.',
     },
   packages=[
     'robottools',
-    'robottools.setup',
+    'robottools.zetup',
     'robottools.library',
     'robottools.library.keywords',
     'robottools.library.session',
@@ -22,6 +22,6 @@ zetup(
     'ToolsLibrary',
     ],
   package_data={
-    'robottools.setup': ZETUP_DATA,
+    'robottools.zetup': ZETUP_DATA,
     },
   )

@@ -24,14 +24,14 @@ Python Tools for Robot Framework and Test Libraries.
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 
-from robottools import setup
+from robottools import zetup
 
-__version__ = setup.VERSION
+__version__ = zetup.VERSION
 
-__requires__ = setup.REQUIRES
-__requires__.check()
+__requires__ = zetup.REQUIRES.checked
+__extras__ = zetup.EXTRAS
 
-__extras__ = setup.EXTRAS
+__distribution__ = zetup.DISTRIBUTION.find(__path__[0])
 
 
 from robottools.library import *
