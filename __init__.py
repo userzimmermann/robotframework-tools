@@ -50,7 +50,10 @@ else:
 
 class Distribution(str):
     def find(self, modpath, raise_=True):
-        dist = get_distribution(self)
+        try:
+            dist = get_distribution(self)
+        except DistributionNotFound:
+            return None
         if os.path.realpath(dist.location) \
           != os.path.realpath(os.path.dirname(modpath)):
             return None
@@ -136,7 +139,7 @@ class Requirements(str):
         for req in self:
             try:
                 mod = __import__(req.modname)
-            except:
+            except ImportError:
                 if raise_:
                     raise DistributionNotFound(str(req))
                 return False
@@ -192,7 +195,7 @@ class Extras(OrderedDict):
 
 config = ConfigParser()
 for fname in ['zetup.ini', 'zetup.cfg', 'zetuprc']:
-    if config.read(fname):
+    if config.read(os.path.join(ZETUP_DIR, fname)):
         ##TODO: No print after installation (under pkg/zetup/):
         ## print("zetup: Using config from %s" % fname)
         ZETUP_DATA = [fname]
