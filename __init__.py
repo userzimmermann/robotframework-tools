@@ -179,13 +179,20 @@ class Extras(OrderedDict):
 
 
 config = ConfigParser()
-config.read('zetup.cfg')
+for fname in ['zetup.ini', 'zetup.cfg', 'zetuprc']:
+    if config.read(fname):
+        print("zetup: Using config from %s" % fname)
+        break
+else:
+    raise RuntimeError("No zetup config found.")
 
-DISTRIBUTION = Distribution(config.sections()[0])
 
-config = dict(config.items(DISTRIBUTION))
+NAME = config.sections()[0]
+DISTRIBUTION = Distribution(NAME)
 
-TITLE = config.get('title', DISTRIBUTION)
+config = dict(config.items(NAME))
+
+TITLE = config.get('title', NAME)
 DESCRIPTION = config['description'].replace('\n', ' ')
 
 AUTHOR = re.match(r'^([^<]+)<([^>]+)>$', config['author'])
@@ -196,7 +203,7 @@ LICENSE = config['license']
 
 PYTHON = config['python'].split()
 
-PACKAGE = config.get('package', DISTRIBUTION)
+PACKAGE = config.get('package', NAME)
 
 CLASSIFIERS = config['classifiers'].strip() \
   .replace('\n::', ' ::').split('\n')
@@ -231,7 +238,7 @@ def zetup(**setup_options):
        and explicit override `setup_options`.
     """
     for option, value in [
-      ('name', DISTRIBUTION),
+      ('name', NAME),
       ('version', VERSION),
       ('description', DESCRIPTION),
       ('author', AUTHOR),
@@ -337,14 +344,14 @@ else:
               "  https://pypi.python.org/pypi/%s):"
               "\n\n"
               "    pip install %s"
-              % tuple(2 * [DISTRIBUTION]))
+              % tuple(2 * [NAME]))
             if EXTRAS:
               mdtext += (
                 "\n\n"
                 "* With all extra features:"
                 "\n\n"
                 "        pip install %s[%s]"
-                % (DISTRIBUTION, ','.join(EXTRAS)))
+                % (NAME, ','.join(EXTRAS)))
             return mdtext
 
 
