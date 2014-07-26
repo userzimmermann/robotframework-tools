@@ -210,7 +210,7 @@ DISTRIBUTION = Distribution(NAME)
 config = dict(config.items(NAME))
 
 TITLE = config.get('title', NAME)
-DESCRIPTION = config['description'].replace('\n', ' ')
+DESCRIPTION = config['description'].strip().replace('\n', ' ')
 
 AUTHOR = re.match(r'^([^<]+)<([^>]+)>$', config['author'])
 AUTHOR, EMAIL = map(str.strip, AUTHOR.groups())
@@ -248,6 +248,7 @@ for fname in sorted(os.listdir(ZETUP_DIR)):
         ZETUP_DATA.append(fname)
 
         EXTRAS[match.group('name')] = open(os.path.join(ZETUP_DIR, fname)).read()
+
 
 def zetup(**setup_options):
     """Run setup() with options from zetup.cfg
@@ -302,73 +303,3 @@ else:
             os.environ['PYTHONPATH'] = PATH
         else:
             os.environ['PYTHONPATH'] = ':'.join([PATH, PYTHONPATH])
-
-
-try:
-    from jinja2 import FileSystemLoader
-    from jinjatools.scons import JinjaBuilder
-except ImportError:
-    pass
-else:
-    class README_Builder(JinjaBuilder):
-        def __init__(self):
-            JinjaBuilder.__init__(self, FileSystemLoader('.'), context={
-              'SETUP': self.SETUP(),
-              'REQUIRES': self.REQUIRES(REQUIRES),
-              'EXTRAS': self.EXTRAS(),
-              'INSTALL': self.INSTALL(),
-              })
-
-        def SETUP(self):
-            mdtext = (
-              "Supported __Python__ versions: %s"
-              "\n\n"
-              "### Requirements"
-              "\n\n%s\n\n"
-              % (", ".join("__%s__" % pyversion for pyversion in PYTHON),
-                 self.REQUIRES()))
-            if EXTRAS:
-                mdtext += "%s\n\n" % self.EXTRAS()
-            mdtext += (
-              "### Installation"
-              "\n\n%s"
-              % self.INSTALL())
-            return mdtext
-
-        def REQUIRES(self, reqs=REQUIRES):
-            return '\n'.join(
-              "* [`%s`](\n"
-              "    https://pypi.python.org/pypi/%s)" % (
-                req, req.unsafe_name)
-              for req in reqs)
-
-        def EXTRAS(self):
-            return '\n\n'.join(
-              "Extra requirements for __[%s]__:\n\n" % key
-              + self.REQUIRES(reqs)
-              for key, reqs in EXTRAS.items())
-
-        def INSTALL(self):
-            mdtext = (
-              "    python setup.py install"
-              "\n\n"
-              "Or with [pip](http://www.pip-installer.org):"
-              "\n\n"
-              "    pip install ."
-              "\n\n"
-              "Or get the latest release from [PyPI](\n"
-              "  https://pypi.python.org/pypi/%s):"
-              "\n\n"
-              "    pip install %s"
-              % tuple(2 * [NAME]))
-            if EXTRAS:
-              mdtext += (
-                "\n\n"
-                "* With all extra features:"
-                "\n\n"
-                "        pip install %s[%s]"
-                % (NAME, ','.join(EXTRAS)))
-            return mdtext
-
-
-    README_BUILDER = README_Builder()
