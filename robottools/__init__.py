@@ -26,13 +26,17 @@ Python Tools for Robot Framework and Test Libraries.
 
 from robottools import zetup
 
+__distribution__ = zetup.DISTRIBUTION.find(__path__[0])
+__description__ = zetup.DESCRIPTION
+
 __version__ = zetup.VERSION
 
 __requires__ = zetup.REQUIRES.checked
 __extras__ = zetup.EXTRAS
 
-__distribution__ = zetup.DISTRIBUTION.find(__path__[0])
+from path import path as Path
 
+__notebook__ = zetup.NOTEBOOK and Path(zetup.NOTEBOOK)
 
 from robottools.library import *
 from robottools.library.keywords import *
