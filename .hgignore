@@ -14,7 +14,6 @@ PKG-INFO
 ^\.scon[sf]
 
 ^\.ipynb
-\.ipynb$
 
 ^\$tf/
 ^BuildProcessTemplates/
