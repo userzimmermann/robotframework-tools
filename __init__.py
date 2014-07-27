@@ -249,6 +249,12 @@ for fname in sorted(os.listdir(ZETUP_DIR)):
 
         EXTRAS[match.group('name')] = open(os.path.join(ZETUP_DIR, fname)).read()
 
+NOTEBOOK = os.path.join(ZETUP_DIR, 'README.ipynb')
+if os.path.exists(NOTEBOOK):
+    ZETUP_DATA.append('README.ipynb')
+else:
+    NOTEBOOK = None
+
 
 def zetup(**setup_options):
     """Run setup() with options from zetup.cfg
