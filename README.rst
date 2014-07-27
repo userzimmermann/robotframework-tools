@@ -2,7 +2,7 @@
 robotframework-tools
 ====================
 
-.. code:: python
+.. sourcecode:: python
 
     import robottools
     print(robottools.__version__)
@@ -12,7 +12,7 @@ robotframework-tools
     0.1a109-61
 
 
-.. code:: python
+.. sourcecode:: python
 
     print(robottools.__description__)
 
@@ -63,7 +63,7 @@ requirements:
 
     pip install robotframework-tools
 
-.. code:: python
+.. sourcecode:: python
 
     robottools.__requires__
 
@@ -81,7 +81,7 @@ requirements:
 
 -  **Python 3.x**: ``robotframework-python3>=2.8.4``
 
-.. code:: python
+.. sourcecode:: python
 
     robottools.__extras__
 
@@ -105,16 +105,16 @@ To install with all extra requirements:
 
 This ``README.ipynb`` will also be installed. Just copy it:
 
-.. code:: python
+.. sourcecode:: python
 
     # robottools.__notebook__.copy('path/name.ipynb')
 1. Creating Dynamic Test Libraries
 ==================================
 
-.. code:: python
+.. sourcecode:: python
 
     from robottools import testlibrary
-.. code:: python
+.. sourcecode:: python
 
     TestLibrary = testlibrary()
 This generated Dynamic ``TestLibrary`` class could now directly be
@@ -131,7 +131,7 @@ Keywords
 The ``TestLibrary`` has no Keywords so far... To add some just use the
 ``TestLibrary.keyword`` decorator:
 
-.. code:: python
+.. sourcecode:: python
 
     @TestLibrary.keyword
     def some_keyword(self, arg, *rest):
@@ -146,7 +146,7 @@ You may want to define your keyword methods at your Test Library class
 scope. Just derive your actual Dynamic Test Library class from
 ``TestLibrary``:
 
-.. code:: python
+.. sourcecode:: python
 
     class SomeLibrary(TestLibrary):
         def no_keyword(self, *args):
@@ -158,13 +158,13 @@ scope. Just derive your actual Dynamic Test Library class from
 To get a simple interactive ``SomeLibrary`` overview just instantiate
 it:
 
-.. code:: python
+.. sourcecode:: python
 
     lib = SomeLibrary()
 You can inspect all Keywords in Robot CamelCase style (and call them for
 testing):
 
-.. code:: python
+.. sourcecode:: python
 
     lib.SomeKeyword
 
@@ -179,7 +179,7 @@ testing):
 By default the Keyword names and argument lists are auto-generated from
 the function definition. You can override that:
 
-.. code:: python
+.. sourcecode:: python
 
     @TestLibrary.keyword(name='KEYword N@me', args=['f|r$t', 'se[ond'])
     def function(self, *args):
@@ -192,7 +192,7 @@ return the original function objects, you would have to take care of
 preserving the original argspec for Robot. ``testlibrary`` can handle
 this for you:
 
-.. code:: python
+.. sourcecode:: python
 
     def some_decorator(func):
         def wrapper(self, *args):
@@ -221,7 +221,7 @@ There are predefined options. Currently:
 
 You can specify ``default_keyword_options`` that will always be applied:
 
-.. code:: python
+.. sourcecode:: python
 
     TestLibrary = testlibrary(
       register_keyword_options=[
@@ -234,7 +234,7 @@ You can specify ``default_keyword_options`` that will always be applied:
       )
 To bypass the ``default_keyword_options`` for single Keywords:
 
-.. code:: python
+.. sourcecode:: python
 
     @TestLibrary.keyword.no_options
     def some_keyword_without_options(self, arg, *rest):
