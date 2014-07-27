@@ -7,7 +7,7 @@ import robottools
 print(robottools.__version__)
 ```
 
-    0.1a109-61
+> `0.1a109-61`
 
 
 
@@ -15,7 +15,7 @@ print(robottools.__version__)
 print(robottools.__description__)
 ```
 
-    Python Tools for Robot Framework and Test Libraries.
+> `Python Tools for Robot Framework and Test Libraries.`
 
 
 
@@ -53,8 +53,11 @@ Just install the latest [release](https://pypi.python.org/pypi/modeled)
 with [pip](http://www.pip-installer.org).
 It automatically installs requirements:
 
-    pip install robotframework-tools
 
+
+```python
+# !pip install robotframework-tools
+```
 
 
 ```python
@@ -64,9 +67,10 @@ robottools.__requires__
 
 
 
-    six
-    path.py
-    moretools>=0.1a38
+> `six`
+> `path.py`
+> `moretools>=0.1a38`
+
 
 
 
@@ -84,19 +88,23 @@ robottools.__extras__
 
 
 
-    [remote]
-    robotremoteserver
-    
-    [robotshell]
-    ipython
+> `[remote]`
+> `robotremoteserver`
+> ``
+> `[robotshell]`
+> `ipython`
+
 
 
 
 
 To install with all extra requirements:
 
-    pip install robotframework-tools[all]
 
+
+```python
+# !pip install robotframework-tools[all]
+```
 
 
 This `README.ipynb` will also be installed. Just copy it:
@@ -192,7 +200,8 @@ lib.SomeKeyword
 
 
 
-    SomeLibrary.Some Keyword [ arg | *rest ]
+> `SomeLibrary.Some Keyword [ arg | *rest ]`
+
 
 
 
