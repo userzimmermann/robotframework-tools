@@ -21,7 +21,7 @@ robotframework-tools
     Python Tools for Robot Framework and Test Libraries.
 
 
--  A [``testlibrary``\ ][1] framework for creating Dynamic Test
+-  A testlibrary_ framework for creating Dynamic Test
    Libraries.
 
 -  A [``ContextHandler``\ ][1.1] framework for ``testlibrary`` to create
@@ -108,6 +108,8 @@ This ``README.ipynb`` will also be installed. Just copy it:
 .. sourcecode:: python
 
     # robottools.__notebook__.copy('path/name.ipynb')
+
+.. _testlibrary:
 1. Creating Dynamic Test Libraries
 ==================================
 
