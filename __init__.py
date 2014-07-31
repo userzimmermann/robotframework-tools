@@ -263,14 +263,15 @@ def zetup(**setup_options):
     """
     for option, value in [
       ('name', NAME),
-      ('version', VERSION),
+      ('version', str(VERSION)),
       ('description', DESCRIPTION),
       ('author', AUTHOR),
       ('author_email', EMAIL),
       ('url', URL),
       ('license', LICENSE),
-      ('install_requires', REQUIRES),
-      ('extras_require', EXTRAS),
+      ('install_requires', str(REQUIRES)),
+      ('extras_require',
+       {name: str(reqs) for name, reqs in EXTRAS.items()}),
       ('classifiers', CLASSIFIERS),
       ('keywords', KEYWORDS),
       ]:
