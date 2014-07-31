@@ -7,7 +7,7 @@ import robottools
 print(robottools.__version__)
 ```
 
-> `0.1a109-61`
+> `0.1a110`
 
 
 
@@ -49,15 +49,29 @@ __Supported Python versions__:
 [3.3](http://docs.python.org/3.3),
 [3.4](http://docs.python.org/3.4)
 
-Just install the latest [release](https://pypi.python.org/pypi/modeled)
-with [pip](http://www.pip-installer.org).
-It automatically installs requirements:
+Just install the latest release
+from [PyPI](https://pypi.python.org/pypi/robotframework-tools)
+with [pip](http://www.pip-installer.org):
 
 
 
 ```python
 # !pip install robotframework-tools
 ```
+
+
+or from [Binstar](https://binstar.org/userzimmermann/robotframework-tools)
+with [conda](http://conda.pydata.org):
+
+
+
+```python
+# !conda install -c userzimmermann robotframework-tools
+```
+
+
+Both automatically install requirements:
+
 
 
 ```python
@@ -81,6 +95,10 @@ robottools.__requires__
 
 
 
+`RemoteRobot` and `robotshell` have extra requirements:
+
+
+
 ```python
 robottools.__extras__
 ```
@@ -98,6 +116,8 @@ robottools.__extras__
 
 
 
+Pip doesn't install them by default.
+Just append any comma separated extra tags in `[]` brackets to the package name.
 To install with all extra requirements:
 
 

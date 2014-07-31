@@ -9,7 +9,7 @@ robotframework-tools
 
 .. parsed-literal::
 
-    0.1a109-61
+    0.1a110
 
 
 .. sourcecode:: python
@@ -22,8 +22,8 @@ robotframework-tools
 
 
 
--  A `testlibrary <#rst-header-creating-dynamic-test-libraries>`__ framework for
-   creating Dynamic Test Libraries.
+-  ``testlibrary()`` `creates Dynamic Test
+   Libraries <#rst-header-creating-dynamic-test-libraries>`__
 -  A [``ContextHandler``\ ][1.1] framework for ``testlibrary`` to create
    switchable sets of different Keyword implementations.
 -  A [``SessionHandler``\ ][1.2] framework for ``testlibrary`` to
@@ -51,14 +51,25 @@ https://github.com/userzimmermann/robotframework-tools
 `3.3 <http://docs.python.org/3.3>`__,
 `3.4 <http://docs.python.org/3.4>`__
 
-Just install the latest
-`release <https://pypi.python.org/pypi/modeled>`__ with
-`pip <http://www.pip-installer.org>`__. It automatically installs
-requirements:
+Just install the latest release from
+`PyPI <https://pypi.python.org/pypi/robotframework-tools>`__ with
+`pip <http://www.pip-installer.org>`__:
 
-::
 
-    pip install robotframework-tools
+.. sourcecode:: python
+
+    # !pip install robotframework-tools
+
+or from
+`Binstar <https://binstar.org/userzimmermann/robotframework-tools>`__
+with `conda <http://conda.pydata.org>`__:
+
+
+.. sourcecode:: python
+
+    # !conda install -c userzimmermann robotframework-tools
+
+Both automatically install requirements:
 
 
 .. sourcecode:: python
@@ -81,6 +92,10 @@ requirements:
 -  **Python 3.x**: ``robotframework-python3>=2.8.4``
 
 
+
+``RemoteRobot`` and ``robotshell`` have extra requirements:
+
+
 .. sourcecode:: python
 
     robottools.__extras__
@@ -98,13 +113,14 @@ requirements:
 
 
 
-To install with all extra requirements:
-
-::
-
-    pip install robotframework-tools[all]
+Pip doesn't install them by default. Just append any comma separated
+extra tags in ``[]`` brackets to the package name. To install with all
+extra requirements:
 
 
+.. sourcecode:: python
+
+    # !pip install robotframework-tools[all]
 
 This ``README.ipynb`` will also be installed. Just copy it:
 
