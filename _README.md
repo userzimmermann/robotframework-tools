@@ -7,7 +7,7 @@ import robottools
 print(robottools.__version__)
 ```
 
-> `0.1a110`
+> `0.1a111`
 
 
 
