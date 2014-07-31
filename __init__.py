@@ -21,6 +21,7 @@ import sys
 import os
 import re
 from collections import OrderedDict
+from subprocess import call
 from pkg_resources import (
   get_distribution, parse_version, parse_requirements,
   DistributionNotFound, VersionConflict)
@@ -33,9 +34,9 @@ else:
     from ConfigParser import ConfigParser
 
 try:
-    from setuptools import setup
+    from setuptools import setup, Command
 except ImportError:
-    from distutils.core import setup
+    from distutils.core import setup, Command
 
 
 # Try to get the directory of this script,
@@ -274,7 +275,11 @@ def zetup(**setup_options):
       ('keywords', KEYWORDS),
       ]:
         setup_options.setdefault(option, value)
-    return setup(**setup_options)
+    return setup(
+      cmdclass={
+        'conda': Conda,
+      },
+      **setup_options)
 
 
 # If installed with pip, add all build directories and src/ subdirs
@@ -309,3 +314,61 @@ else:
             os.environ['PYTHONPATH'] = PATH
         else:
             os.environ['PYTHONPATH'] = ':'.join([PATH, PYTHONPATH])
+
+
+CONDA_META = {
+  'package': {
+    'name': NAME,
+    'version': str(VERSION),
+    },
+  'source': {
+    'fn': '%s-%s.tar.gz' % (NAME, VERSION),
+    'url': 'file://%s' % os.path.realpath(os.path.join(
+      'dist', '%s-%s.tar.gz' % (NAME, VERSION)))
+    },
+  'requirements': {
+    'build': [
+      'python',
+      'pyyaml',
+      ] + list(map(str, REQUIRES)),
+    'run': [
+      'python',
+      ] + list(map(str, REQUIRES)),
+    },
+  'about': {
+    'home': URL,
+    'summary': DESCRIPTION,
+    },
+  }
+
+
+class Conda(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        from path import path as Path
+        import yaml
+
+        metadir = Path('.conda')
+        metadir.mkdir_p()
+        metafile = metadir / 'meta.yaml'
+        buildfile = metadir / 'build.sh'
+
+        with open(metafile, 'w') as f:
+            yaml.dump(CONDA_META, f, default_flow_style=False)
+
+        with open(buildfile, 'w') as f:
+            f.write('#!/bin/bash'
+                    '\n\n'
+                    '$PYTHON setup.py install'
+                    '\n')
+
+        status = call(['conda', 'build', metadir])
+        if not status:
+            sys.exit(status)
