@@ -10,3 +10,4 @@ include README.md
 include README.ipynb
 
 include tox.ini
+recursive-include pytest *.py
