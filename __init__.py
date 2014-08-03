@@ -144,6 +144,10 @@ class Requirements(str):
                 if raise_:
                     raise DistributionNotFound(str(req))
                 return False
+            try:
+                version = mod.__version__
+            except AttributeError as e:
+                raise AttributeError("%s: %s" % (e, mod))
             if mod.__version__ not in req:
                 if raise_:
                     raise VersionConflict(
@@ -317,32 +321,6 @@ else:
             os.environ['PYTHONPATH'] = ':'.join([PATH, PYTHONPATH])
 
 
-CONDA_META = {
-  'package': {
-    'name': NAME,
-    'version': str(VERSION),
-    },
-  'source': {
-    'fn': '%s-%s.tar.gz' % (NAME, VERSION),
-    'url': 'file://%s' % os.path.realpath(os.path.join(
-      'dist', '%s-%s.tar.gz' % (NAME, VERSION)))
-    },
-  'requirements': {
-    'build': [
-      'python',
-      'pyyaml',
-      ] + list(map(str, REQUIRES)),
-    'run': [
-      'python',
-      ] + list(map(str, REQUIRES)),
-    },
-  'about': {
-    'home': URL,
-    'summary': DESCRIPTION,
-    },
-  }
-
-
 class Conda(Command):
     user_options = []
 
@@ -361,8 +339,32 @@ class Conda(Command):
         metafile = metadir / 'meta.yaml'
         buildfile = metadir / 'build.sh'
 
+        meta = {
+          'package': {
+            'name': NAME,
+            'version': str(VERSION),
+            },
+          'source': {
+            'fn': '%s-%s.tar.gz' % (NAME, VERSION),
+            'url': 'file://%s' % os.path.realpath(os.path.join(
+              'dist', '%s-%s.tar.gz' % (NAME, VERSION)))
+            },
+          'requirements': {
+            'build': [
+              'python',
+              'pyyaml',
+              ] + list(map(lambda req: re.sub(r'([=<>]+)', r' \1', str(req)), REQUIRES)),
+            'run': [
+              'python',
+              ] + list(map(lambda req: re.sub(r'([=<>]+)', r' \1', str(req)), REQUIRES)),
+            },
+          'about': {
+            'home': URL,
+            'summary': DESCRIPTION,
+            },
+          }
         with open(metafile, 'w') as f:
-            yaml.dump(CONDA_META, f, default_flow_style=False)
+            yaml.dump(meta, f, default_flow_style=False)
 
         with open(buildfile, 'w') as f:
             f.write('#!/bin/bash'
