@@ -130,7 +130,6 @@ class Keyword(object):
             else:
                 current_sessions[identifier, plural_identifier] = getattr(
                   self.libinstance, identifier)
-                print "Switch session: " + sname
                 getattr(self.libinstance, 'switch_' + identifier)(sname)
         current_contexts = {}
         for hcls in self.context_handlers:
@@ -142,7 +141,6 @@ class Keyword(object):
             else:
                 current_contexts[identifier] = getattr(
                   self.libinstance, identifier)
-                print "Switch context: " + ctxname
                 getattr(self.libinstance, 'switch_' + identifier)(ctxname)
         # Look for context specific implementation of the Keyword function:
         for context, context_func in func.contexts.items():
