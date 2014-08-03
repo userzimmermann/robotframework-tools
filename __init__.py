@@ -339,6 +339,13 @@ class Conda(Command):
         metafile = metadir / 'meta.yaml'
         buildfile = metadir / 'build.sh'
 
+        def conda_req(req):
+            return re.sub(r'([=<>]+)', r' \1', str(req))
+
+        requirements = list(map(conda_req, REQUIRES))
+        for extra in EXTRAS.values():
+            requirements.extend(map(conda_req, extra))
+
         meta = {
           'package': {
             'name': NAME,
@@ -353,10 +360,10 @@ class Conda(Command):
             'build': [
               'python',
               'pyyaml',
-              ] + list(map(lambda req: re.sub(r'([=<>]+)', r' \1', str(req)), REQUIRES)),
+              ] + requirements,
             'run': [
               'python',
-              ] + list(map(lambda req: re.sub(r'([=<>]+)', r' \1', str(req)), REQUIRES)),
+              ] + requirements,
             },
           'about': {
             'home': URL,
