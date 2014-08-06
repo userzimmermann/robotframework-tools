@@ -4,19 +4,19 @@ robotframework-tools
 
 .. sourcecode:: python
 
-    import robottools
-    print(robottools.__version__)
 
-.. parsed-literal::
+    >>> import robottools
+    >>> print(robottools.__version__)
+
 
     0.1a111
 
 
 .. sourcecode:: python
 
-    print(robottools.__description__)
 
-.. parsed-literal::
+    >>> print(robottools.__description__)
+
 
     Python Tools for Robot Framework and Test Libraries.
 
@@ -58,7 +58,9 @@ Just install the latest release from
 
 .. sourcecode:: python
 
+
     # !pip install robotframework-tools
+
 
 or from
 `Binstar <https://binstar.org/userzimmermann/robotframework-tools>`__
@@ -67,18 +69,20 @@ with `conda <http://conda.pydata.org>`__:
 
 .. sourcecode:: python
 
+
     # !conda install -c userzimmermann robotframework-tools
+
 
 Both automatically install requirements:
 
 
 .. sourcecode:: python
 
-    robottools.__requires__
+
+    >>> robottools.__requires__
 
 
 
-.. parsed-literal::
 
     six
     path.py
@@ -98,11 +102,11 @@ Both automatically install requirements:
 
 .. sourcecode:: python
 
-    robottools.__extras__
+
+    >>> robottools.__extras__
 
 
 
-.. parsed-literal::
 
     [remote]
     robotremoteserver
@@ -120,23 +124,31 @@ extra requirements:
 
 .. sourcecode:: python
 
+
     # !pip install robotframework-tools[all]
+
 
 This ``README.ipynb`` will also be installed. Just copy it:
 
 
 .. sourcecode:: python
 
+
     # robottools.__notebook__.copy('path/name.ipynb')
+
 1. Creating Dynamic Test Libraries
 ==================================
 
 .. sourcecode:: python
 
+
     from robottools import testlibrary
+
 .. sourcecode:: python
 
+
     TestLibrary = testlibrary()
+
 
 This generated Dynamic ``TestLibrary`` class could now directly be
 imported in Robot Framework. It features all the Dynamic API methods:
@@ -157,9 +169,11 @@ The ``TestLibrary`` has no Keywords so far... To add some just use the
 
 .. sourcecode:: python
 
+
     @TestLibrary.keyword
     def some_keyword(self, arg, *rest):
         pass
+
 
 A keyword function can be defined anywhere in any scope. The
 ``TestLibrary.keyword`` decorator always links it to the ``TestLibrary``
@@ -176,6 +190,7 @@ scope. Just derive your actual Dynamic Test Library class from
 
 .. sourcecode:: python
 
+
     class SomeLibrary(TestLibrary):
         def no_keyword(self, *args):
             pass
@@ -184,13 +199,16 @@ scope. Just derive your actual Dynamic Test Library class from
         def some_other_keyword(self, *args):
             pass
 
+
 To get a simple interactive ``SomeLibrary`` overview just instantiate
 it:
 
 
 .. sourcecode:: python
 
+
     lib = SomeLibrary()
+
 
 You can inspect all Keywords in Robot CamelCase style (and call them for
 testing):
@@ -198,11 +216,11 @@ testing):
 
 .. sourcecode:: python
 
-    lib.SomeKeyword
+
+    >>> lib.SomeKeyword
 
 
 
-.. parsed-literal::
 
     SomeLibrary.Some Keyword [ arg | *rest ]
 
@@ -215,9 +233,11 @@ the function definition. You can override that:
 
 .. sourcecode:: python
 
+
     @TestLibrary.keyword(name='KEYword N@me', args=['f|r$t', 'se[ond'])
     def function(self, *args):
         pass
+
 Keyword Options
 ~~~~~~~~~~~~~~~
 
@@ -229,6 +249,7 @@ this for you:
 
 
 .. sourcecode:: python
+
 
     def some_decorator(func):
         def wrapper(self, *args):
@@ -251,6 +272,7 @@ this for you:
     def some_keyword_with_options(self, arg, *rest):
         pass
 
+
 There are predefined options. Currently:
 
 -  ``unicode_to_str`` - Convert all ``unicode`` values (pybot's default)
@@ -263,6 +285,7 @@ You can specify ``default_keyword_options`` that will always be applied:
 
 .. sourcecode:: python
 
+
     TestLibrary = testlibrary(
       register_keyword_options=[
         ('some_option', some_decorator),
@@ -273,10 +296,12 @@ You can specify ``default_keyword_options`` that will always be applied:
         ],
       )
 
+
 To bypass the ``default_keyword_options`` for single Keywords:
 
 
 .. sourcecode:: python
+
 
     @TestLibrary.keyword.no_options
     def some_keyword_without_options(self, arg, *rest):
