@@ -661,3 +661,18 @@ class Conda(Command):
         status = call(['conda', 'build', metadir])
         if not status:
             sys.exit(status)
+
+
+# If this is a locally imported zetup.py in zetup's own repo...
+if (NAME == 'zetup' #==> is in zetup's own package/repo
+    and os.path.basename(__file__).startswith('zetup')
+    #"=> was not exec()'d from setup.py
+    and not 'zetup.zetup' in sys.modules
+    #"=> was not imported as subpackage
+    ):
+    #... then fake the interface of the installed zetup package...
+    import zetup # import itself as faked subpackage
+
+    __path__ = [os.path.join(ZETUP_DIR, 'zetup')]
+    # Exec the __init__ which gets installed in top level zetup package:
+    exec(open('__init__.py').read().replace('from . import zetup', ''))
