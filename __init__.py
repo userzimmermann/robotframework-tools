@@ -547,6 +547,7 @@ def zetup(**setup_options):
         setup_options.setdefault(option, value)
     return setup(
       cmdclass={
+        'pytest': PyTest, # defined below
         'conda': Conda, # defined below
       },
       **setup_options)
@@ -584,6 +585,31 @@ else:
             os.environ['PYTHONPATH'] = PATH
         else:
             os.environ['PYTHONPATH'] = ':'.join([PATH, PYTHONPATH])
+
+
+class PyTest(Command):
+    """The setup.py pytest command runs py.test
+       with current dir prepended to PYTHONPATH,
+       to test package from repo.
+    """
+    # Must override options handling stuff from Command base...
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        """The actual pytest command action called by Command base.
+        """
+        env = dict(os.environ)
+        env['PYTHONPATH'] = os.pathsep.join([
+          os.getcwd(), env.get('PYTHONPATH', '')])
+        status = call(['py.test'], env=env)
+        if not status:
+            sys.exit(status)
 
 
 class Conda(Command):
