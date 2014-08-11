@@ -287,11 +287,12 @@ LICENSE = config['license']
 
 PYTHON = config['python'].split()
 
-PACKAGES = config.get('packages')
+PACKAGES = config.get('packages', [])
 if PACKAGES:
     # First should be the root package
     PACKAGES = PACKAGES.split()
-else: # Just assume distribution name == root package name
+elif os.path.isdir(NAME):
+    # Just assume distribution name == root package name
     PACKAGES = [NAME]
 
 CLASSIFIERS = config['classifiers'].strip() \
@@ -306,7 +307,8 @@ if any(pyversion.startswith('3') for pyversion in PYTHON):
 
 
 # The default pkg.zetup package for installing this script and ZETUP_DATA:
-ZETUP_PACKAGE = PACKAGES[0] + '.zetup'
+if PACKAGES:
+    ZETUP_PACKAGE = PACKAGES[0] + '.zetup'
 
 
 # Extend PACKAGES with all their subpackages:
@@ -325,9 +327,11 @@ else:
 ZETUP_DATA += ['VERSION', 'requirements.txt']
 
 VERSION = Version(open(os.path.join(ZETUP_DIR, 'VERSION')).read().strip())
-DISTRIBUTION = Distribution(NAME, PACKAGES[0], VERSION)
+DISTRIBUTION = Distribution(
+  NAME, PACKAGES and PACKAGES[0] or NAME, VERSION)
 
-REQUIRES = Requirements(open(os.path.join(ZETUP_DIR, 'requirements.txt')).read())
+REQUIRES = Requirements(
+  open(os.path.join(ZETUP_DIR, 'requirements.txt')).read())
 
 # Look for optional extra requirements to use with setup's extras_require=
 EXTRAS = Extras()
@@ -337,7 +341,8 @@ for fname in sorted(os.listdir(ZETUP_DIR)):
     if match:
         ZETUP_DATA.append(fname)
 
-        EXTRAS[match.group('name')] = open(os.path.join(ZETUP_DIR, fname)).read()
+        EXTRAS[match.group('name')] \
+          = open(os.path.join(ZETUP_DIR, fname)).read()
 
 
 try:
@@ -464,7 +469,8 @@ else:
                 rst = nbconvert.export_rst(self,
                   filters=self.EXTRA_FILTERS,
                   extra_loaders=[self.EXTRA_LOADER],
-                  # Not a real file, will be loaded from string by EXTRA_LOADER:
+                  # Not a real file,
+                  #  will be loaded from string by EXTRA_LOADER:
                   template_file='bitbucket_rst',
                   )[0]
                 # bitbucket_rst template puts code cell input and output
@@ -493,7 +499,8 @@ else:
                 markdown = nbconvert.export_markdown(self,
                   filters=self.EXTRA_FILTERS,
                   extra_loaders=[self.EXTRA_LOADER],
-                  # Not a real file, will be loaded from string by EXTRA_LOADER:
+                  # Not a real file,
+                  #  will be loaded from string by EXTRA_LOADER:
                   template_file='github_markdown',
                   )[0]
                 # github_markdown template puts code cell input and output
@@ -551,23 +558,27 @@ def zetup(**setup_options):
       - ``conda``:
         conda package builder (with build config generator)
     """
-    for option, value in [
-      ('name', NAME),
-      ('version', str(VERSION)),
-      ('description', DESCRIPTION),
-      ('author', AUTHOR),
-      ('author_email', EMAIL),
-      ('url', URL),
-      ('license', LICENSE),
-      ('install_requires', str(REQUIRES)),
-      ('extras_require',
-       {name: str(reqs) for name, reqs in EXTRAS.items()}),
-      ('package_dir', {ZETUP_PACKAGE: ZETUP_DIR}),
-      ('packages', PACKAGES + [ZETUP_PACKAGE]),
-      ('package_data', {ZETUP_PACKAGE: ZETUP_DATA}),
-      ('classifiers', CLASSIFIERS),
-      ('keywords', KEYWORDS),
-      ]:
+    defaults = {
+      'name': NAME,
+      'version': str(VERSION),
+      'description': DESCRIPTION,
+      'author': AUTHOR,
+      'author_email': EMAIL,
+      'url': URL,
+      'license': LICENSE,
+      'install_requires': str(REQUIRES),
+      'extras_require':
+        {name: str(reqs) for name, reqs in EXTRAS.items()},
+      'classifiers': CLASSIFIERS,
+      'keywords': KEYWORDS,
+      }
+    if PACKAGES:
+        defaults.update({
+          'package_dir': {ZETUP_PACKAGE: ZETUP_DIR},
+          'packages': PACKAGES + [ZETUP_PACKAGE],
+          'package_data': {ZETUP_PACKAGE: ZETUP_DATA},
+          })
+    for option, value in defaults.items():
         setup_options.setdefault(option, value)
     return setup(
       cmdclass={
