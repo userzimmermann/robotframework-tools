@@ -1,5 +1,6 @@
 include COPYING*
 
+include __init__.py
 include zetup.cfg
 
 include VERSION
