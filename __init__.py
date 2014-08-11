@@ -35,7 +35,7 @@ else:
     from ConfigParser import ConfigParser
 
 try:
-    from setuptools import setup, Command
+    from setuptools import setup, Command, find_packages
 except ImportError: # fallback
     # (setuptools should at least be available after package installation)
     from distutils.core import setup, Command
@@ -55,10 +55,11 @@ class Distribution(str):
     """Simple proxy to get a pkg_resources.Distribution instance
        matching the given name and :class:`Version` instance.
     """
-    def __new__(cls, name, version):
+    def __new__(cls, name, pkg, version):
         return str.__new__(cls, name)
 
-    def __init__(self, name, version):
+    def __init__(self, name, pkg, version):
+        self.pkg = pkg
         self.version = version
 
     def find(self, modpath, raise_=True):
@@ -80,7 +81,7 @@ class Distribution(str):
                 raise VersionConflict(
                   "Version of distribution %s"
                   " doesn't match %s.__version__ %s."
-                  % (dist, PACKAGE, self.version))
+                  % (dist, self.pkg, self.version))
             return None
         return dist
 
@@ -286,7 +287,12 @@ LICENSE = config['license']
 
 PYTHON = config['python'].split()
 
-PACKAGE = config.get('package', NAME)
+PACKAGES = config.get('packages')
+if PACKAGES:
+    # First should be the root package
+    PACKAGES = PACKAGES.split()
+else: # Just assume distribution name == root package name
+    PACKAGES = [NAME]
 
 CLASSIFIERS = config['classifiers'].strip() \
   .replace('\n::', ' ::').split('\n')
@@ -299,12 +305,27 @@ if any(pyversion.startswith('3') for pyversion in PYTHON):
     KEYWORDS.append('python3')
 
 
+# The default pkg.zetup package for installing this script and ZETUP_DATA:
+ZETUP_PACKAGE = PACKAGES[0] + '.zetup'
+
+
+# Extend PACKAGES with all their subpackages:
+try:
+    find_packages
+except NameError: #==> No setuptools
+    pass
+else:
+    PACKAGES.extend(chain(*(
+      ['%s.%s' % (pkg, sub) for sub in find_packages(pkg)]
+      for pkg in PACKAGES)))
+
+
 # Parse VERSION and requirements files
 #  and add them to pkg.zetup package_data...
 ZETUP_DATA += ['VERSION', 'requirements.txt']
 
 VERSION = Version(open(os.path.join(ZETUP_DIR, 'VERSION')).read().strip())
-DISTRIBUTION = Distribution(NAME, VERSION)
+DISTRIBUTION = Distribution(NAME, PACKAGES[0], VERSION)
 
 REQUIRES = Requirements(open(os.path.join(ZETUP_DIR, 'requirements.txt')).read())
 
@@ -541,6 +562,9 @@ def zetup(**setup_options):
       ('install_requires', str(REQUIRES)),
       ('extras_require',
        {name: str(reqs) for name, reqs in EXTRAS.items()}),
+      ('package_dir', {ZETUP_PACKAGE: ZETUP_DIR}),
+      ('packages', PACKAGES + [ZETUP_PACKAGE]),
+      ('package_data', {ZETUP_PACKAGE: ZETUP_DATA}),
       ('classifiers', CLASSIFIERS),
       ('keywords', KEYWORDS),
       ]:
