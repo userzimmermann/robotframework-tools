@@ -90,8 +90,9 @@ class TestRobot(object):
         """Import a Test Library with an optional `alias` name.
         """
         if not isinstance(lib, TestLibraryInspector):
-            #HACK: `with` registers Output to LOGGER
-            with self._output:
+            #HACK: `with` adds Context to robot.running.EXECUTION_CONTEXTS
+            # and registers Output to robot.output.LOGGER
+            with self._context:
                 lib = TestLibraryInspector(lib, *(args or ()))
         # Put lib in testrobot's derived lib wrapper
         #  for calling Keywords with running context:
