@@ -32,6 +32,8 @@ __all__ = ['KeywordDecoratorType']
 
 import inspect
 
+from Collections import _Dictionary
+
 from .utils import KeywordName
 from .errors import InvalidKeywordOption, KeywordNotDefined
 
@@ -60,6 +62,7 @@ class KeywordDecoratorType(object):
         name = meta.get('name')
         self.keyword_name = name and KeywordName(name, convert=False)
         self.keyword_args = meta.get('args')
+        self.contexts = meta.get('contexts')
 
     @staticmethod
     def option_unicode_to_str(func):
@@ -84,15 +87,18 @@ class KeywordDecoratorType(object):
     def reset_options(self):
         return type(self)(self.keywords)
 
-    def __getattr__(self, name):
+    def __getattr__(self, optionname):
         """Returns a new Keyword decorator class instance
            with the given option added.
         """
-        if not hasattr(type(self), 'option_' + name):
-            raise AttributeError(name)
-        return type(self)(self.keywords, name, *self.options)
+        if not hasattr(type(self), 'option_' + optionname):
+            raise AttributeError(optionname)
+        return type(self)(
+          self.keywords, optionname, *self.options,
+          name=self.keyword_name, args=self.keyword_args,
+          contexts=self.contexts)
 
-    def __call__(self, func=None, name=None, args=None):
+    def __call__(self, func=None, name=None, args=None, contexts=None):
         """The actual Keyword method decorator function.
 
         - When manually called, optional override `name`
@@ -106,9 +112,13 @@ class KeywordDecoratorType(object):
         """
         if not func:
             return type(self)(
-              self.keywords, *self.options, name=name, args=args)
+              self.keywords, *self.options, name=name, args=args,
+              contexts=contexts)
 
         original_func = func
+        if self.contexts:
+            for context in self.contexts:
+                context(func)
         try:
             contexts = func.contexts
         except AttributeError:
