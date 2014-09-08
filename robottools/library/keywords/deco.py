@@ -79,6 +79,23 @@ class KeywordDecoratorType(object):
         method.__name__ = func.__name__
         return method
 
+    @staticmethod
+    def option_varargs_to_kwargs(func):
+        try:
+            argspec = func.argspec
+        except AttributeError:
+            argspec = inspect.getargspec(func)
+        nposargs = len(argspec.args) - 1 # without self
+
+        def method(self, *args, **kwargs):
+            posargs = args[:nposargs]
+            varargs = args[nposargs:]
+            kwargs = _Dictionary().create_dictionary(*varargs, **kwargs)
+            return func(self, *posargs, **kwargs)
+
+        method.__name__ = func.__name__
+        return method
+
     @property
     def no_options(self):
         return type(self)(self.keywords)
