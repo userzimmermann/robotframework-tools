@@ -81,11 +81,11 @@ class KeywordDecoratorType(object):
 
     @staticmethod
     def option_varargs_to_kwargs(func):
-        try:
-            argspec = func.argspec
-        except AttributeError:
-            argspec = inspect.getargspec(func)
-        nposargs = len(argspec.args) - 1 # without self
+        # try:
+        #     argspec = func.argspec
+        # except AttributeError:
+        #     argspec = inspect.getargspec(func)
+        nposargs = len(func.argspec.args) - 1 # without self
 
         def method(self, *args, **kwargs):
             posargs = args[:nposargs]
@@ -146,10 +146,23 @@ class KeywordDecoratorType(object):
             argspec = func.argspec
         except AttributeError:
             argspec = inspect.getargspec(func)
+
+        # Use at least one wrapper to make attribute assignments always work
+        def func(self, *args, **kwargs):
+            return original_func(self, *args, **kwargs)
+
+        func.__name__ = original_func.__name__
+        func.argspec = argspec
         # Apply options
         for optionname in self.options:
             decorator = getattr(type(self), 'option_' + optionname)
             func = decorator(func)
+            try: # does returned function still have argspec attribute?
+                # (unchanged function or option has assigned new argspec)
+                argspec = func.argspec
+            except AttributeError:
+                # Store previous argspec
+                func.argspec = argspec
         if name:
             name = KeywordName(name, convert=False)
         else:
@@ -158,18 +171,14 @@ class KeywordDecoratorType(object):
             # Update saved doc string
             doc = func.__doc__
 
-        # Use at least one wrapper to make the assignments below always work
-        def keyword_method(self, *args, **kwargs):
-            return func(self, *args, **kwargs)
-
         # Keep existing (or explicitly given) method name
-        keyword_method.__name__ = name
+        func.__name__ = name
         # Keep method doc string
-        keyword_method.__doc__ = doc
-        # Store original method argspec
-        keyword_method.argspec = argspec
+        func.__doc__ = doc
+        # # Store original method argspec
+        # func.argspec = argspec
         # Store optional override args list
-        keyword_method.args = args or self.keyword_args
+        func.args = args or self.keyword_args
         # Add method to the Library's Keywords mapping
         if contexts:
             try:
@@ -177,9 +186,9 @@ class KeywordDecoratorType(object):
             except KeyError:
                 raise KeywordNotDefined(name)
             for context in contexts:
-                keyword.contexts[context] = keyword_method
+                keyword.contexts[context] = func
         else:
-            keyword_method.contexts = {}
-            self.keywords[name] = keyword_method
+            func.contexts = {}
+            self.keywords[name] = func
 
         return original_func
