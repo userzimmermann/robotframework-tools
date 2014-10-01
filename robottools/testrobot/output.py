@@ -100,3 +100,21 @@ class Output(AbstractLogger):
                 stream.write(level)
         self.stream.write("]%s %s\n" % (
           ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)), msg))
+
+    def start_suite(self, suite):
+        pass
+
+    def end_suite(self, suite):
+        pass
+
+    def start_test(self, test):
+        pass
+
+    def end_test(self, test):
+        pass
+
+    def start_keyword(self, kw):
+        pass
+
+    def end_keyword(self, kw):
+        pass
