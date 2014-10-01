@@ -101,6 +101,10 @@ class Output(AbstractLogger):
         self.stream.write("]%s %s\n" % (
           ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)), msg))
 
+    def fail(self, message, *args):
+        self._last_fail_exc = sys.exc_info()
+        AbstractLogger.fail(self, message, *args)
+
     def start_suite(self, suite):
         pass
 
