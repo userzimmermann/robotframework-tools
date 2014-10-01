@@ -110,5 +110,9 @@ class RobotMagics(with_metaclass(RobotMagicsMeta, Magics)):
         return self.robot_shell.Import(libname, args, alias=alias)
 
     @line_magic
+    def Run(self, path):
+        return self.robot_shell.Run(path)
+
+    @line_magic
     def Close(self, _):
         self.robot_shell.Close()
