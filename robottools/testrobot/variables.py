@@ -28,6 +28,7 @@ import robot.variables
 
 
 class VariablesBase(robot.variables.Variables):
+
     def __getitem__(self, key):
         try:
             return robot.variables.Variables.__getitem__(self, key)
@@ -38,6 +39,12 @@ class VariablesBase(robot.variables.Variables):
                 except (LookupError, DataError):
                     pass
         raise DataError(key)
+
+    @property
+    def current(self):
+        return self
+
+    _parents = []
 
 
 def variablesclass(extra_getters=None):
