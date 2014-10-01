@@ -23,6 +23,8 @@ Provides the interactive TestRobot interface.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import reraise
+
 __all__ = ['TestRobot']
 
 from moretools import isidentifier
@@ -32,6 +34,8 @@ from robot.model import TestSuite
 from robot.conf import RobotSettings
 from robot.variables import GLOBAL_VARIABLES, init_global_variables
 from robot.running.namespace import Namespace
+from robot.running.runner import Runner
+from robot.running import TestSuiteBuilder
 
 from robottools import TestLibraryInspector
 
@@ -99,6 +103,17 @@ class TestRobot(object):
         lib = TestLibrary(lib._library, context=self._context)
         self._libraries[alias or lib.name] = lib
         return lib
+
+    def Run(self, path, debug=False):
+        builder = TestSuiteBuilder()
+        suite = builder.build(path)
+        with self._context:
+            runner = Runner(self._output, RobotSettings())
+            suite.visit(runner)
+            result = runner.result
+            if debug and result.return_code:
+                reraise(*self._output._last_fail_exc)
+            return runner.result
 
     def __getitem__(self, name):
         """Get variables (with $/@{...} syntax),
