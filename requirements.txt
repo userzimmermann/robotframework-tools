@@ -1,4 +1,4 @@
 setuptools
 six
 path.py # path
-moretools >= 0.1a41
+moretools >= 0.1.2
