@@ -47,7 +47,7 @@ class NormalizedBool(with_metaclass(Type, booltype.base)):
 
 
 def normbooltype(typename='NormalizedBool', true=None, false=None,
-                 ignore=None, caseless=True, spaceless=True,
+                 ignore='', caseless=True, spaceless=True,
                  base=NormalizedBool):
 
     if not issubclass(base, NormalizedBool):
