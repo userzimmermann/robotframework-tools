@@ -25,14 +25,15 @@ from six import string_types
 
 __all__ = ['ToolsLibrary']
 
-from moretools import isbooltype
+from moretools import booltype, isbooltype
 
 import robot.running
 from robot.running.namespace import IMPORTER
+from robot.utils import NormalizedDict, normalize
 
 from BuiltIn import BuiltIn
 
-from robottools import testlibrary, normbooltype
+from robottools import testlibrary, normbooltype, RobotBool
 
 
 BUILTIN = BuiltIn()
@@ -74,15 +75,48 @@ class ToolsLibrary(TestLibrary):
         BUILTIN.import_library(name, *args)
 
     @keyword
-    def convert_to_bool(self, value, bool_type=bool):
-        if isinstance(bool_type, string_types):
+    def convert_to_bool(self, value, *true_false, **options):
+        if true_false:
+            lists = NormalizedDict({'true': [], 'false': []})
+            # choose the first list to fill with items
+            #  based on given TRUE or FALSE specifier:
             try:
-                bool_type = BOOL_TYPES[bool_type]
+                t_or_f_list = lists[true_false[0]]
             except KeyError:
-                raise ValueError("No such bool type registered: '%s'"
-                                 % bool_type)
-        elif not isbooltype(bool_type):
-            raise TypeError("No bool type: %s" % repr(bool_type))
+                raise ValueError("Expected TRUE or FALSE, not: %s"
+                                 % repr(true_false[0]))
+            for item in true_false[1:]:
+                if item in lists: #==> is new TRUE or FALSE specifier
+                    #==> switch to corresponding list
+                    t_or_f_list = lists[item]
+                    if t_or_f_list:
+                        raise ValueError("Multiple %s lists specfied."
+                                         % normalize(item).upper())
+                else:
+                    t_or_f_list.append(item)
+            for key, items in lists.items():
+                if not items:
+                    raise ValueError("No %s list specified." % key.upper())
+            if RobotBool(options.get('normalized', True)):
+                bool_type = normbooltype(**lists)
+            else:
+                bool_type = booltype(**lists)
+        else:
+            try:
+                bool_type = options['bool_type']
+            except KeyError: # fallback to robot's default bool conversion
+                return BUILTIN.convert_to_boolean(value)
+
+            if isinstance(bool_type, string_types):
+                try:
+                    bool_type = BOOL_TYPES[bool_type]
+                except KeyError:
+                    raise ValueError("No such bool type registered: '%s'"
+                                     % bool_type)
+            elif not isbooltype(bool_type):
+                raise TypeError("No bool type: %s" % repr(bool_type))
+
+        BUILTIN._log_types(value)
         return bool_type(value)
 
 
