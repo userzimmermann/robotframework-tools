@@ -21,14 +21,18 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import string_types
+
 __all__ = ['ToolsLibrary']
+
+from moretools import isbooltype
 
 import robot.running
 from robot.running.namespace import IMPORTER
 
 from BuiltIn import BuiltIn
 
-from robottools import testlibrary
+from robottools import testlibrary, normbooltype
 
 
 BUILTIN = BuiltIn()
@@ -68,3 +72,34 @@ class ToolsLibrary(TestLibrary):
             cache._items.pop(index)
 
         BUILTIN.import_library(name, *args)
+
+    @keyword
+    def convert_to_bool(self, value, bool_type=bool):
+        if isinstance(bool_type, string_types):
+            try:
+                bool_type = BOOL_TYPES[bool_type]
+            except KeyError:
+                raise ValueError("No such bool type registered: '%s'"
+                                 % bool_type)
+        elif not isbooltype(bool_type):
+            raise TypeError("No bool type: %s" % repr(bool_type))
+        return bool_type(value)
+
+
+BOOL_TYPES = {}
+
+
+def register_bool_type(cls_or_name, name=None,
+  true=None, false=None, ignore=None, caseless=True, spaceless=True
+  ):
+    if isinstance(cls_or_name, string_types):
+        name = cls_or_name
+        Bool = normbooltype(name, true=true, false=false,
+          ignore=ignore, caseless=caseless, spaceless=spaceless)
+    else:
+        if not isbooltype(cls_or_name):
+            raise TypeError("No bool type: %s" % repr(cls_or_name))
+        Bool = cls_or_name
+        if not name:
+            name = Bool.__name__
+    BOOL_TYPES[name] = Bool
