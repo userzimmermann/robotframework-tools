@@ -17,34 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robottools
-
-Python Tools for Robot Framework and Test Libraries.
+"""robottools.utils
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 
-from robottools import zetup
-
-__distribution__ = zetup.DISTRIBUTION.find(__path__[0])
-__description__ = zetup.DESCRIPTION
-
-__version__ = zetup.VERSION
-
-__requires__ = zetup.REQUIRES.checked
-__extras__ = zetup.EXTRAS
-
-from path import path as Path
-
-__notebook__ = zetup.NOTEBOOK and Path(zetup.NOTEBOOK)
-
-from robottools.library import *
-from robottools.library.keywords import *
-from robottools.library.session import SessionHandler
-from robottools.library.context import *
-
-from robottools.library.inspector import *
-
-from robottools.testrobot import *
-
-from .utils import *
+from .normbool import *
