@@ -62,7 +62,14 @@ class KeywordDecoratorType(object):
         name = meta.get('name')
         self.keyword_name = name and KeywordName(name, convert=False)
         self.keyword_args = meta.get('args')
+        self.keyword_argtypes = meta.get('argtypes')
         self.contexts = meta.get('contexts')
+
+    def __getitem__(self, argtypes):
+        return type(self)(
+          self.keywords, *self.options,
+          name=self.keyword_name, args=self.keyword_args,
+          argtypes=argtypes, contexts=self.contexts)
 
     @staticmethod
     def option_unicode_to_str(func):
@@ -113,9 +120,10 @@ class KeywordDecoratorType(object):
         return type(self)(
           self.keywords, optionname, *self.options,
           name=self.keyword_name, args=self.keyword_args,
-          contexts=self.contexts)
+          argtypes=self.keyword_argtypes, contexts=self.contexts)
 
-    def __call__(self, func=None, name=None, args=None, contexts=None):
+    def __call__(self, func=None, name=None, args=None, argtypes=None,
+                 contexts=None):
         """The actual Keyword method decorator function.
 
         - When manually called, optional override `name`
@@ -130,7 +138,7 @@ class KeywordDecoratorType(object):
         if not func:
             return type(self)(
               self.keywords, *self.options, name=name, args=args,
-              contexts=contexts)
+              argtypes=argtypes, contexts=contexts)
 
         original_func = func
         if self.contexts:
@@ -179,6 +187,7 @@ class KeywordDecoratorType(object):
         # func.argspec = argspec
         # Store optional override args list
         func.args = args or self.keyword_args
+        func.argtypes = argtypes or self.keyword_argtypes
         # Add method to the Library's Keywords mapping
         if contexts:
             try:

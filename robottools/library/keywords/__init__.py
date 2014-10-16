@@ -142,6 +142,14 @@ class Keyword(object):
                 current_contexts[identifier] = getattr(
                   self.libinstance, identifier)
                 getattr(self.libinstance, 'switch_' + identifier)(ctxname)
+        # Look for arg type specs:
+        if func.argtypes:
+            casted = []
+            for arg, argtype in zip(args, func.argtypes):
+                if not isinstance(arg, argtype):
+                    arg = argtype(arg)
+                casted.append(arg)
+            args = tuple(casted) + args[len(func.argtypes):]
         # Look for context specific implementation of the Keyword function:
         for context, context_func in func.contexts.items():
             if context in self.libinstance.contexts:
