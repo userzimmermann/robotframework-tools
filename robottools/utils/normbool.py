@@ -19,6 +19,9 @@
 
 """robottools.utils.normbool
 
+normbooltype() creates moretools.booltype() based classes
+with normalized true and false string value comparisons.
+
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 from six import with_metaclass, string_types
@@ -33,12 +36,20 @@ from robot.utils import normalize
 
 
 class Type(type(booltype.base)):
+    """Base metaclass for :func:`normbooltype` created classes.
+    """
     def __contains__(cls, value):
+        """Look for a normalized `value` in `.true` and `.false` lists.
+        """
         return super(Type, cls).__contains__(cls.normalize(value))
 
 
 class NormalizedBool(with_metaclass(Type, booltype.base)):
+    """Base class for :func:`normbooltype` created classes.
+    """
     def __init__(self, value):
+        """Create a NormalizedBool instance with a normalized value.
+        """
         try:
             super(NormalizedBool, self).__init__(
               type(self).normalize(value))
@@ -54,12 +65,19 @@ def normbooltype(typename='NormalizedBool', true=None, false=None,
         raise TypeError("'base' is no subclass of normbooltype.base: %s"
                         % base)
 
+    # to be stored as .normalize method of created class
     def normalizer(value):
+        """Normalize `value` based on normalizing options
+           given to :func:`normbooltype`.
+
+        - Any non-string values are just passed through.
+        """
         if not isinstance(value, string_types):
             return value
         return normalize(value, ignore=normalizer.ignore,
           caseless=normalizer.caseless, spaceless=normalizer.spaceless)
 
+    # store the normalizing options
     normalizer.ignore = ignore
     normalizer.caseless = caseless
     normalizer.spaceless = spaceless
