@@ -23,6 +23,7 @@
 """
 
 from .normbool import *
+from .normstr import *
 
 
 RobotBool = normbooltype('RobotBool', true=['true'], false=['false'])
