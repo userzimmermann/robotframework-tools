@@ -36,7 +36,7 @@ from robot.utils import normalize
 
 
 class Type(type(boolclass.base)):
-    """Base metaclass for :func:`normbooltype` created classes.
+    """Base metaclass for :func:`normboolclass` created classes.
     """
     def __contains__(cls, value):
         """Look for a normalized `value` in `.true` and `.false` lists.
