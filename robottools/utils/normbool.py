@@ -19,7 +19,7 @@
 
 """robottools.utils.normbool
 
-normbooltype() creates moretools.booltype() based classes
+normboolclass() creates moretools.boolclass() based classes
 with normalized true and false string value comparisons.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
