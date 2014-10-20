@@ -1,4 +1,4 @@
 zetup
 six
-path.py # path
-moretools >= 0.1.2
+path.py >= 7.0 # path
+moretools >= 0.1.4
