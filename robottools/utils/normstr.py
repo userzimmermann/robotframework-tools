@@ -19,12 +19,12 @@
 
 """robottools.utils.normbool
 
-normstringtype() creates UserString-derived classes
+normstringclass() creates UserString-derived classes
 with normalized data storage and comparisons.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['normstringtype']
+__all__ = ['normstringclass', 'normstringtype']
 
 from six.moves import UserString
 
@@ -32,7 +32,7 @@ from robot.utils import normalize
 
 
 class NormalizedString(UserString):
-    """Base class for :func:`normstringtype` created classes.
+    """Base class for :func:`normstringclass` created classes.
     """
     def __init__(self, value):
         """Initialize a NormalizedString instance with a normalized value.
@@ -64,18 +64,18 @@ class NormalizedString(UserString):
         return UserString.__contains__(self, type(self).normalize(string))
 
 
-def normstringtype(typename='NormalizedString', true=None, false=None,
+def normstringclass(typename='NormalizedString', true=None, false=None,
                  ignore='', caseless=True, spaceless=True,
                  base=NormalizedString):
 
     if not issubclass(base, NormalizedString):
-        raise TypeError("'base' is no subclass of normstringtype.base: %s"
+        raise TypeError("'base' is no subclass of normstringclass.base: %s"
                         % base)
 
     # to be stored as .normalize method of created class
     def normalizer(value):
         """Normalize `value` based on normalizing options
-           given to :func:`normstringtype`.
+           given to :func:`normstringclass`.
         """
         if isinstance(value, UserString):
             value = value.data
@@ -92,5 +92,7 @@ def normstringtype(typename='NormalizedString', true=None, false=None,
 
     return Type(typename, (base,), {})
 
+normstringtype = normstringclass
 
-normstringtype.base = NormalizedString
+
+normstringclass.base = NormalizedString
