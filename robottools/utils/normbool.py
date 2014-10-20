@@ -26,16 +26,16 @@ with normalized true and false string value comparisons.
 """
 from six import with_metaclass, string_types
 
-__all__ = ['normbooltype']
+__all__ = ['normboolclass', 'normbooltype']
 
 from six.moves import map
 
-from moretools import booltype
+from moretools import boolclass
 
 from robot.utils import normalize
 
 
-class Type(type(booltype.base)):
+class Type(type(boolclass.base)):
     """Base metaclass for :func:`normbooltype` created classes.
     """
     def __contains__(cls, value):
@@ -44,8 +44,8 @@ class Type(type(booltype.base)):
         return super(Type, cls).__contains__(cls.normalize(value))
 
 
-class NormalizedBool(with_metaclass(Type, booltype.base)):
-    """Base class for :func:`normbooltype` created classes.
+class NormalizedBool(with_metaclass(Type, boolclass.base)):
+    """Base class for :func:`normboolclass` created classes.
     """
     def __init__(self, value):
         """Create a NormalizedBool instance with a normalized value.
@@ -57,18 +57,18 @@ class NormalizedBool(with_metaclass(Type, booltype.base)):
             raise type(e)(repr(value))
 
 
-def normbooltype(typename='NormalizedBool', true=None, false=None,
+def normboolclass(typename='NormalizedBool', true=None, false=None,
                  ignore='', caseless=True, spaceless=True,
                  base=NormalizedBool):
 
     if not issubclass(base, NormalizedBool):
-        raise TypeError("'base' is no subclass of normbooltype.base: %s"
+        raise TypeError("'base' is no subclass of normboolclass.base: %s"
                         % base)
 
     # to be stored as .normalize method of created class
     def normalizer(value):
         """Normalize `value` based on normalizing options
-           given to :func:`normbooltype`.
+           given to :func:`normboolclass`.
 
         - Any non-string values are just passed through.
         """
@@ -87,9 +87,11 @@ def normbooltype(typename='NormalizedBool', true=None, false=None,
     if false:
         false = list(map(normalizer, false))
 
-    Bool = booltype(typename, true=true, false=false, base=base)
+    Bool = boolclass(typename, true=true, false=false, base=base)
     type(Bool).normalize = staticmethod(normalizer)
     return Bool
 
+normbooltype = normboolclass
 
-normbooltype.base = NormalizedBool
+
+normboolclass.base = NormalizedBool
