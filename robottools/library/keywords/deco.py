@@ -50,7 +50,8 @@ class KeywordDecoratorType(object):
     def __init__(self, keywords, *options, **meta):
         """Initialize with a Test Library's :class:`KeywordsDict` instance,
            additional `options` to apply to the decorated methods
-           and custom `meta` info like name and args list overrides.
+           and custom `meta` info like name and args list overrides
+           and explicit argtypes for automatic type conversions.
         """
         self.keywords = keywords
 
@@ -185,7 +186,7 @@ class KeywordDecoratorType(object):
         func.__doc__ = doc
         # # Store original method argspec
         # func.argspec = argspec
-        # Store optional override args list
+        # Store optional override args list and explicit argtypes
         func.args = args or self.keyword_args
         func.argtypes = argtypes or self.keyword_argtypes
         # Add method to the Library's Keywords mapping
