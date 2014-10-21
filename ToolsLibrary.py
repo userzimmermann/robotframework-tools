@@ -107,11 +107,18 @@ class ToolsLibrary(TestLibrary):
                 return BUILTIN.convert_to_boolean(value)
 
             if isinstance(boolcls, string_types):
-                try:
+                try: # is a registered bool class name?
                     boolcls = BOOL_CLASSES[boolcls]
                 except KeyError:
-                    raise ValueError("No such bool type registered: '%s'"
-                                     % boolcls)
+                    if '.' not in boolcls:
+                        raise ValueError(
+                          "No such bool class registered: '%s'" % boolcls)
+                    modname, clsname = boolcls.rsplit('.', 1)
+                    try: # is an importable 'module.class' string?
+                        boolcls = getattr(__import__(modname), clsname)
+                    except (ImportError, AttributeError):
+                        raise ValueError(
+                          "Can't import bool class: '%s'" % boolcls)
             elif not isboolclass(boolcls):
                 raise TypeError("No bool class: %s" % repr(boolcls))
 
