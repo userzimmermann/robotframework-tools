@@ -23,9 +23,9 @@
 """
 from six import string_types
 
-__all__ = ['ToolsLibrary']
+__all__ = ['ToolsLibrary', 'register_bool_class', 'register_bool_type']
 
-from moretools import booltype, isbooltype
+from moretools import boolclass, isboolclass
 
 import robot.running
 from robot.running.namespace import IMPORTER
@@ -33,7 +33,7 @@ from robot.utils import NormalizedDict, normalize
 
 from BuiltIn import BuiltIn
 
-from robottools import testlibrary, normbooltype, RobotBool
+from robottools import testlibrary, normboolclass, RobotBool
 
 
 BUILTIN = BuiltIn()
@@ -74,7 +74,7 @@ class ToolsLibrary(TestLibrary):
 
         BUILTIN.import_library(name, *args)
 
-    @keyword
+    @keyword.normalized_kwargs
     def convert_to_bool(self, value, *true_false, **options):
         if true_false:
             lists = NormalizedDict({'true': [], 'false': []})
@@ -98,42 +98,43 @@ class ToolsLibrary(TestLibrary):
                 if not items:
                     raise ValueError("No %s list specified." % key.upper())
             if RobotBool(options.get('normalized', True)):
-                bool_type = normbooltype(**lists)
+                boolcls = normboolclass(**lists)
             else:
-                bool_type = booltype(**lists)
+                boolcls = boolclass(**lists)
         else:
-            try:
-                bool_type = options['bool_type']
-            except KeyError: # fallback to robot's default bool conversion
+            boolcls = options.get('boolclass') or options.get('booltype')
+            if not boolcls: # fallback to robot's default bool conversion
                 return BUILTIN.convert_to_boolean(value)
 
-            if isinstance(bool_type, string_types):
+            if isinstance(boolcls, string_types):
                 try:
-                    bool_type = BOOL_TYPES[bool_type]
+                    boolcls = BOOL_CLASSES[boolcls]
                 except KeyError:
                     raise ValueError("No such bool type registered: '%s'"
-                                     % bool_type)
-            elif not isbooltype(bool_type):
-                raise TypeError("No bool type: %s" % repr(bool_type))
+                                     % boolcls)
+            elif not isboolclass(boolcls):
+                raise TypeError("No bool class: %s" % repr(boolcls))
 
         BUILTIN._log_types(value)
-        return bool_type(value)
+        return boolcls(value)
 
 
-BOOL_TYPES = {}
+BOOL_CLASSES = BOOL_TYPES = {}
 
 
-def register_bool_type(cls_or_name, name=None,
+def register_bool_class(cls_or_name, name=None,
   true=None, false=None, ignore=None, caseless=True, spaceless=True
   ):
     if isinstance(cls_or_name, string_types):
         name = cls_or_name
-        Bool = normbooltype(name, true=true, false=false,
+        Bool = normboolclass(name, true=true, false=false,
           ignore=ignore, caseless=caseless, spaceless=spaceless)
     else:
-        if not isbooltype(cls_or_name):
-            raise TypeError("No bool type: %s" % repr(cls_or_name))
+        if not isboolclass(cls_or_name):
+            raise TypeError("No bool class: %s" % repr(cls_or_name))
         Bool = cls_or_name
         if not name:
             name = Bool.__name__
-    BOOL_TYPES[name] = Bool
+    BOOL_CLASSES[name] = Bool
+
+register_bool_type = register_bool_class
