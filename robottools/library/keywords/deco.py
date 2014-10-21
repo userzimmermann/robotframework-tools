@@ -32,6 +32,8 @@ __all__ = ['KeywordDecoratorType']
 
 import inspect
 
+from robot.utils import NormalizedDict
+
 from Collections import _Dictionary
 
 from .utils import KeywordName
@@ -100,6 +102,18 @@ class KeywordDecoratorType(object):
             varargs = args[nposargs:]
             kwargs = _Dictionary().create_dictionary(*varargs, **kwargs)
             return func(self, *posargs, **kwargs)
+
+        method.__name__ = func.__name__
+        return method
+
+    @staticmethod
+    def option_normalized_kwargs(func):
+        """Normalize the keys of **kwargs using robot.utils.NormalizedDict
+           (convert to lowercase and remove spaces).
+        """
+        def method(self, *args, **kwargs):
+            kwargs = NormalizedDict(kwargs)
+            return func(self, *args, **kwargs.data)
 
         method.__name__ = func.__name__
         return method
