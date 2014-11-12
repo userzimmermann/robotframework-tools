@@ -574,7 +574,7 @@ def zetup(**setup_options):
       }
     if PACKAGES:
         defaults.update({
-          'package_dir': {ZETUP_PACKAGE: ZETUP_DIR},
+          'package_dir': {ZETUP_PACKAGE: '.'},
           'packages': PACKAGES + [ZETUP_PACKAGE],
           'package_data': {ZETUP_PACKAGE: ZETUP_DATA},
           })
