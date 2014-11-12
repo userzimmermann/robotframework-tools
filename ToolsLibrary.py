@@ -21,11 +21,9 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-from six import string_types
-
 __all__ = ['ToolsLibrary', 'register_bool_class', 'register_bool_type']
 
-from moretools import boolclass, isboolclass
+from moretools import boolclass, isboolclass, isstring
 
 import robot.running
 from robot.running.namespace import IMPORTER
@@ -106,7 +104,7 @@ class ToolsLibrary(TestLibrary):
             if not boolcls: # fallback to robot's default bool conversion
                 return BUILTIN.convert_to_boolean(value)
 
-            if isinstance(boolcls, string_types):
+            if isstring(boolcls):
                 try: # is a registered bool class name?
                     boolcls = BOOL_CLASSES[boolcls]
                 except KeyError:
@@ -132,7 +130,7 @@ BOOL_CLASSES = BOOL_TYPES = {}
 def register_bool_class(cls_or_name, name=None,
   true=None, false=None, ignore=None, caseless=True, spaceless=True
   ):
-    if isinstance(cls_or_name, string_types):
+    if isstring(cls_or_name):
         name = cls_or_name
         Bool = normboolclass(name, true=true, false=false,
           ignore=ignore, caseless=caseless, spaceless=spaceless)
