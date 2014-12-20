@@ -108,19 +108,20 @@ class TestLibraryType(object):
 
 
 # Ordered name-mapped storage of user-defined session/context handlers
-HandlersDict = simpledict('HandlersDict', dicttype = OrderedDict)
+HandlersDict = simpledict('HandlersDict', dicttype=OrderedDict)
 
 
 def testlibrary(
-  register_keyword_options = [],
-  default_keyword_options = [],
-  context_handlers = [],
-  session_handlers = []
+  register_keyword_options=[],
+  default_keyword_options=[],
+  context_handlers=[],
+  session_handlers=[]
   ):
     """Creates the actual base type for a user-defined Robot Test Library
        derived from :class:`TestLibraryType`.
 
-    - Generates a Keyword decorator class from `.keywords.KeywordDecoratorType`,
+    - Generates a Keyword decorator class
+      from `.keywords.KeywordDecoratorType`,
       adding the decorators from `register_keyword_options`.
     - Adds the `keyword` decorator to the Test Library class
       by instantiating the decorator class with the `default_keyword_options`.
@@ -187,7 +188,7 @@ def testlibrary(
           lambda self, h=handlercls: h.sessions)
 
         # give access to the handler's currently active session
-        def session(self, h = handlercls):
+        def session(self, h=handlercls):
             if h.session is None:
                 raise h.SessionError("No active session.")
             return h.session
