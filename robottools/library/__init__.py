@@ -94,7 +94,12 @@ class TestLibraryType(object):
     def __getattr__(self, name):
         """CamelCase access to the bound Keyword methods.
         """
-        return getattr(self.keywords, name)
+        try:
+            getattr(self.keywords, name)
+        except AttributeError:
+            raise AttributeError(
+              "'%s' instance has no attribute or Keyword '%s'"
+              % (type(self).__name__, name))
 
     def __dir__(self):
         """Return the CamelCase Keyword names.
