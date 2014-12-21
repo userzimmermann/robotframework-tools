@@ -29,12 +29,31 @@ __all__ = [
   'KeywordDecoratorType', 'InvalidKeywordOption',
   ]
 
+from textwrap import dedent
 from collections import OrderedDict
+
+from decorator import decorator
 from moretools import simpledict
 
 from .keywords import (
   KeywordsDict, Keyword,
   KeywordDecoratorType, InvalidKeywordOption)
+
+
+def check_keywords(func):
+    """Decorator for Test Library methods,
+    which checks if an instance-bound .keywords mapping exists.
+    """
+    def caller(func, self, *args, **kwargs):
+        if self.keywords is type(self).keywords:
+            raise RuntimeError(dedent("""
+              '%s' instance has no instance-bound .keywords mapping.
+              Was Test Library's base __init__ called?
+              """ % type(self).__name__))
+
+        return func(self, *args, **kwargs)
+
+    return decorator(caller, func)
 
 
 class TestLibraryType(object):
@@ -44,6 +63,8 @@ class TestLibraryType(object):
     - :func:`testlibrary` dynamically creates derived classes
       to use as (a base for) a custom Test Library.
     """
+
+    @check_keywords
     def get_keyword_names(self):
         """Get all Capitalized Keyword names.
 
@@ -51,6 +72,7 @@ class TestLibraryType(object):
         """
         return [str(name) for name, kw in self.keywords]
 
+    @check_keywords
     def run_keyword(self, name, args, kwargs={}):
         """Run the Keyword given by its `name`
         with the given `args` and optional `kwargs`.
@@ -60,6 +82,7 @@ class TestLibraryType(object):
         keyword = self.keywords[name]
         return keyword(*args, **kwargs)
 
+    @check_keywords
     def get_keyword_documentation(self, name):
         """Get the doc string of the Keyword given by its `name`.
 
@@ -74,6 +97,7 @@ class TestLibraryType(object):
         keyword = self.keywords[name]
         return keyword.__doc__
 
+    @check_keywords
     def get_keyword_arguments(self, name):
         """Get the arguments definition of the Keyword given by its `name`.
 
@@ -100,16 +124,18 @@ class TestLibraryType(object):
         for name, func in type(self).keywords:
             self.keywords[name] = Keyword(name, func, libinstance=self)
 
+    @check_keywords
     def __getattr__(self, name):
         """CamelCase access to the bound :class:`Keyword` instances.
         """
         try:
-            getattr(self.keywords, name)
+            return getattr(self.keywords, name)
         except AttributeError:
             raise AttributeError(
               "'%s' instance has no attribute or Keyword '%s'"
               % (type(self).__name__, name))
 
+    @check_keywords
     def __dir__(self):
         """Return the CamelCase Keyword names.
         """
