@@ -23,13 +23,14 @@ Dynamic Test Library creation framework.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['testlibrary',
+__all__ = ['testlibrary', 'istestlibraryclass',
   # from .base
   'TestLibraryType',
   # from .keywords
   'KeywordDecoratorType', 'InvalidKeywordOption',
   ]
 
+from inspect import isclass
 from collections import OrderedDict
 
 from moretools import simpledict
@@ -132,3 +133,9 @@ def testlibrary(
               func, name=keywordname)
 
     return type('TestLibrary', (TestLibraryType,), clsattrs)
+
+
+def istestlibraryclass(cls):
+    if not isclass(cls):
+        return False
+    return issubclass(cls, TestLibraryType)
