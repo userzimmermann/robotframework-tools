@@ -42,46 +42,55 @@ class TestLibraryType(object):
 
     - Should not be initialized directly.
     - :func:`testlibrary` dynamically creates derived classes
-        for use as a base for a custom Test Library.
+      to use as (a base for) a custom Test Library.
     """
     def get_keyword_names(self):
-        """Get all lower_case Keyword names for Robot Framework
-        from the `self.keywords` mapping.
+        """Get all Capitalized Keyword names.
+
+        - Part of Robot Framework's Dynamic Test Library API.
         """
         return [str(name) for name, kw in self.keywords]
 
     def run_keyword(self, name, args, kwargs={}):
-        """Run the Keyword given by its lower_case `name`
-        with the given `args` and `kwargs`.
+        """Run the Keyword given by its `name`
+        with the given `args` and optional `kwargs`.
+
+        - Part of Robot Framework's Dynamic Test Library API.
         """
         keyword = self.keywords[name]
         return keyword(*args, **kwargs)
 
     def get_keyword_documentation(self, name):
-        """Get the doc string of the Keyword
-        given by its lower_case `name`.
+        """Get the doc string of the Keyword given by its `name`.
+
+        - Part of Robot Framework's Dynamic Test Library API.
         """
         if name == '__intro__':
+            #TODO
             return ""
         if name == '__init__':
+            #TODO
             return ""
         keyword = self.keywords[name]
         return keyword.__doc__
 
     def get_keyword_arguments(self, name):
-        """Get the arguments definition of the Keyword
-        given by its lower_case `name`.
+        """Get the arguments definition of the Keyword given by its `name`.
+
+        - Part of Robot Framework's Dynamic Test Library API.
         """
         keyword = self.keywords[name]
         return list(keyword.args())
 
     def __init__(self):
         """Initializes the Test Library base.
-        * Creates a new `KeywordsDict` instance
-        for storing the actual bound Keyword method objects
-        corresponding to the method function objects
-        in the Test Library class-owned `KeywordsDict` instance
-        populated by the `keyword` decorator.
+
+        - Creates a new :class:`KeywordsDict` mapping
+          for storing bound :class:`Keyword` instances
+          corresponding to the method function objects
+          in the Test Library class' :class:`KeywordsDict` mapping,
+          which was populated by the <Test Library class>.keyword decorator.
+        - Sets the initially active contexts.
         """
         self.contexts = []
         for name, handler in self.context_handlers:
@@ -92,7 +101,7 @@ class TestLibraryType(object):
             self.keywords[name] = Keyword(name, func, libinstance=self)
 
     def __getattr__(self, name):
-        """CamelCase access to the bound Keyword methods.
+        """CamelCase access to the bound :class:`Keyword` instances.
         """
         try:
             getattr(self.keywords, name)
@@ -125,13 +134,12 @@ def testlibrary(
       adding the decorators from `register_keyword_options`.
     - Adds the `keyword` decorator to the Test Library class
       by instantiating the decorator class with the `default_keyword_options`.
-
-    - For every handler in `session_handlers`
+    - For every handler in `session_handlers`,
       its generated open_/switch_/close_session Keywords
       (with `Handler.meta.identifier_name` substituting 'session')
       will be added to the Test Library's Keywords.
 
-    :returns: class.
+    :returns: class
     """
     # the attributes dict for the Test Library base class generation
     clsattrs = {}
