@@ -136,6 +136,10 @@ def testlibrary(
 
 
 def istestlibraryclass(cls):
+    """Check if `cls` was created by :func:`testlibrary`.
+
+    - Actually test if `cls` was derived from basic :class:`TestLibraryType`.
+    """
     if not isclass(cls):
         return False
     return issubclass(cls, TestLibraryType)
