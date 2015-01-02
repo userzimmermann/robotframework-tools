@@ -31,7 +31,8 @@ def test_testlibrary():
       (lib.get_keyword_names, []),
       (lib.get_keyword_arguments, ['test_keyword']),
       (lib.get_keyword_documentation, ['test_keyword']),
-      (lib.run_keyword, ['test_keyword']),
+      (lib.run_keyword, ['test_keyword', []]),
       ]:
-        with pytest.raises(RuntimeError):
+        with pytest.raises(RuntimeError) as e:
             method(*args)
+        assert str(e.value).endswith('base __init__ called?')
