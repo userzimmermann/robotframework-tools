@@ -78,6 +78,15 @@ class KeywordsDict(object):
     def __iter__(self):
         return iter(self._dict.items())
 
+    def __len__(self):
+        return len(self._dict)
+
+    def __bool__(self):
+        return bool(self._dict)
+
+    def __nonzero__(self):
+        return self.__bool__()
+
     def __dir__(self):
         """The Keyword names in CamelCase.
         """
