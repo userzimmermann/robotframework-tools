@@ -46,8 +46,9 @@ class KeywordName(str):
             name = camelize(name, joiner=' ')
         return str.__new__(cls, name)
 
-    def __init__(self, name, convert=True):
-        self.normalized = normalize(name, ignore='_')
+    @property
+    def normalized(self):
+        return normalize(self, ignore='_')
 
     def __eq__(self, name):
         return self.normalized == normalize(name, ignore='_')
