@@ -6,9 +6,13 @@ python:
   - pypy
 
 install:
-  - pip install .
-  - pip install pytest
+  - pip install -r requirements.txt
+  - pip install -r requirements.remote.txt
+  - pip install -r requirements.robotshell.txt
+  - pip install zetup[all]
+  - pip install tox
+  - zetup install
 
 script:
-  - python setup.py pytest
+  - zetup pytest
   - py.test test/
