@@ -1,4 +1,6 @@
 zetup
 six
-path.py >= 7.0 # path
+path.py >= 7.0 #import path
 moretools >= 0.1.4
+#py2 robotframework #import robot
+#py3 robotframework-python3 #import robot

@@ -24,19 +24,19 @@ Python Tools for Robot Framework and Test Libraries.
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 
-from robottools import zetup
+from zetup import find_zetup_config
 
-__distribution__ = zetup.DISTRIBUTION.find(__path__[0])
-__description__ = zetup.DESCRIPTION
+zfg = find_zetup_config(__name__)
 
-__version__ = zetup.VERSION
+__distribution__ = zfg.DISTRIBUTION.find(__path__[0])
+__description__ = zfg.DESCRIPTION
 
-__requires__ = zetup.REQUIRES.checked
-__extras__ = zetup.EXTRAS
+__version__ = zfg.VERSION
 
-from path import path as Path
+__requires__ = zfg.REQUIRES.checked
+__extras__ = zfg.EXTRAS
 
-__notebook__ = zetup.NOTEBOOK and Path(zetup.NOTEBOOK)
+## __notebook__ = zfg.NOTEBOOKS['README']
 
 from robottools.library import *
 from robottools.library.keywords import *
