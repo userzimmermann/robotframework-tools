@@ -35,4 +35,4 @@ def test_testlibrary():
       ]:
         with pytest.raises(RuntimeError) as e:
             method(*args)
-        assert str(e.value).endswith('base __init__ called?')
+        assert str(e.value).strip().endswith('base __init__ called?')
