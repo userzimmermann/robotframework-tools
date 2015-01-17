@@ -19,26 +19,42 @@
 
 """robotshell.base
 
+ShellBase class for IPython extensions with common shell access helpers.
+
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['ShellBase']
 
+
 class ShellBase(object):
+    """Helper base class for IPython extension classes.
+    """
     def __init__(self, shell):
+        """Initialize with IPython `shell` instance,
+           as passed from IPython to load_ipython_extension().
+        """
         self.shell = shell
 
     @property
     def line_magics(self):
+        """IPython's dict of registered line magic functions.
+        """
         return self.shell.magics_manager.magics['line']
 
     @property
     def cell_magics(self):
+        """IPython's dict of registered cell magic functions.
+        """
         return self.shell.magics_manager.magics['cell']
 
     @property
     def in_template(self):
+        """IPython's current input prompt template.
+        """
         return self.shell.prompt_manager.in_template
 
     @in_template.setter
     def in_template(self, value):
+        """Change IPython's current input prompt template to `value`.
+        """
         self.shell.prompt_manager.in_template = value
