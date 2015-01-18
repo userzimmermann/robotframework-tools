@@ -23,9 +23,14 @@ Test run result wrapper for :class:`robottools.TestRobot`.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import PY3
+
 __all__ = ['TestResult']
 
-from io import StringIO
+if PY3:
+    from io import StringIO
+else:
+    from io import BytesIO as StringIO
 
 from robot.conf import RobotSettings
 from robot.reporting import ResultWriter
