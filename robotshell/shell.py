@@ -40,6 +40,7 @@ from robottools import TestRobot
 from robottools.testrobot import Keyword
 
 from .base import ShellBase
+from .result import TestResult
 from .magic import (
   RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic, VariableMagic)
 
@@ -126,7 +127,8 @@ class RobotShell(ShellBase):
         return library
 
     def Run(self, path):
-        return self.robot.Run(path, debug=self.robot_debug_mode)
+        result = self.robot.Run(path, debug=self.robot_debug_mode)
+        return TestResult(result.robot_result)
 
     def Close(self):
         if self.robot is None:
@@ -154,11 +156,13 @@ class RobotShell(ShellBase):
 
                 self.line_magics[name] = keyword_magic
 
-                ## keyword_cell_magic = KeywordCellMagic(
-                ##   keyword, robot_shell=self)
-                ## self.robot_keyword_cell_magics[name] = keyword_cell_magic
+                if self.robot_cell_magic_mode:
+                    keyword_cell_magic = KeywordCellMagic(
+                      keyword, robot_shell=self)
+                    self.robot_keyword_cell_magics[name] \
+                      = keyword_cell_magic
 
-                ## cell_magics[name] = keyword_cell_magic
+                    self.cell_magics[name] = keyword_cell_magic
 
     def register_robot_variable_magics(self):
         for var in self.robot._variables:
