@@ -67,6 +67,7 @@ class TestRobot(object):
         :param variable_getters: A sequence of callables.
         """
         self.name = name
+        self.debug = False
         if not GLOBAL_VARIABLES: #HACK
             init_global_variables(RobotSettings())
         self._variables = GLOBAL_VARIABLES.copy()
@@ -102,21 +103,24 @@ class TestRobot(object):
             with self._context:
                 lib = TestLibraryInspector(lib, *(args or ()))
         # Put lib in testrobot's derived lib wrapper
-        #  for calling Keywords with running context:
+        #  for calling Keywords with TestRobot's context:
         lib = TestLibrary(lib._library, context=self._context)
         self._libraries[alias or lib.name] = lib
         return lib
 
-    def Run(self, path, debug=False):
+    def Run(self, path, **options):
+        debug = options.pop('debug', self.debug)
+        # post processed options
+        settings = RobotSettings(**options)
         builder = TestSuiteBuilder()
         suite = builder.build(path)
         with self._context:
-            runner = Runner(self._output, RobotSettings())
+            runner = Runner(self._output, settings)
             suite.visit(runner)
             result = runner.result
             if debug and result.return_code:
                 reraise(*self._output._last_fail_exc)
-            return TestResult(runner.result)
+            return TestResult(runner.result, **options)
 
     def __getitem__(self, name):
         """Get variables (with $/@{...} syntax),
@@ -137,13 +141,17 @@ class TestRobot(object):
             except KeyError:
                 pass
             else:
-                return Keyword(keyword._handler, context=self._context)
+                keyword = Keyword(keyword._handler, context=self._context)
+                if self.debug:
+                    return keyword.debug
+                return keyword
         raise KeyError("No Test Library or Keyword named '%s'." % name)
 
     def __getattr__(self, name):
         """Get Robot Variables, Test Libraries and Keywords by name.
 
-        - Keyword names can be in any case (lower_case, CamelCase, ...).
+        - Keyword names can be in any case (lower_case, CamelCase, ...),
+          but CamelCase is the preferred style.
         """
         try: # Delegate to self.__getitem__:
             return self[name]
