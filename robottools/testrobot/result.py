@@ -65,13 +65,17 @@ class TestResult(object):
         """
         self.robot_result = result
         self.options = options
+        # RobotSettings from options
+        settings = self.settings
         # write output if destinations defined
         for output, format in [
           ('output', 'xml'),
           ('log', 'html'),
           ('report', 'html'),
           ]:
-            file = options.get(output)
+            # first check if in options because RobotSettings
+            # always define default output paths
+            file = options.get(output) and getattr(settings, output)
             if not file:
                 continue
             # get data from related property
@@ -81,6 +85,12 @@ class TestResult(object):
                     f.write(data)
             else: # stream
                 file.write(data)
+
+    @property
+    def settings(self):
+        """Get options as post processed RobotSettings.
+        """
+        return RobotSettings(**self.options)
 
     @property
     def writer(self):
@@ -107,7 +117,7 @@ class TestResult(object):
         """
         html = Buffer()
         self.writer._write_log(
-          Results(RobotSettings(), self.robot_result).js_result,
+          Results(self.settings, self.robot_result).js_result,
           html, {})
         html.seek(0)
         return html.read()
@@ -119,7 +129,7 @@ class TestResult(object):
         """
         html = Buffer()
         self.writer._write_report(
-          Results(RobotSettings(), self.robot_result).js_result,
+          Results(self.settings, self.robot_result).js_result,
           html, {})
         html.seek(0)
         return html.read()
