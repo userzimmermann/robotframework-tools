@@ -105,6 +105,9 @@ class Output(AbstractLogger):
         self._last_fail_exc = sys.exc_info()
         AbstractLogger.fail(self, message, *args)
 
+    def register_error_listener(self, listener):
+        pass
+
     def start_suite(self, suite):
         pass
 
