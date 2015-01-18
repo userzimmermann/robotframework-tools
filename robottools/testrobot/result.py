@@ -32,6 +32,8 @@ if PY3:
 else:
     from io import BytesIO as StringIO
 
+from moretools import isstring
+
 from robot.conf import RobotSettings
 from robot.reporting import ResultWriter
 from robot.reporting.resultwriter import Results
@@ -53,10 +55,32 @@ class Buffer(StringIO):
 class TestResult(object):
     """robotshell wrapper interface for robot test run results.
     """
-    def __init__(self, result):
-        """Initialize with a :class:`robot.result.Result` instance.
+    def __init__(self, result, **options):
+        """Initialize with a :class:`robot.result.Result` instance
+           and test run `options`.
+
+        - Writes out 'output' XML, 'log' HTML and 'report' HTML
+          if destination streams or file paths are defined in `options`
+          (given streams won't get flushed or closed).
         """
         self.robot_result = result
+        self.options = options
+        # write output if destinations defined
+        for output, format in [
+          ('output', 'xml'),
+          ('log', 'html'),
+          ('report', 'html'),
+          ]:
+            file = options.get(output)
+            if not file:
+                continue
+            # get data from related property
+            data = getattr(self, '%s_%s' % (output, format))
+            if isstring(file): # file path?
+                with open(file, 'w') as f:
+                    f.write(data)
+            else: # stream
+                file.write(data)
 
     @property
     def writer(self):
@@ -72,7 +96,7 @@ class TestResult(object):
            like it gets written to output.xml files by robot.
         """
         xml = Buffer()
-        self.writer._write_output(self.result, xml)
+        self.writer._write_output(self.robot_result, xml)
         xml.seek(0)
         return xml.read()
 
