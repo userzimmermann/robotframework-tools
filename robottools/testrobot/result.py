@@ -111,3 +111,15 @@ class TestResult(object):
           html, {})
         html.seek(0)
         return html.read()
+
+    @property
+    def report_html(self):
+        """Return the test run log as HTML data (byte string),
+           like it gets written to log.html files by robot.
+        """
+        html = Buffer()
+        self.writer._write_report(
+          Results(RobotSettings(), self.robot_result).js_result,
+          html, {})
+        html.seek(0)
+        return html.read()
