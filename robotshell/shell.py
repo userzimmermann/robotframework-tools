@@ -126,8 +126,9 @@ class RobotShell(ShellBase):
         self.register_robot_keyword_magics(alias or libname, library)
         return library
 
-    def Run(self, path):
-        result = self.robot.Run(path, debug=self.robot_debug_mode)
+    def Run(self, path, **options):
+        result = self.robot.Run(path, debug=self.robot_debug_mode,
+                                **options)
         return TestResult(result.robot_result)
 
     def Close(self):

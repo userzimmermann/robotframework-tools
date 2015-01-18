@@ -28,6 +28,8 @@ __all__ = [
   'KeywordMagic', 'KeywordCellMagic',
   'VariableMagic']
 
+import sys
+
 from IPython.core.magic import Magics, magics_class, line_magic
 
 from robottools.testrobot.output import LOG_LEVELS
@@ -36,6 +38,11 @@ from .base import RobotMagicBase
 from .robot import RobotMagic
 from .keyword import KeywordMagic, KeywordCellMagic
 from .variable import VariableMagic
+
+
+# on import robot, robot.run module gets overwritten
+# with robot.run.run() function
+RFW = sys.modules['robot.run'].RobotFramework()
 
 
 class RobotMagicsMeta(type(Magics)):
@@ -110,8 +117,10 @@ class RobotMagics(with_metaclass(RobotMagicsMeta, Magics)):
         return self.robot_shell.Import(libname, args, alias=alias)
 
     @line_magic
-    def Run(self, path):
-        return self.robot_shell.Run(path)
+    def Run(self, options_and_path):
+        options, sources = RFW.parse_arguments(
+          str(options_and_path).split())
+        return self.robot_shell.Run(*sources, **options)
 
     @line_magic
     def Close(self, _):
