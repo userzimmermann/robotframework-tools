@@ -25,7 +25,9 @@ Provides the interactive TestRobot interface.
 """
 from six import reraise
 
-__all__ = ['TestRobot']
+__all__ = ['TestRobot',
+  'TestResult', # from .result
+  ]
 
 from moretools import isidentifier
 
@@ -44,6 +46,7 @@ from .output import Output
 from .context import Context
 from .library import TestLibrary
 from .keyword import Keyword
+from .result import TestResult
 
 
 class TestRobot(object):
@@ -113,7 +116,7 @@ class TestRobot(object):
             result = runner.result
             if debug and result.return_code:
                 reraise(*self._output._last_fail_exc)
-            return runner.result
+            return TestResult(runner.result)
 
     def __getitem__(self, name):
         """Get variables (with $/@{...} syntax),
