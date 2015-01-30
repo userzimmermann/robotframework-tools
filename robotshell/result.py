@@ -27,34 +27,48 @@ __all__ = ['TestResult']
 
 from six.moves.urllib_parse import quote as urlquote
 
-from IPython.display import HTML
-
 import robottools
 
 
-class TestResult(robottools.TestResult, HTML):
+class TestResult(robottools.TestResult):
     """robotshell wrapper interface for robot test run results.
 
     - Instances are returned from %Run magic.
-    - Automatically displays the log HTML in a resizable <iframe>
-      in IPython notebook.
+    - Automatically displays tabbed log and report HTML
+      in resizable <iframe> boxes in IPython notebook.
     """
-    @property
-    def data(self):
-        """The HTML code to be displayed as cell output.
-
-        - Required by :class:`IPython.display.HTML`
-          (as dynamic alternative to passing data to HTML.__init__)
+    def _repr_html_(self):
+        """The tabbed log and report HTML code
+           to be displayed as notebook cell output.
         """
         return """
           <div class="robotshell-test-result">
-            <iframe width="100%%" height="100%%" frameborder="0"
-                    src="data:text/html;charset=utf-8,%s"
-                    > """ % urlquote(self.log_html) + """
-            </iframe>
+            <ul>
+              <li><a href="#robotshell-test-result-tab-log">Log</a>
+              </li>
+              <li><a href="#robotshell-test-result-tab-report">Report</a>
+              </li>
+            </ul>
+            <div id="robotshell-test-result-tab-log"
+                 class="robotshell-test-result-tab"
+                 >
+              <iframe width="100%%" height="100%%" frameborder="0"
+                      src="data:text/html;charset=utf-8,%s"
+                      > """ % urlquote(self.log_html) + """
+              </iframe>
+            </div>
+            <div id="robotshell-test-result-tab-report"
+                 class="robotshell-test-result-tab"
+                 >
+              <iframe width="100%%" height="100%%" frameborder="0"
+                      src="data:text/html;charset=utf-8,%s"
+                      > """ % urlquote(self.report_html) + """
+              </iframe>
+            </div>
           </div>
           <script type="text/javascript">
-            $("div.robotshell-test-result").resizable({
+            $("div.robotshell-test-result").tabs();
+            $("div.robotshell-test-result-tab").resizable({
               autoHide: true,
               handles: "s"
             });
