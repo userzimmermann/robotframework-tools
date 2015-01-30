@@ -34,7 +34,7 @@ else:
 
 from moretools import isstring
 
-from robot.conf import RobotSettings
+from robot.conf import RebotSettings
 from robot.reporting import ResultWriter
 from robot.reporting.resultwriter import Results
 
@@ -65,7 +65,7 @@ class TestResult(object):
         """
         self.robot_result = result
         self.options = options
-        # RobotSettings from options
+        # post-processed RebotSettings from **options
         settings = self.settings
         # write output if destinations defined
         for output, format in [
@@ -73,8 +73,8 @@ class TestResult(object):
           ('log', 'html'),
           ('report', 'html'),
           ]:
-            # first check if in options because RobotSettings
-            # always define default output paths
+            # first check if output paths or streams are defined in **options
+            # because RebotSettings always define default output paths
             file = options.get(output) and getattr(settings, output)
             if not file:
                 continue
@@ -88,9 +88,10 @@ class TestResult(object):
 
     @property
     def settings(self):
-        """Get options as post processed RobotSettings.
+        """Get options as post-processed RebotSettings for output generation.
         """
-        return RobotSettings(**self.options)
+        settings = RebotSettings(**self.options)
+        return settings
 
     @property
     def writer(self):
@@ -104,6 +105,8 @@ class TestResult(object):
     def output_xml(self):
         """Return the test run result as XML data (byte string),
            like it gets written to output.xml files by robot.
+
+        - Adapted from :meth:`robot.reporting.ReportWriter.write_results`
         """
         xml = Buffer()
         self.writer._write_output(self.robot_result, xml)
@@ -114,11 +117,16 @@ class TestResult(object):
     def log_html(self):
         """Return the test run log as HTML data (byte string),
            like it gets written to log.html files by robot.
+
+        - Adapted from :meth:`robot.reporting.ReportWriter.write_results`
         """
+        settings = self.settings
+        log_config = settings.log_config
+        del log_config['reportURL']
         html = Buffer()
         self.writer._write_log(
           Results(self.settings, self.robot_result).js_result,
-          html, {})
+          html, log_config)
         html.seek(0)
         return html.read()
 
@@ -126,10 +134,15 @@ class TestResult(object):
     def report_html(self):
         """Return the test run log as HTML data (byte string),
            like it gets written to log.html files by robot.
+
+        - Adapted from :meth:`robot.reporting.ReportWriter.write_results`
         """
+        settings = self.settings
+        report_config = settings.report_config
+        del report_config['logURL']
         html = Buffer()
         self.writer._write_report(
-          Results(self.settings, self.robot_result).js_result,
-          html, {})
+          Results(settings, self.robot_result).js_result,
+          html, report_config)
         html.seek(0)
         return html.read()
