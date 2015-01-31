@@ -159,7 +159,7 @@ class RobotShell(ShellBase):
                 if self.robot_cell_magic_mode:
                     keyword_cell_magic = KeywordCellMagic(
                       keyword, robot_shell=self)
-                    self.robot_keyword_cell_magics[name] = \
+                    self.robot_keyword_cell_magics[name] \
                       = self.cell_magics[name] = keyword_cell_magic
 
     def register_robot_variable_magics(self):
