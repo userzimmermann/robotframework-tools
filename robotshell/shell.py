@@ -150,15 +150,14 @@ class RobotShell(ShellBase):
                 keyword = Keyword(keyword._handler, self.robot._context)
 
                 keyword_magic = KeywordMagic(keyword, robot_shell=self)
-                self.robot_keyword_magics[name] = keyword_magic
+                self.robot_keyword_magics[name] \
+                  = self.line_magics[name] = keyword_magic
 
-                self.line_magics[name] = keyword_magic
-
-                ## keyword_cell_magic = KeywordCellMagic(
-                ##   keyword, robot_shell=self)
-                ## self.robot_keyword_cell_magics[name] = keyword_cell_magic
-
-                ## cell_magics[name] = keyword_cell_magic
+                if self.robot_cell_magic_mode:
+                    keyword_cell_magic = KeywordCellMagic(
+                      keyword, robot_shell=self)
+                    self.robot_keyword_cell_magics[name] = \
+                      = self.cell_magics[name] = keyword_cell_magic
 
     def register_robot_variable_magics(self):
         for var in self.robot._variables:
