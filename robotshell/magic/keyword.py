@@ -52,6 +52,34 @@ class KeywordMagic(RobotMagicBase):
 
 
 class KeywordCellMagic(KeywordMagic):
-    def __call__(self, args_str):
-        args = [s.strip() for s in args_str.strip().split('\n')]
-        return self.keyword(*args)
+    def __call__(self, options_str, args_str):
+        """Call the given with the line-wise given args
+           and extra named arguments given as option flags.
+        """
+        args = filter(None, (
+          s.strip() for s in args_str.strip().split('\n')))
+        options_str = options_str.strip()
+        if not options_str:
+            return self.keyword(*args)
+
+        if not options_str.startswith('--'):
+            raise ValueError(options_str)
+        options = {}
+        name = None
+        values = []
+
+        def add_option():
+            if name:
+                options[name] = values and ' '.join(values) or True
+
+        for word in options_str.split():
+            if word.startswith('--'):
+                add_option()
+                values = []
+                name = word.strip('-').replace(*'-_')
+                if not name:
+                    raise ValueError
+            else:
+                values.append(word)
+        add_option()
+        return self.keyword(*args, **options)
