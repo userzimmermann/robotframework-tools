@@ -2,7 +2,7 @@
 #
 # Python Tools for Robot Framework and Test Libraries.
 #
-# Copyright (C) 2013-2014 Stefan Zimmermann <zimmermann.code@gmail.com>
+# Copyright (C) 2013-2015 Stefan Zimmermann <zimmermann.code@gmail.com>
 #
 # robotframework-tools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -71,7 +71,8 @@ class Context(object):
             if type(keyword) is not Keyword:
                 raise KeyError(name)
         except KeyError:
-            raise DataError(name)
+            raise DataError("TestRobot %s has no Keyword named %s" % (
+                repr(self.testrobot.name), repr(name)))
         return keyword._handler
 
     def start_keyword(self, keyword):

@@ -2,7 +2,7 @@
 #
 # Python Tools for Robot Framework and Test Libraries.
 #
-# Copyright (C) 2013-2014 Stefan Zimmermann <zimmermann.code@gmail.com>
+# Copyright (C) 2013-2015 Stefan Zimmermann <zimmermann.code@gmail.com>
 #
 # robotframework-tools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@ from robottools import TestRobot
 from robottools.testrobot import Keyword
 
 from .base import ShellBase
+from .result import TestResult
 from .magic import (
   RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic, VariableMagic)
 
@@ -125,8 +126,10 @@ class RobotShell(ShellBase):
         self.register_robot_keyword_magics(alias or libname, library)
         return library
 
-    def Run(self, path):
-        return self.robot.Run(path, debug=self.robot_debug_mode)
+    def Run(self, path, **options):
+        result = self.robot.Run(path, debug=self.robot_debug_mode,
+                                **options)
+        return TestResult(result.robot_result)
 
     def Close(self):
         if self.robot is None:

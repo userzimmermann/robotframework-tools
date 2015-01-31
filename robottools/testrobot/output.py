@@ -2,7 +2,7 @@
 #
 # Python Tools for Robot Framework and Test Libraries.
 #
-# Copyright (C) 2013-2014 Stefan Zimmermann <zimmermann.code@gmail.com>
+# Copyright (C) 2013-2015 Stefan Zimmermann <zimmermann.code@gmail.com>
 #
 # robotframework-tools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -104,6 +104,9 @@ class Output(AbstractLogger):
     def fail(self, message, *args):
         self._last_fail_exc = sys.exc_info()
         AbstractLogger.fail(self, message, *args)
+
+    def register_error_listener(self, listener):
+        pass
 
     def start_suite(self, suite):
         pass
