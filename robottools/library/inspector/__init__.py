@@ -90,6 +90,10 @@ class TestLibraryInspector(
     def name(self):
         return self._library.name
 
+    @property
+    def version(self):
+        return self._library.version
+
     def __iter__(self):
         for keyword in self._library.handlers.values():
             yield KeywordInspector(keyword)
