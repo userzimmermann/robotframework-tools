@@ -23,6 +23,8 @@
 """
 __all__ = ['ToolsLibrary', 'register_bool_class', 'register_bool_type']
 
+from robottools import __version__, __requires__
+
 from moretools import boolclass, isboolclass, isstring
 
 import robot.running
@@ -42,6 +44,10 @@ keyword = TestLibrary.keyword
 
 
 class ToolsLibrary(TestLibrary):
+
+    ROBOT_LIBRARY_VERSION = __version__
+
+    ROBOT_LIBRARY_SCOPE = 'GLOBAL'
 
     @keyword
     def reload_library(self, name, *args):
