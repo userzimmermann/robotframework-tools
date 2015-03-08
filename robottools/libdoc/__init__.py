@@ -72,7 +72,7 @@ def libdoc(library, out=None, name=None, version=None, format=None,
           % repr(format))
 
     if out is not None:
-        class Stream:
+        class Stream(object):
             """Simple out stream wrapper for counting written characters
                and preventing stream closing.
             """
