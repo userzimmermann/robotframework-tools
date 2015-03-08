@@ -23,9 +23,14 @@ robot.libdoc alternative with more features.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import PY3
+
 __all__ = ['libdoc']
 
-from six.moves import StringIO
+if PY3: # always need `str` stream
+    from io import StringIO
+else:
+    from StringIO import StringIO
 
 from path import Path
 from moretools import isstring
@@ -96,7 +101,8 @@ def libdoc(library, out=None, name=None, version=None, format=None,
 
     stream = Stream() if format != 'html' else HTML(Stream, **options)
     if outpath:
-        out = outpath.open('w')
+        # need `str` stream in PY2 and PY3
+        out = open(outpath, 'w')
 
     doc = LibraryDocumentation(library, name, version, docformat)
     LibdocWriter(format).write(doc, stream)
