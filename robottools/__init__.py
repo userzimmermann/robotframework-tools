@@ -44,6 +44,7 @@ from robottools.library.session import SessionHandler
 from robottools.library.context import *
 
 from robottools.library.inspector import *
+from robottools.libdoc import libdoc
 
 from robottools.testrobot import *
 
