@@ -70,7 +70,7 @@ class Output(AbstractLogger):
     def __enter__(self):
         #HACK: Dynamically (un)register Output:
         LOGGER.disable_message_cache()
-        LOGGER.disable_automatic_console_logger()
+        LOGGER.unregister_console_logger()
         LOGGER.register_logger(self)
         # Catch global logging:
         self.logging_handler.__enter__()
