@@ -25,6 +25,7 @@ HTML stream wrapper for robottools.libdoc()
 """
 __all__ = ['HTML']
 
+import re
 from six.moves.html_parser import HTMLParser
 
 from moretools import isstring
@@ -36,7 +37,8 @@ def HTML(Stream, **options):
        according to the given :func:`robottools.libdoc` extra `options`.
     """
     exclude_tags = []
-    if options.pop('standalone', True) is False:
+    standalone = options.pop('standalone', True)
+    if standalone is False:
         exclude_tags += ['html', 'head', 'meta', 'body']
     heading = options.pop('heading', True)
     if heading and heading is not True:
@@ -89,15 +91,22 @@ def HTML(Stream, **options):
             self.attrs = ()
 
         def handle_data(self, text):
-            if self.tag not in exclude_tags:
-                if self.tag == 'script' \
-                  and ('type', 'text/x-jquery-tmpl') in self.attrs:
+            if self.tag in exclude_tags:
+                return
+            if self.tag == 'script':
+                if ('type', 'text/x-jquery-tmpl') in self.attrs:
                     # also process the contents of embedded jQuery templates
                     Parser().feed(text)
-                elif self.tag == 'h1' and isstring(heading):
-                    # custom override heading
-                    Stream.write(self, heading)
-                else:
-                    Stream.write(self, text)
+                    return
+                if not standalone \
+                  and re.match(r'^\s*\$\(document\)\.ready', text):
+                    # dynamically created content should be appended
+                    # to parent element of embedded documentation
+                    text = text.replace( #TODO: better selector
+                      "$('body')", "$('div#javascript-disabled').parent()")
+            elif self.tag == 'h1' and isstring(heading):
+                # custom override heading
+                text = heading
+            Stream.write(self, text)
 
     return Parser()
