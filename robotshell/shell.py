@@ -40,6 +40,7 @@ from robottools import TestRobot
 from robottools.testrobot import Keyword
 
 from .base import ShellBase
+from .library import TestLibrary
 from .result import TestResult
 from .magic import (
   RobotMagics, RobotMagic, KeywordMagic, KeywordCellMagic, VariableMagic)
@@ -124,7 +125,7 @@ class RobotShell(ShellBase):
     def Import(self, libname, args=None, alias=None):
         library = self.robot.Import(libname, args, alias=alias)
         self.register_robot_keyword_magics(alias or libname, library)
-        return library
+        return TestLibrary(library._library)
 
     def Run(self, path, **options):
         result = self.robot.Run(path, debug=self.robot_debug_mode,
