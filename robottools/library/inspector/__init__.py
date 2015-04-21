@@ -36,7 +36,8 @@ from path import path as Path
 
 import robot.errors
 import robot.running
-import robot.running.baselibrary
+from robot.running.testlibraries import _BaseTestLibrary
+from robot.running.userkeyword import UserLibrary
 import robot.libraries
 
 from .keyword import KeywordInspector
@@ -72,7 +73,7 @@ class TestLibraryInspector(
   with_metaclass(TestLibraryInspectorMeta, object)
   ):
     def __init__(self, lib, *args):
-        if isinstance(lib, robot.running.baselibrary.BaseLibrary):
+        if isinstance(lib, (_BaseTestLibrary, UserLibrary)):
             self._library = lib
             return
         try:
@@ -95,12 +96,18 @@ class TestLibraryInspector(
         return self._library.version
 
     def __iter__(self):
-        for keyword in self._library.handlers.values():
+        keywords = self._library.handlers
+        if hasattr(keywords, 'values'): # RFW < 2.9
+            keywords = keywords.values()
+        for keyword in keywords:
             yield KeywordInspector(keyword)
 
     def __getitem__(self, name):
         try:
-            handler = self._library.get_handler(name)
+            if hasattr(self._library, 'get_handler'): # RFW < 2.9
+                handler = self._library.get_handler(name)
+            else:
+                handler = self._library.handlers[name]
         except robot.errors.DataError as e:
             raise KeyError(str(e))
         return KeywordInspector(handler)
