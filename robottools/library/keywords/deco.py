@@ -34,7 +34,7 @@ import inspect
 
 from robot.utils import NormalizedDict
 
-from Collections import _Dictionary
+from robot.libraries.Collections import _Dictionary
 
 from .utils import KeywordName
 from .errors import InvalidKeywordOption, KeywordNotDefined
