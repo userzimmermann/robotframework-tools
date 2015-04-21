@@ -7,8 +7,12 @@
 __pycache__/
 
 PKG-INFO
+^build/
 ^dist/
 \.egg-info
+\.egg$
+\.egg/
+^\.eggs/
 ^\.tox/
 
 ^\.scon[sf]
