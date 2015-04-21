@@ -31,7 +31,7 @@ import robot.running
 from robot.running.namespace import IMPORTER
 from robot.utils import NormalizedDict, normalize
 
-from BuiltIn import BuiltIn
+from robot.libraries.BuiltIn import BuiltIn
 
 from robottools import testlibrary, normboolclass, RobotBool
 
