@@ -13,4 +13,5 @@ include tox.ini
 recursive-include test/ *.py
 
 exclude _README*
+exclude *.jinja
 exclude *.yml
