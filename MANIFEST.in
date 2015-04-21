@@ -11,3 +11,6 @@ include README.ipynb
 
 include tox.ini
 recursive-include test/ *.py
+
+exclude _README*
+exclude *.yml
