@@ -12,6 +12,9 @@ include README.ipynb
 include tox.ini
 recursive-include test/ *.py
 
+exclude .hg*
+exclude .*ignore
+
 exclude _README*
 exclude *.jinja
 exclude *.yml
