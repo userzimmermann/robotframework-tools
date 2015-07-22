@@ -29,6 +29,7 @@ from moretools import boolclass, isboolclass, isstring
 
 import robot.running
 from robot.running.namespace import IMPORTER
+from robot.parsing.settings import Library as LibrarySetting
 from robot.utils import NormalizedDict, normalize
 
 from robot.libraries.BuiltIn import BuiltIn
@@ -58,14 +59,22 @@ class ToolsLibrary(TestLibrary):
         which allows Test Libraries to dynamically extend or change them.
         """
         #HACK
-        libs = BUILTIN._namespace._testlibs
-        if name not in libs:
+        namespace = BUILTIN._namespace
+        try:
+            libs = namespace._testlibs
+        except AttributeError: # Robot 2.9
+            libs = namespace._kw_store.libraries
+        cache = IMPORTER._library_cache
+        setting = LibrarySetting(None, name, args)
+        libargs = setting.args
+        alias = setting.alias
+        if (alias or name) not in libs:
             raise RuntimeError(
               "Test Library '%s' was not imported yet." % name)
         del libs[name]
         #HACK even worse :)
         cache = IMPORTER._library_cache
-        lib = robot.running.TestLibrary(name, args)
+        lib = robot.running.TestLibrary(name, libargs)
         key = (name, lib.positional_args, lib.named_args)
         key = cache._norm_path_key(key)
         try:
