@@ -36,7 +36,7 @@ from itertools import chain
 
 from robot.errors import DataError
 
-from robottools import TestRobot
+from robottools import TestRobot, TestLibraryInspector
 from robottools.testrobot import Keyword
 
 from .base import ShellBase
@@ -148,7 +148,7 @@ class RobotShell(ShellBase):
         return self.Robot(extname=extname)
 
     def register_robot_keyword_magics(self, libalias, library):
-        for keyword in library:
+        for keyword in TestLibraryInspector(library):
             keywordname = keyword.name.replace(' ', '')
             for name in keywordname, '%s.%s' % (libalias, keywordname):
                 keyword = Keyword(keyword._handler, self.robot._context)
@@ -164,7 +164,10 @@ class RobotShell(ShellBase):
                       = self.cell_magics[name] = keyword_cell_magic
 
     def register_robot_variable_magics(self):
-        for var in self.robot._variables:
+        variables = self.robot._variables.current
+        if hasattr(variables, 'as_dict'): # Robot 2.9
+            variables = variables.as_dict()
+        for var in variables:
             magic = VariableMagic(var, robot_shell=self)
             name = str(magic)
             self.robot_variable_magics[name] = magic
