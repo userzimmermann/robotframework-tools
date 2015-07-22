@@ -25,6 +25,8 @@ __all__ = ['Context']
 
 from robot.errors import DataError
 from robot.running import EXECUTION_CONTEXTS
+import robot.running.namespace
+from robot.running.namespace import Importer
 
 from .keyword import Keyword
 
@@ -35,9 +37,15 @@ class Context(object):
         self.dry_run = False
         self.in_teardown = False
         self.test = None
+        self.importer = Importer()
 
     def __enter__(self):
-        #HACK: For the Robot BuiltIn Library
+        """Prepare the TestRobot's context
+           and set global stuff in the ``robot`` packages
+           for running Tests and Keywords.
+        """
+        #HACK: For internal use by Robot BuiltIn Library
+        robot.running.namespace.IMPORTER = self.importer
         EXECUTION_CONTEXTS._contexts = [self]
         #HACK: Registers output to LOGGER
         self.output.__enter__()
@@ -48,6 +56,7 @@ class Context(object):
         self.output.__exit__(*exc)
         #HACK:
         EXECUTION_CONTEXTS._contexts = []
+        robot.running.namespace.IMPORTER = None
 
     @property
     def variables(self):
