@@ -69,9 +69,9 @@ class Keyword(KeywordInspector):
         args = list(map(unicode, args))
         args.extend(u'%s=%s' % item for item in kwargs.items())
         if self._debug:
-            runner = DebugKeyword(self.name, args)
+            runner = DebugKeyword(self.name, args=args)
         else:
-            runner = robot.running.Keyword(self.name, args)
+            runner = robot.running.Keyword(self.name, args=args)
         #HACK: `with` registers Context to EXECUTION_CONTEXTS
         # and Output to LOGGER:
         with self._context as ctx:
