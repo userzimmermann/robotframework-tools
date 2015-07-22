@@ -90,6 +90,12 @@ class Context(object):
     def end_keyword(self, keyword):
         pass
 
+    def debug(self, msg):
+        self.output.debug(msg)
+
+    def fail(self, msg):
+        self.output.fail(msg)
+
     def warn(self, msg):
         self.output.warn(msg)
 
