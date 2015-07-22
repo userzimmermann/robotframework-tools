@@ -73,6 +73,9 @@ class TestLibraryInspector(
   with_metaclass(TestLibraryInspectorMeta, object)
   ):
     def __init__(self, lib, *args):
+        if isinstance(lib, TestLibraryInspector):
+            self._library = lib._library
+            return
         if isinstance(lib, (_BaseTestLibrary, UserLibrary)):
             self._library = lib
             return
