@@ -25,9 +25,10 @@ A thin wrapper module for `robot.output.highlighting`.
 """
 __all__ = ['Highlighter']
 
-from functools import partial
-
-from robot.output.highlighting import Highlighter as _Highlighter
+try: # Robot 2.9
+    from robot.output.console.highlighting import Highlighter as _Highlighter
+except ImportError:
+    from robot.output.highlighting import Highlighter as _Highlighter
 
 
 class Highlighter(object):

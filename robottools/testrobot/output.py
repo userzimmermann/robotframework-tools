@@ -30,7 +30,6 @@ import logging
 from robot.output import LOGGER, LEVELS as LOG_LEVELS
 from robot.output.loggerhelper import AbstractLogger
 from robot.output.pyloggingconf import RobotHandler
-from robot.output.highlighting import Highlighter
 
 from .highlighting import Highlighter
 
