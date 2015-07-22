@@ -17,21 +17,31 @@
 # You should have received a copy of the GNU General Public License
 # along with robotframework-tools. If not, see <http://www.gnu.org/licenses/>.
 
-"""robottools.testrobot
+"""robottools.testrobot.variables
+
+Wrapping Robot Framework's Variables for use with TestRobot.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['VariablesBase', 'variablesclass']
 
 from robot.errors import DataError
-import robot.variables
+try: # Robot 2.9
+    from robot.variables import VariableScopes
+    Variables = VariableScopes
+except ImportError:
+    VariableScopes = None
+    from robot.variables import Variables
 
 
-class VariablesBase(robot.variables.Variables):
-
+class VariablesBase(Variables):
+    """Base class for creating custom Variables wrapper classes
+       via :func:`robottools.testrobot.variables.variablesclass`
+       with support for ``extra_getters`` (extra lookup sources).
+    """
     def __getitem__(self, key):
         try:
-            return robot.variables.Variables.__getitem__(self, key)
+            return Variables.__getitem__(self, key)
         except DataError:
             for getter in self._extra_getters:
                 try:
@@ -40,14 +50,19 @@ class VariablesBase(robot.variables.Variables):
                     pass
         raise DataError(key)
 
-    @property
-    def current(self):
-        return self
+    if not VariableScopes: # Robot 2.8
+        @property
+        def current(self):
+            return self
 
     _parents = []
 
 
 def variablesclass(extra_getters=None):
+    """Creates custom Variables wrapper classes
+       with support for ``extra_getters`` (extra lookup sources),
+       which should work like dicts and support ``$/@/&{...}`` style keys.
+    """
     return type(VariablesBase)('Variables', (VariablesBase,), {
       '_extra_getters': extra_getters or (),
       })
