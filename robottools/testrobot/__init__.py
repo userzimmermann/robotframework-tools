@@ -29,12 +29,18 @@ __all__ = ['TestRobot',
   'TestResult', # from .result
   ]
 
+from inspect import getargspec
+from functools import partial
+
 from moretools import isidentifier
 
 from robot.errors import DataError
 from robot.model import TestSuite
 from robot.conf import RobotSettings
-from robot.variables import GLOBAL_VARIABLES, init_global_variables
+try:
+    from robot.variables import GLOBAL_VARIABLES, init_global_variables
+except ImportError: # Robot 2.9
+    from robot.variables import VariableScopes
 from robot.running.namespace import Namespace
 from robot.running.runner import Runner
 from robot.running import TestSuiteBuilder
@@ -68,27 +74,45 @@ class TestRobot(object):
         """
         self.name = name
         self.debug = False
-        if not GLOBAL_VARIABLES: #HACK
-            init_global_variables(RobotSettings())
-        self._variables = GLOBAL_VARIABLES.copy()
+        try:
+            GLOBAL_VARIABLES
+        except NameError: # Robot 2.9
+            self._variables = VariableScopes(RobotSettings())
+        else:
+            if not GLOBAL_VARIABLES: #HACK
+                init_global_variables(RobotSettings())
+            self._variables = GLOBAL_VARIABLES.copy()
         #HACK even more to extend variable lookup:
         self._variables.__class__ = variablesclass(
           extra_getters=variable_getters)
         self._output = Output()
         self._context = Context(testrobot=self)
         self._suite = TestSuite(name)
-        self._namespace = Namespace(
-          self._suite, self._variables, None, [], None)
-        # Store .library.TestLibrary wrapper instances by alias
-        #  on self.Import():
-        self._libraries = {}
+        namespace = partial(Namespace,
+          suite=self._suite, variables=self._variables,
+          user_keywords=[], imports=None)
+        if 'parent_variables' in getargspec(Namespace.__init__).args:
+            self._namespace = namespace(parent_variables=None)
+        else: # Robot 2.9
+            self._namespace = namespace()
 
         if BuiltIn:
             self.Import('BuiltIn')
 
     @property
+    def _libraries(self):
+        """Get the TestRobot's internal RFW library dict
+           (values not wrapped with :class:`robottools.TestLibraryInspector`
+            or :class:`robottools.testrobot.TestLibrary`).
+        """
+        try:
+            return self._namespace._testlibs
+        except AttributeError: # Robot 2.9
+            return self._namespace._kw_store.libraries
+
+    @property
     def __doc__(self):
-        """Dynamic doc string listing imported Test Libraries.
+        """Dynamic doc string, listing imported Test Libraries.
         """
         return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
           '* [Import] ' + lib.name
@@ -101,12 +125,14 @@ class TestRobot(object):
             #HACK: `with` adds Context to robot.running.EXECUTION_CONTEXTS
             # and registers Output to robot.output.LOGGER
             with self._context:
-                lib = TestLibraryInspector(lib, *(args or ()))
-        # Put lib in testrobot's derived lib wrapper
+                lib = self._context.importer.import_library(lib,
+                  args and list(args), alias, None)
+                self._libraries[alias or lib.name] = lib
+                lib = TestLibraryInspector(lib)
+                ## lib = TestLibraryInspector(lib, *(args or ()))
+        # Put lib in testrobot's TestLibrary wrapper
         #  for calling Keywords with TestRobot's context:
-        lib = TestLibrary(lib._library, context=self._context)
-        self._libraries[alias or lib.name] = lib
-        return lib
+        return TestLibrary(lib._library, context=self._context)
 
     def Run(self, path, **options):
         debug = options.pop('debug', self.debug)
@@ -134,6 +160,9 @@ class TestRobot(object):
             except DataError as e:
                 raise KeyError(str(e))
         for alias, lib in self._libraries.items():
+            # Put lib in testrobot's TestLibrary wrapper
+            #  for calling Keywords with TestRobot's context:
+            lib = TestLibrary(lib, context=self._context)
             if alias == name:
                 return lib
             try:
