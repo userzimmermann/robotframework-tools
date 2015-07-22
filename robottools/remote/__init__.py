@@ -33,7 +33,7 @@ del __extras__
 
 from robotremoteserver import RobotRemoteServer
 
-from robottools import TestRobot, testlibrary
+from robottools import TestRobot, TestLibraryInspector, testlibrary
 from robottools.testrobot import Keyword
 
 from .library import RemoteLibrary
@@ -93,8 +93,8 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
             self.register_function(func, funcname)
 
     def _register_library_keywords(self, lib):
-        for keywordname in dir(lib):
-            self._register_keyword(keywordname, self[keywordname])
+        for keyword in TestLibraryInspector(lib):
+            self._register_keyword(keyword.name, self[keyword.name])
 
     def _register_functions(self):
         RobotRemoteServer._register_functions(self)

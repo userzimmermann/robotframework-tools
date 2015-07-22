@@ -25,7 +25,7 @@ RemoteRobot's library proxy for RobotRemoteServer base.
 """
 __all__ = ['RemoteLibrary']
 
-from itertools import chain
+from robottools import TestLibraryInspector
 
 
 class RemoteLibrary(object):
@@ -41,7 +41,8 @@ class RemoteLibrary(object):
         self.robot = robot
 
     def get_keyword_names(self):
-        return list(chain(*map(dir, self.robot._libraries.values())))
+        return [keyword.name for lib in self.robot._libraries.values()
+                for keyword in TestLibraryInspector(lib)]
 
     def get_keyword_arguments(self, name):
         keyword = self.robot[name]
