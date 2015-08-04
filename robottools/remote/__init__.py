@@ -44,6 +44,7 @@ TestLibrary = testlibrary()
 keyword = TestLibrary.keyword
 
 
+# register basic 'Stop Remote Server' as RemoteRobot keyword
 keyword(RobotRemoteServer.stop_remote_server)
 
 
@@ -116,10 +117,10 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
                 return self.keywords[name]
             except KeyError:
                 return None
-        return keyword if type(keyword) is Keyword else None
+        return keyword if isinstance(keyword, Keyword) else None
 
     def _arguments_from_kw(self, keyword):
-        if type(keyword) is Keyword:
+        if isinstance(keyword, Keyword):
             return list(keyword.arguments)
         return RobotRemoteServer._arguments_from_kw(self, keyword)
 
