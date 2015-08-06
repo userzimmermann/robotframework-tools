@@ -26,33 +26,67 @@ from six import reraise, text_type as unicode
 __all__ = ['Keyword']
 
 import sys
-import warnings
-import logging
-
-from moretools import isidentifier
 
 from robot.errors import HandlerExecutionFailed
 import robot.running
+try: # Robot 2.9
+    from robot.running.keywordrunner import NormalRunner
+except ImportError:
+    NormalRunner = None
 
 from robottools.library.inspector.keyword import KeywordInspector
 
 
-class DebugKeyword(robot.running.Keyword):
+def debug_fail(context):
+    """Handles a Keyword FAIL in debugging mode
+       by writing some extra output to the given Robot `context`
+       and re-raising the exception that caused the FAIL.
+    """
+    # Get the Exception raised by the Keyword
+    exc_type, exc, traceback = sys.exc_info()
+    context.output.fail("%s: %s" % (exc_type.__name__, exc))
+    context.output.debug("Re-raising exception...")
+    # Search the oldest traceback frame of the actual Keyword code
+    # (Adapted from robot.utils.error.PythonErrorDetails._get_traceback)
+    while traceback:
+        modulename = traceback.tb_frame.f_globals['__name__']
+        if modulename.startswith('robot.running.'):
+            traceback = traceback.tb_next
+        else:
+            break
+    reraise(exc_type, exc, traceback)
 
+
+if NormalRunner: # Robot 2.9
+    #HACK
+    class DebugNormalRunner(NormalRunner):
+        """On-demand-replacement (monkey patch)
+           for :class:`robot.runnning.keywordrunner.NormalRunner`
+           to catch the exception that caused a Keyword FAIL
+           for debugging.
+        """
+        def _get_and_report_failure(self):
+            debug_fail(self._context)
+
+
+class DebugKeyword(robot.running.Keyword):
+    """Derived :class:`robot.running.Keyword` runner
+       that catches the exception that caused a Keyword FAIL
+       for debugging.
+    """
+
+    # Robot 2.8
     def _report_failure(self, context):
-        # Get the Exception raised by the Keyword
-        exc_type, exc_value, traceback = sys.exc_info()
-        context.output.fail("%s: %s" % (exc_type.__name__, exc_value))
-        context.output.debug("Re-raising exception...")
-        # Search the oldest traceback frame of the actual Keyword code
-        # (Adapted from robot.utils.error.PythonErrorDetails._get_traceback)
-        while traceback:
-            modulename = traceback.tb_frame.f_globals['__name__']
-            if modulename.startswith('robot.running.'):
-                traceback = traceback.tb_next
-            else:
-                break
-        reraise(exc_type, exc_value, traceback)
+        debug_fail(context)
+
+    # Robot 2.9
+    def __enter__(self):
+        #HACK: monkey-patch robot.running's NormalRunner
+        # to catch the Keyword exception
+        robot.running.keywordrunner.NormalRunner = DebugNormalRunner
+
+    def __exit__(self, *exc):
+        robot.running.keywordrunner.NormalRunner = NormalRunner
 
 
 class Keyword(KeywordInspector):
@@ -76,9 +110,14 @@ class Keyword(KeywordInspector):
         # and Output to LOGGER:
         with self._context as ctx:
             try:
+                #Robot 2.9
+                if NormalRunner and isinstance(runner, DebugKeyword):
+                    with runner:
+                        return runner.run(ctx)
+
                 return runner.run(ctx)
-            # Raised by robot.running.Keyword:
-            except HandlerExecutionFailed as e:
+            # Robot 2.8: raised by robot.running.Keyword:
+            except HandlerExecutionFailed:
                 pass
 
     def debug(self, *args, **kwargs):
