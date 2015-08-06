@@ -79,7 +79,7 @@ class Output(AbstractLogger):
         self.logging_handler.__exit__(*exc)
         LOGGER.unregister_logger(self)
 
-    _re_msg_label = re.compile(r'^\[(%s)\] *' % '|'.join(LOG_LEVELS))
+    _re_msg_label = re.compile(r'^\[ ?(%s) ?\] *' % '|'.join(LOG_LEVELS))
 
     def message(self, message):
         msg = message.message
@@ -89,7 +89,7 @@ class Output(AbstractLogger):
             level = message.level
         if not self._is_logged(level):
             return
-        self.stream.write("[")
+        self.stream.write("[ ")
         try:
             color = LOG_LEVEL_COLORS[level]
         except KeyError:
@@ -97,7 +97,7 @@ class Output(AbstractLogger):
         else:
             with Highlighter(color, self.stream) as stream:
                 stream.write(level)
-        self.stream.write("]%s %s\n" % (
+        self.stream.write(" ]%s %s\n" % (
           ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)), msg))
 
     def fail(self, message, *args):
