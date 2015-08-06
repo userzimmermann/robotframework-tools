@@ -86,13 +86,13 @@ class Output(AbstractLogger):
         # unset internal streams
         self._out = self._err = None
 
-    _re_msg_label = re.compile('|'.join(r % '|'.join(LOG_LEVELS)
+    _re_log_level = re.compile('|'.join(r % '|'.join(LOG_LEVELS)
       for r in [r'^\[ ?(%s) ?\] *', r'^\* ?(%s) ?\* *']))
 
     def message(self, message):
         msg = message.message
         try:
-            _, brackets, stars, msg = self._re_msg_label.split(msg)
+            _, brackets, stars, msg = self._re_log_level.split(msg)
         except ValueError:
             level = message.level
         else:
