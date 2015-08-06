@@ -61,12 +61,17 @@ class Output(AbstractLogger):
     def __init__(self, log_level='INFO'):
         AbstractLogger.__init__(self, level=log_level)
         self.logging_handler = LoggingHandler()
-        self.stream = sys.__stdout__
+        # streams to be used internally for writing messages
+        # - see self.__enter__() and self.message()
+        self._out = self._err = None
 
     def set_log_level(self, level):
         return self.set_level(level)
 
     def __enter__(self):
+        # save sys.stdout and sys.stderr for writing
+        self._out = sys.stdout
+        self._err = sys.stderr
         #HACK: Dynamically (un)register Output:
         LOGGER.disable_message_cache()
         LOGGER.unregister_console_logger()
@@ -78,26 +83,38 @@ class Output(AbstractLogger):
         #HACK:
         self.logging_handler.__exit__(*exc)
         LOGGER.unregister_logger(self)
+        # unset internal streams
+        self._out = self._err = None
 
-    _re_msg_label = re.compile(r'^\[(%s)\] *' % '|'.join(LOG_LEVELS))
+    _re_msg_label = re.compile('|'.join(r % '|'.join(LOG_LEVELS)
+      for r in [r'^\[ ?(%s) ?\] *', r'^\* ?(%s) ?\* *']))
 
     def message(self, message):
         msg = message.message
         try:
-            _, level, msg = self._re_msg_label.split(msg)
+            _, brackets, stars, msg = self._re_msg_label.split(msg)
         except ValueError:
             level = message.level
+        else:
+            level = brackets or stars
         if not self._is_logged(level):
             return
-        self.stream.write("[")
+
+        # select streams to use
+        if level == 'INFO':
+            stream = self._out or sys.__stdout__
+        else:
+            stream = self._err or sys.__stderr__
+        #... and finally write the message
+        stream.write("[ ")
         try:
             color = LOG_LEVEL_COLORS[level]
         except KeyError:
-            self.stream.write(level)
+            stream.write(level)
         else:
-            with Highlighter(color, self.stream) as stream:
-                stream.write(level)
-        self.stream.write("]%s %s\n" % (
+            with Highlighter(color, stream) as hl:
+                hl.write(level)
+        stream.write(" ]%s %s\n" % (
           ' ' * (LOG_LEVELS_MAX_WIDTH - len(level)), msg))
 
     def fail(self, message, *args):
