@@ -109,6 +109,9 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
         return (self._library.get_keyword_names()
                 + TestLibrary.get_keyword_names(self))
 
+    def get_keyword_documentation(self, name):
+        return self._library.get_keyword_documentation(name) 
+
     def _get_keyword(self, name):
         try:
             keyword = self[name]
