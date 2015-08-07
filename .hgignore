@@ -13,6 +13,9 @@ PKG-INFO
 \.egg$
 \.egg/
 ^\.eggs/
+^\.env
+^\.venv
+^\.conda
 ^\.tox/
 
 ^\.scon[sf]
