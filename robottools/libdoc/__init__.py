@@ -119,22 +119,24 @@ def libdoc(library, out=None, name=None, version=None, format=None,
     return text
 
 
-def xml(library, out, name=None, version=None, docformat=None):
+def xml(library, out=None, name=None, version=None, docformat=None):
     """Call :func:`robottools.libdoc` with ``format='xml'``.
     """
-    return func(library, out, name=name, version=version, format='xml',
-                docformat=docformat)
+    return libdoc(library, out, name=name, version=version, format='xml',
+                  docformat=docformat)
 
 xml.__qualname__ = 'libdoc.xml'
 libdoc.xml = xml
 
 
-def html(library, out, name=None, version=None, docformat=None, **options):
+def html(library, out=None, name=None, version=None, docformat=None,
+         **options):
     """Call :func:`robottools.libdoc` with ``format='html'``
-       and extra `options` for HTML post-processing.
+       and extra `options` for HTML post-processing
+       (see :func:`robottools.libdoc` for details).
     """
-    return func(library, out, name=name, version=version, format='html',
-                docformat=docformat, **options)
+    return libdoc(library, out, name=name, version=version, format='html',
+                  docformat=docformat, **options)
 
 html.__qualname__ = 'libdoc.html'
 libdoc.html = html

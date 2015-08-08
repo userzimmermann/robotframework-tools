@@ -23,7 +23,7 @@
 """
 from six import PY3
 
-__all__ = ['RobotPlugin']
+__all__ = ['RobotShell']
 
 if PY3:
     import builtins
