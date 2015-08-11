@@ -23,46 +23,44 @@ Wrapping Robot Framework's Variables for use with TestRobot.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['VariablesBase', 'variablesclass']
+__all__ = ['variablesclass']
+
+import sys
 
 from robot.errors import DataError
-try: # Robot 2.9
-    from robot.variables import VariableScopes
-    Variables = VariableScopes
-except ImportError:
-    VariableScopes = None
-    from robot.variables import Variables
 
 
-class VariablesBase(Variables):
-    """Base class for creating custom Variables wrapper classes
-       via :func:`robottools.testrobot.variables.variablesclass`
-       with support for ``extra_getters`` (extra lookup sources).
-    """
-    def __getitem__(self, key):
-        try:
-            return Variables.__getitem__(self, key)
-        except DataError:
-            for getter in self._extra_getters:
-                try:
-                    return getter(key)
-                except (LookupError, DataError):
-                    pass
-        raise DataError(key)
-
-    if not VariableScopes: # Robot 2.8
-        @property
-        def current(self):
-            return self
-
-    _parents = []
-
-
-def variablesclass(extra_getters=None):
+def variablesclass(base, extra_getters=None):
     """Creates custom Variables wrapper classes
        with support for ``extra_getters`` (extra lookup sources),
        which should work like dicts and support ``$/@/&{...}`` style keys.
     """
-    return type(VariablesBase)('Variables', (VariablesBase,), {
-      '_extra_getters': extra_getters or (),
-      })
+    class Variables(base):
+        """Base class for creating custom Variables wrapper classes
+           via :func:`robottools.testrobot.variables.variablesclass`
+           with support for ``extra_getters`` (extra lookup sources).
+        """
+        _extra_getters = extra_getters or ()
+
+        def __getitem__(self, key):
+            try:
+                return base.__getitem__(self, key)
+            except DataError as e:
+                if self._extra_getters:
+                    for getter in self._extra_getters:
+                        try:
+                            return getter(key)
+                        except (LookupError, DataError):
+                            pass
+                raise
+
+        def __getattribute__(self, name):
+            value = base.__getattribute__(self, name)
+            if name == 'current' and type(value).__module__ != __name__:
+                value.__class__ = variablesclass(type(value),
+                  extra_getters=self._extra_getters)
+            return value
+
+        _parents = []
+
+    return Variables

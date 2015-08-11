@@ -83,7 +83,7 @@ class TestRobot(object):
                 init_global_variables(RobotSettings())
             self._variables = GLOBAL_VARIABLES.copy()
         #HACK even more to extend variable lookup:
-        self._variables.__class__ = variablesclass(
+        self._variables.__class__ = variablesclass(type(self._variables),
           extra_getters=variable_getters)
         self._output = Output()
         self._context = Context(testrobot=self)
