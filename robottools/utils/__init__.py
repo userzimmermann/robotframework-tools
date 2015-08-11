@@ -24,6 +24,8 @@
 
 from .normbool import normboolclass, normbooltype
 from .normstr import normstringclass, normstringtype
+from .normdict import NormalizedDict, normdictclass, normdicttype, \
+  normdictkeys, normdictitems, normdictdata
 
 
 RobotBool = normbooltype('RobotBool', true=['true'], false=['false'])
