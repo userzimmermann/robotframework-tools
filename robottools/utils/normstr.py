@@ -24,6 +24,8 @@ with normalized data storage and comparisons.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+from six import text_type as unicode
+
 __all__ = ['normstringclass', 'normstringtype']
 
 from six.moves import UserString
@@ -31,42 +33,45 @@ from six.moves import UserString
 from robot.utils import normalize
 
 
-class NormalizedString(UserString):
+class NormalizedString(unicode):
     """Base class for :func:`normstringclass` created classes.
     """
     def __init__(self, value):
         """Initialize a NormalizedString instance with a normalized value.
         """
-        return UserString.__init__(self, type(self).normalize(value))
+        self.__dict__['normalized'] = type(self).normalize(self)
+
+    @property
+    def normalized(self):
+        return self.__dict__['normalized']
 
     def __cmp__(self, other):
-        return cmp(self.data, type(self).normalize(other))
+        return cmp(self.normalized, type(self).normalize(other))
 
     def __eq__(self, other):
-        return (self.data == type(self).normalize(other))
+        return self.normalized == type(self).normalize(other)
 
     def __ne__(self, other):
-        return (self.data != type(self).normalize(other))
+        return self.normalized != type(self).normalize(other)
 
     def __lt__(self, other):
-        return (self.data < type(self).normalize(other))
+        return self.normalized < type(self).normalize(other)
 
     def __le__(self, other):
-        return (self.data <= type(self).normalize(other))
+        return self.normalized <= type(self).normalize(other)
 
     def __gt__(self, other):
-        return (self.data > type(self).normalize(other))
+        return self.normalized > type(self).normalize(other)
 
     def __ge__(self, other):
-        return (self.data >= type(self).normalize(other))
+        return self.normalized >= type(self).normalize(other)
 
     def __contains__(self, string):
-        return UserString.__contains__(self, type(self).normalize(string))
+        return type(self).normalize(string) in self.normalized
 
 
-def normstringclass(typename='NormalizedString', true=None, false=None,
-                 ignore='', caseless=True, spaceless=True,
-                 base=NormalizedString):
+def normstringclass(typename='NormalizedString',
+  ignore='', caseless=True, spaceless=True, base=NormalizedString):
 
     if not issubclass(base, NormalizedString):
         raise TypeError("'base' is no subclass of normstringclass.base: %s"
