@@ -34,10 +34,13 @@ import inspect
 
 from robot.utils import NormalizedDict
 
-from robot.libraries.Collections import _Dictionary
-
 from .utils import KeywordName
 from .errors import InvalidKeywordOption, KeywordNotDefined
+
+
+def create_dictionary(*args, **items):
+    iargs = iter(args)
+    return dict(zip(iargs, iargs), **items)
 
 
 class KeywordDecoratorType(object):
@@ -100,7 +103,7 @@ class KeywordDecoratorType(object):
         def method(self, *args, **kwargs):
             posargs = args[:nposargs]
             varargs = args[nposargs:]
-            kwargs = _Dictionary().create_dictionary(*varargs, **kwargs)
+            kwargs = create_dictionary(*varargs, **kwargs)
             return func(self, *posargs, **kwargs)
 
         method.__name__ = func.__name__
