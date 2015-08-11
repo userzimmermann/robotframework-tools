@@ -22,8 +22,8 @@
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 
-from .normbool import *
-from .normstr import *
+from .normbool import normboolclass, normbooltype
+from .normstr import normstringclass, normstringtype
 
 
 RobotBool = normbooltype('RobotBool', true=['true'], false=['false'])
