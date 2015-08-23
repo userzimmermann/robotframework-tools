@@ -34,6 +34,8 @@ import inspect
 
 from robot.utils import NormalizedDict
 
+from robottools.utils import normdictdata
+
 from .utils import KeywordName
 from .errors import InvalidKeywordOption, KeywordNotDefined
 
@@ -116,7 +118,7 @@ class KeywordDecoratorType(object):
         """
         def method(self, *args, **kwargs):
             kwargs = NormalizedDict(kwargs)
-            return func(self, *args, **kwargs.data)
+            return func(self, *args, **normdictdata(kwargs))
 
         method.__name__ = func.__name__
         return method
