@@ -25,7 +25,7 @@ and access internal normalized data of NormalizedDict instances.
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
 __all__ = ['NormalizedDict', 'normdictclass', 'normdicttype',
-           'normdictkeys', 'normdictvalues', 'normdictdata']
+           'normdictkeys', 'normdictitems', 'normdictdata']
 
 from six import with_metaclass, iterkeys, iteritems
 from six.moves import UserString, UserDict
@@ -40,7 +40,10 @@ from robot.utils import normalize, NormalizedDict as base
 _has_UserDict_base = issubclass(base, UserDict)
 
 
-class meta(modeled.object.meta, type(base)):
+class meta(modeled.object.meta,
+           # avoid metaclass conflicts
+           type(base) if issubclass(base, object) else type
+           ):
     """Metaclass for basic :class:`robottools.utils.NormalizedDict`
 
     - Enables derived classes to pre-define normalizing options
