@@ -2,5 +2,6 @@ zetup >= 0.2.16
 six >= 1.9
 path.py >= 7.5 #import path
 moretools >= 0.1.7
-#py2 robotframework > 2.8 #import robot
+modeled >= 0.1.3
+#py2 robotframework >= 2.8 #import robot
 #py3 robotframework-python3 #import robot
