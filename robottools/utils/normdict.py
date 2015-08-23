@@ -19,12 +19,19 @@
 
 """robottools.utils.normdict
 
+Create custom NormalizedDict classes with pre-defined normalizing options
+and access internal normalized data of NormalizedDict instances.
+
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-__all__ = ['NormalizedDict', 'normdictclass', 'normdicttype']
+__all__ = ['NormalizedDict', 'normdictclass', 'normdicttype',
+           'normdictkeys', 'normdictvalues', 'normdictdata']
 
-from six import iterkeys, iteritems
+from six import with_metaclass, iterkeys, iteritems
 from six.moves import UserString, UserDict
+
+from moretools import qualname
+import modeled
 
 from robot.utils import normalize, NormalizedDict as base
 
@@ -33,25 +40,69 @@ from robot.utils import normalize, NormalizedDict as base
 _has_UserDict_base = issubclass(base, UserDict)
 
 
-class NormalizedDict(base):
+class meta(modeled.object.meta, type(base)):
+    """Metaclass for basic :class:`robottools.utils.NormalizedDict`
 
-    @property
-    def meta(self):
-        return type(self)
+    - Enables derived classes to pre-define normalizing options
+      via meta attributes.
+    """
+    # default normalizing options
+    ignore = ''
+    caseless = True
+    spaceless = True
+
+    def __init__(cls, clsname, bases, clsattrs):
+        modeled.object.meta.__init__(cls, clsattrs, bases, clsattrs)
+
+        # to be stored as .normalize metamethod of created class
+        def normalizer(value):
+            """Normalize `value` based on normalizing options from metaclass.
+            """
+            if isinstance(value, UserString):
+                value = value.data
+            return normalize(value, ignore=cls.ignore,
+              caseless=cls.caseless, spaceless=cls.spaceless)
+
+        normalizer.__qualname__ = '%s.meta.normalize' % qualname(cls)
+        cls.meta.normalize = staticmethod(normalizer)
+
+        if cls.__init__ is modeled.object.__init__:
+            #==> no custom cls.__init__
+            #==> create default __init__ without normalizing options
+            #    from basic robot.utils.NormalizedDict.__init__
+
+            def __init__(self, mapping, **items):
+                modeled.object.__init__(self)
+                base.__init__(self, mapping)
+                if items:
+                    self.update(items)
+
+            cls.__init__ = __init__
+
+
+class NormalizedDict(with_metaclass(meta, modeled.object, base)):
+
+    def __init__(self, mapping=None):
+        """Only initialize with an optional `mapping`
+           and no normalizing options.
+        """
+        base.__init__(self, mapping)
 
     #HACK: internally used by robot.utils.NormalizedDict base
     # (normally dynamically created and assigned in base __init__)
     @property
     def _normalize(self):
-        return self.__dict__.get('_normalize') or type(self).normalize
+        return type(self).normalize
 
-    #HACK: only let robot.utils.NormalizedDict change
-    # the internal _normalize function if no .meta.normalize is defined
+    #HACK: avoid an exception when base __init__ tries to set
+    # the internal _normalize function
     @_normalize.setter
     def _normalize(self, func):
-        if not hasattr(type(self), 'normalize'):
-            self.__dict__['_normalize'] = func
+        pass
 
+    # define a common .normalized property
+    # for accessing the internal dict with normalized keys
+    #!!! those keys should not be manipulated manually !!!
     if _has_UserDict_base: # Robot 2.8
         @property
         def normalized(self):
@@ -64,44 +115,20 @@ class NormalizedDict(base):
 
 
 def normdictclass(typename='NormalizedDict',
-  ignore='', caseless=True, spaceless=True, base=NormalizedDict):
-
+  ignore='', caseless=True, spaceless=True, base=NormalizedDict
+  ):
     if not issubclass(base, NormalizedDict):
         raise TypeError("'base' is no subclass of normdictclass.base: %s"
                         % base)
 
-    # to be stored as .normalize method of created class
-    def normalizer(value):
-        """Normalize `value` based on normalizing options
-           given to :func:`normstringclass`.
-        """
-        if isinstance(value, UserString):
-            value = value.data
-        return normalize(value, ignore=normalizer.ignore,
-          caseless=normalizer.caseless, spaceless=normalizer.spaceless)
-
+    cls = type(NormalizedDict)(typename, (base,), {})
+    meta = cls.meta
     # store the normalizing options
-    normalizer.ignore = ignore
-    normalizer.caseless = caseless
-    normalizer.spaceless = spaceless
+    meta.ignore = ignore
+    meta.caseless = caseless
+    meta.spaceless = spaceless
+    return cls
 
-    class Type(type(base)):
-        normalize = staticmethod(normalizer)
-
-    clsattrs = {}
-    if base.__init__ is NormalizedDict.__init__:
-        #==> no custom __init__ in custom base class
-        #==> create default __init__ without normalizing options
-        #    from basic robot.utils.NormalizedDict.__init__
-
-        def __init__(self, mapping, **items):
-            base.__init__(self, mapping)
-            if items:
-                self.update(items)
-
-        clsatrs['__init__'] = __init__
-
-    return Type(typename, (base,), clsattrs)
 
 normdictclass.base = NormalizedDict
 normdicttype = normdictclass
