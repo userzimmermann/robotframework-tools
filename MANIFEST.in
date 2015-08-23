@@ -10,7 +10,7 @@ include README.md
 include README.ipynb
 
 include tox.ini
-recursive-include test/ *.py
+recursive-include test *.py
 
 exclude .hg*
 exclude .*ignore
