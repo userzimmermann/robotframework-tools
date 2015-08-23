@@ -43,6 +43,8 @@ def variablesclass(base, extra_getters=None):
         _extra_getters = extra_getters or ()
 
         def __getitem__(self, key):
+            """Also looks up ``self._extra_getters``.
+            """
             try:
                 return base.__getitem__(self, key)
             except DataError as e:
@@ -55,8 +57,21 @@ def variablesclass(base, extra_getters=None):
                 raise
 
         def __getattribute__(self, name):
-            value = base.__getattribute__(self, name)
-            if name == 'current' and type(value).__module__ != __name__:
+            """Makes sure that ``self.current`` is handled correctly
+               according to the Variables wrapping approach.
+            """
+            try:
+                value = base.__getattribute__(self, name)
+            except AttributeError:
+                # Robot 2.8: just return self as `current`
+                if name == 'current':
+                    return self
+                raise
+            # Robot 2.9: wrap `current`'s class with same options
+            if (name == 'current'
+                # (if not done yet)
+                and type(value).__module__ != __name__
+                ):
                 value.__class__ = variablesclass(type(value),
                   extra_getters=self._extra_getters)
             return value
