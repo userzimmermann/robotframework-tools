@@ -47,7 +47,7 @@ def variablesclass(base, extra_getters=None):
             """
             try:
                 return base.__getitem__(self, key)
-            except DataError as e:
+            except DataError:
                 if self._extra_getters:
                     for getter in self._extra_getters:
                         try:
@@ -55,6 +55,13 @@ def variablesclass(base, extra_getters=None):
                         except (LookupError, DataError):
                             pass
                 raise
+
+        if not issubclass(base, object):
+            #==> PY2 old style base class from Robot 2.8
+            #==> __getattribute__ below not used
+            @property
+            def current(self):
+                return self
 
         def __getattribute__(self, name):
             """Makes sure that ``self.current`` is handled correctly
@@ -72,7 +79,7 @@ def variablesclass(base, extra_getters=None):
                 # (if not done yet)
                 and type(value).__module__ != __name__
                 ):
-                value.__class__ = variablesclass(type(value),
+                value.__class__ = variablesclass(value.__class__,
                   extra_getters=self._extra_getters)
             return value
 
