@@ -1,1 +1,1 @@
-ipython >= 3.0 #import IPython
+ipython >= 4.0 #import IPython
