@@ -32,7 +32,7 @@ __all__ = [
 
 from moretools import camelize
 
-from path import path as Path
+from path import Path
 
 import robot.errors
 import robot.running

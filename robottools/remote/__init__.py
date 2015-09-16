@@ -52,7 +52,7 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
     """Makes Test Libraries remotely accessible via XML-RPC.
 
     - Can handle multiple Test Libraries.
-    - Usable with Robot Framework's standard RemoteLibrary.
+    - Usable with Robot Framework's standard 'Remote' Library.
     """
     def __init__(
       self, libraries, host='127.0.0.1', port=8270, port_file=None,
@@ -77,8 +77,9 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
         for lib in libraries:
             self.Import(lib)
         self.allow_import = list(allow_import or [])
-        # Initialize the remote base with a .library.RemoteLibrary proxy
-        #  (base only accepts a single library instance):
+        # Initialize the RobotRemoteServer base
+        # with a .library.RemoteLibrary proxy
+        # (RobotRemoteServer only accepts a single library instance)
         RobotRemoteServer.__init__(
           self, RemoteLibrary(robot=self),
           host, port, port_file, allow_stop)
@@ -110,17 +111,24 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
                 + TestLibrary.get_keyword_names(self))
 
     def get_keyword_documentation(self, name):
-        return self._library.get_keyword_documentation(name) 
+        return self._library.get_keyword_documentation(name)
 
     def _get_keyword(self, name):
         try:
+            # find Keyword in loaded Libraries via TestRobot base
             keyword = self[name]
         except KeyError:
             try:
-                return self.keywords[name]
+                # find in extra RemoteRobot Keywords
+                keyword = self.keywords[name]
             except KeyError:
                 return None
-        return keyword if isinstance(keyword, Keyword) else None
+            else:
+                # use Keyword's debug mode
+                # to pass exceptions to RobotRemoteServer base
+                return keyword.debug
+        # make sure that self[name] is not a Library
+        return keyword.debug if isinstance(keyword, Keyword) else None
 
     def _arguments_from_kw(self, keyword):
         if isinstance(keyword, Keyword):
