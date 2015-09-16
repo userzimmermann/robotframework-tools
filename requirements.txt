@@ -3,5 +3,5 @@ six >= 1.9
 path.py >= 8.0 #import path
 moretools >= 0.1.7
 modeled >= 0.1.5
-#py2 robotframework >= 2.8 #import robot
-#py3 robotframework-python3 #import robot
+#py2 robotframework >= 2.8.7 #import robot
+#py3 robotframework-python3 >= 2.8.7 #import robot

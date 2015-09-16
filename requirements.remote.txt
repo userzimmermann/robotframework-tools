@@ -1,1 +1,1 @@
-robotremoteserver
+robotremoteserver >= 1.0.1
