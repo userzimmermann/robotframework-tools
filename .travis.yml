@@ -1,3 +1,5 @@
+sudo: false
+
 language: python
 python:
   - '2.7'
@@ -9,10 +11,11 @@ install:
   - pip install -r requirements.txt
   - pip install -r requirements.remote.txt
   - pip install -r requirements.robotshell.txt
-  - pip install zetup[all]
+  - pip install zetup[commands]
   - pip install tox
   - zetup install
 
 script:
   - zetup pytest
-  - py.test test/
+  - py.test test
+  - zetup tox
