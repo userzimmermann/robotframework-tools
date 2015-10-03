@@ -31,8 +31,8 @@ from six.moves.html_parser import HTMLParser
 from moretools import isstring
 
 
-def HTML(Stream, **options):
-    """Creates an out `Stream` class wrapper for :func:`robottools.libdoc`,
+def HTML(stream, **options):
+    """Creates an out `stream` wrapper for :func:`robottools.libdoc`,
        which post-processes the generated HTML data
        according to the given :func:`robottools.libdoc` extra `options`.
     """
@@ -50,7 +50,7 @@ def HTML(Stream, **options):
           "Invalid robottools.libdoc() extra options for 'html' format: %s"
           % repr(options))
 
-    class Parser(HTMLParser, Stream):
+    class Parser(HTMLParser):
         """The actual HTML post-processing out stream class wrapper.
         """
         write = HTMLParser.feed
@@ -63,19 +63,21 @@ def HTML(Stream, **options):
 
         def __init__(self):
             HTMLParser.__init__(self)
-            Stream.__init__(self)
+
+        def close(self):
+            pass
 
         def handle_starttag(self, tag, attrs):
             if tag not in exclude_tags:
-                Stream.write(self, '<%s %s>' % (
-                  tag, ' '.join('%s="%s"' % a for a in attrs)))
+                stream.write('<%s %s>' % (
+                    tag, ' '.join('%s="%s"' % a for a in attrs)))
             # for lookup in self.handle_data
             self.tag = tag
             self.attrs = attrs
 
         def handle_endtag(self, tag):
             if tag not in exclude_tags:
-                Stream.write(self, '</%s>' % tag)
+                stream.write('</%s>' % tag)
             # there is currently no use case for processing data
             # directly following an end tag
             #==> no stack
@@ -84,8 +86,8 @@ def HTML(Stream, **options):
 
         def handle_startendtag(self, tag, attrs):
             if tag not in exclude_tags:
-                Stream.write(self, '<%s %s />' % (
-                  tag, ' '.join('%s="%s"' % a for a in attrs)))
+                stream.write('<%s %s />' % (
+                    tag, ' '.join('%s="%s"' % a for a in attrs)))
             # see self.handle_endtag()
             self.tag = None
             self.attrs = ()
@@ -107,6 +109,6 @@ def HTML(Stream, **options):
             elif self.tag == 'h1' and isstring(heading):
                 # custom override heading
                 text = heading
-            Stream.write(self, text)
+            stream.write(text)
 
     return Parser()

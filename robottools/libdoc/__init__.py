@@ -99,13 +99,14 @@ def libdoc(library, out=None, name=None, version=None, format=None,
             def close(self):
                 pass
 
-    stream = Stream() if format != 'html' else HTML(Stream, **options)
+    stream = Stream()
     if outpath:
         # need `str` stream in PY2 and PY3
         out = open(outpath, 'w')
 
     doc = LibraryDocumentation(library, name, version, docformat)
-    LibdocWriter(format).write(doc, stream)
+    LibdocWriter(format).write(
+        doc, stream if format != 'html' else HTML(stream, **options))
 
     if out is not None:
         if outpath:
