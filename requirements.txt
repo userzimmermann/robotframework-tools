@@ -1,4 +1,4 @@
-zetup >= 0.2.22
+zetup >= 0.2.23
 six >= 1.9
 path.py >= 8.0 #import path
 moretools >= 0.1.7
