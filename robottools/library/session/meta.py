@@ -143,9 +143,17 @@ class SessionHandlerMeta(type):
                 close_func = func
 
         def switch_session(self, name):
-            session = cls.switch_session(name)
+            previous = cls.session
+            active = cls.switch_session(name)
+            if close_func:
+                # explicitly close previously active session if unnamed
+                for name, session in cls.sessions.items():
+                    if session is previous:
+                        break
+                else:
+                    close_func(self, previous)
             if switch_func:
-                switch_func(self, session)
+                switch_func(self, active)
 
         keywordname = 'switch_' + meta.identifier_name
         cls.keywords[keywordname] = switch_session
