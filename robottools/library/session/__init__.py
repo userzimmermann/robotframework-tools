@@ -67,9 +67,18 @@ class SessionHandler(with_metaclass(SessionHandlerMeta, object)):
         return session
 
     @classmethod
-    def close_session(cls):
+    def close_session(cls, name=None):
         """Helper method for closing the currently active session.
         """
+        if name:
+            try:
+                session = cls.sessions.pop(name)
+            except KeyError:
+                raise cls.SessionError('Session not found: %s' % repr(name))
+            if session is cls.session:
+                cls.session = None
+            return session
+
         if cls.session is None:
             raise cls.SessionError('No active session.')
         for name, session in cls.sessions.items():

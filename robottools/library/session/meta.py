@@ -150,12 +150,10 @@ class SessionHandlerMeta(type):
         keywordname = 'switch_' + meta.identifier_name
         cls.keywords[keywordname] = switch_session
 
-        def close_session(self):
-            session = cls.close_session()
+        def close_session(self, name=None):
+            session = cls.close_session(name)
             if close_func:
                 close_func(self, session)
 
         keywordname = 'close_' + meta.identifier_name
         cls.keywords[keywordname] = close_session
-
-
