@@ -72,10 +72,13 @@ class SessionHandlerMeta(type):
         return type.__new__(mcs, clsname, bases, clsattrs)
 
     #TODO: (cls, name, func) ?
-    def add_opener(cls, func):
+    def add_opener(cls, func, close_func=None):
         """Add Keywords for opening (un)named sessions
            for a user-defined session opener method `func`
            (methods whose names start with 'open').
+
+        - Optional `close_func` will be called on active unnamed sessions
+          when opening new sessions.
         """
         suffix = re.sub('^open($|_)', '', func.__name__)
         keywordname = 'open%s_' + cls.meta.identifier_name
@@ -88,8 +91,16 @@ class SessionHandlerMeta(type):
 
             - Automatically closes active unnamed %s.
             """
-            session = func(self, *args, **kwargs)
-            cls.add_session(session)
+            previous = cls.session
+            active = func(self, *args, **kwargs)
+            cls.add_session(active)
+            if close_func:
+                # explicitly close previously active session if unnamed
+                for name, session in cls.sessions.items():
+                    if session is previous:
+                        break
+                else:
+                    close_func(self, previous)
 
         open_session.__doc__ %= (
           cls.meta.verbose_name, cls.meta.plural_verbose_name)
@@ -105,8 +116,16 @@ class SessionHandlerMeta(type):
 
             - Automatically closes active unnamed %s.
             """
-            session = func(self, *args, **kwargs)
-            cls.add_named_session(name, session)
+            previous = cls.session
+            active = func(self, *args, **kwargs)
+            cls.add_named_session(name, active)
+            if close_func:
+                # explicitly close previously active session if unnamed
+                for name, session in cls.sessions.items():
+                    if session is previous:
+                        break
+                else:
+                    close_func(self, previous)
 
         open_named_session.__doc__ %= (
           cls.meta.verbose_name, cls.meta.plural_verbose_name)
@@ -133,14 +152,17 @@ class SessionHandlerMeta(type):
         except AttributeError:
             return
 
+        open_funcs = []
         switch_func = close_func = None
         for name, func in clsattrs.items():
             if name.startswith('open'):
-                cls.add_opener(func)
+                open_funcs.append(func)
             elif name == 'switch':
                 switch_func = func
             elif name == 'close':
                 close_func = func
+        for func in open_funcs:
+            cls.add_opener(func, close_func=close_func)
 
         def switch_session(self, name):
             previous = cls.session
