@@ -16,7 +16,7 @@ except ImportError:
 
 
 SETUP_REQUIRES = [
-  'zetup >= 0.2.23',
+  'zetup >= 0.2.25',
   
   ] + (os.path.exists('requirements.setup.txt')
        and [line for line in map(str.strip, open('requirements.setup.txt'))
