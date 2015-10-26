@@ -94,7 +94,7 @@ class SessionHandlerMeta(type):
             previous = cls.session
             active = func(self, *args, **kwargs)
             cls.add_session(active)
-            if close_func:
+            if previous is not None and close_func:
                 # explicitly close previously active session if unnamed
                 for name, session in cls.sessions.items():
                     if session is previous:
@@ -119,7 +119,7 @@ class SessionHandlerMeta(type):
             previous = cls.session
             active = func(self, *args, **kwargs)
             cls.add_named_session(name, active)
-            if close_func:
+            if previous is not None and close_func:
                 # explicitly close previously active session if unnamed
                 for name, session in cls.sessions.items():
                     if session is previous:
@@ -167,7 +167,7 @@ class SessionHandlerMeta(type):
         def switch_session(self, name):
             previous = cls.session
             active = cls.switch_session(name)
-            if close_func:
+            if previous is not None and close_func:
                 # explicitly close previously active session if unnamed
                 for name, session in cls.sessions.items():
                     if session is previous:
