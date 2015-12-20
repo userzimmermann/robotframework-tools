@@ -16,7 +16,7 @@ except ImportError:
 
 
 SETUP_REQUIRES = [
-  'zetup >= 0.2.25',
+  'zetup >= 0.2.28',
   
   ] + (os.path.exists('requirements.setup.txt')
        and [line for line in map(str.strip, open('requirements.setup.txt'))
@@ -41,6 +41,10 @@ else:
 
     installer = Distribution().fetch_build_egg
 
+    # don't pollute stdout
+    stdout = sys.__stdout__
+    sys.stdout = sys.__stdout__ = sys.__stderr__
+
     def resolve(requirements, parent=None):
         for req in requirements:
             qualreq = parent and '%s->%s' % (req, parent) or req
@@ -59,6 +63,7 @@ else:
             resolve(map(str, dist.requires(extras=extras or ())), qualreq)
 
     resolve(SETUP_REQUIRES)
+    sys.stdout = sys.__stdout__ = stdout
 
 
 dist = setup(
