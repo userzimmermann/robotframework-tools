@@ -33,6 +33,8 @@ __all__ = ['Keyword',
 
 from itertools import chain
 
+from moretools import dictitems
+
 from .errors import InvalidKeywordOption, KeywordNotDefined
 from .utils import KeywordName, KeywordsDict
 from .deco import KeywordDecoratorType
@@ -103,24 +105,29 @@ class Keyword(object):
             yield '*' + argspec.varargs
         if argspec.keywords:
             yield '**' + argspec.keywords
-        # If the Library has session handlers
-        #  or if there are context specific Keyword implementations
-        #  then always provide **kwargs
-        #  to support explicit <session>= and <context>= switching
-        #  for single Keyword calls:
-        elif self.libinstance.session_handlers or self.context_handlers:
+        # if the Library has any session handlers or context handlers
+        # with activated auto_explicit option
+        # then always provide **kwargs
+        # to support explicit <session>= and <context>= switching
+        # for single Keyword calls:
+        elif any(hcls.meta.auto_explicit
+                 for hcls in self.libinstance.session_handlers) \
+          or any(getattr(hcls, 'auto_explicit', False)
+                 for hcls in self.context_handlers):
             yield '**options'
 
     def __call__(self, *args, **kwargs):
         """Call the Keyword's function with the given arguments.
         """
         func = self.func
-        # Look for explicit <session>= and <context>= switching options
-        #  in kwargs and store the currently active
-        #  session aliases and context names
-        #  for switching back after the Keyword call:
+        # look for explicit <session>= and <context>= switching options
+        # in kwargs and store the currently active
+        # session aliases and context names
+        # for switching back after the Keyword call:
         current_sessions = {}
         for _, hcls in self.libinstance.session_handlers:
+            if not hcls.meta.auto_explicit:
+                continue
             identifier = hcls.meta.identifier_name
             plural_identifier = hcls.meta.plural_identifier_name
             try:
@@ -133,6 +140,8 @@ class Keyword(object):
                 getattr(self.libinstance, 'switch_' + identifier)(sname)
         current_contexts = {}
         for hcls in self.context_handlers:
+            if not getattr(hcls, 'auto_explicit', False):
+                continue
             identifier = hcls.__name__.lower()
             try:
                 ctxname = kwargs.pop(identifier)
@@ -151,7 +160,7 @@ class Keyword(object):
                 casted.append(arg)
             args = tuple(casted) + args[len(func.argtypes):]
         # Look for context specific implementation of the Keyword function:
-        for context, context_func in func.contexts.items():
+        for context, context_func in dictitems(func.contexts):
             if context in self.libinstance.contexts:
                 func = context_func
         # Does the keyword support **kwargs?
@@ -163,14 +172,15 @@ class Keyword(object):
                        if key not in self.func.argspec.args]
             result = func(self.libinstance, *chain(args, varargs))
         # Switch back contexts and sessions (reverse order):
-        for identifier, ctxname in current_contexts.items():
+        for identifier, ctxname in dictitems(current_contexts):
             getattr(self.libinstance, 'switch_' + identifier)(ctxname)
-        for (identifier, plural_identifier), session \
-          in current_sessions.items():
-            for sname, s in getattr(
-              self.libinstance, plural_identifier
-              ).items():
-                if s is session:
+        for (identifier, plural_identifier), session in dictitems(
+                current_sessions
+        ):
+            for sname, sinstance in dictitems(getattr(
+                    self.libinstance, plural_identifier
+            )):
+                if sinstance is session:
                     getattr(self.libinstance, 'switch_' + identifier)(sname)
         return result
 

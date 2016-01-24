@@ -35,15 +35,18 @@ class Meta(object):
       and a user-defined `Handler.Meta` class.
     """
     def __init__(self, handlerclsname=None, options=None):
-        """Generate several variants of a session handler name
-           for use in identifiers and message strings.
+        """Generate several variants of the session handler name
+           for use in identifiers and message strings
+           and store additional general `options`
+           given as ``Handler.Meta`` class object.
 
-        - Based on the `handlerclsname`
-          and/or the attributes of the optional
-          `Handler.Meta` class in `options`,
+        - Name generation is based on the `handlerclsname`
+          and/or related `options` attributes,
           which can define name (variant) prefixes/suffixes
           and/or explicit name variants.
         """
+        self.explicit = bool(getattr(options, 'explicit', False))
+
         # Check all prefix definitions and generate actual prefix strings
         prefixes = {}
 
@@ -197,4 +200,3 @@ class Meta(object):
           variants[key]
           or prefixes[key] + (plural_upper_name or upper_name) + (
             suffixes[key] or (not plural_upper_name and 's' or '')))
-
