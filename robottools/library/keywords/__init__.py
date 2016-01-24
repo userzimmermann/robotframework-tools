@@ -33,7 +33,7 @@ __all__ = ['Keyword',
 
 from itertools import chain
 
-from moretools import dictitems
+from moretools import dictitems, dictvalues
 
 from .errors import InvalidKeywordOption, KeywordNotDefined
 from .utils import KeywordName, KeywordsDict
@@ -111,9 +111,9 @@ class Keyword(object):
         # to support explicit <session>= and <context>= switching
         # for single Keyword calls:
         elif any(hcls.meta.auto_explicit
-                 for hcls in self.libinstance.session_handlers) \
+                 for hcls in dictvalues(self.libinstance.session_handlers)) \
           or any(getattr(hcls, 'auto_explicit', False)
-                 for hcls in self.context_handlers):
+                 for hcls in dictvalues(self.context_handlers)):
             yield '**options'
 
     def __call__(self, *args, **kwargs):
