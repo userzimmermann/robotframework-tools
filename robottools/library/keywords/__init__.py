@@ -158,8 +158,10 @@ class Keyword(object):
         if self.func.argspec.keywords or not kwargs:
             result = func(self.libinstance, *args, **kwargs)
         else: # Pass them as *varargs in 'key=value' style to the Keyword:
-            ikwargs = ('%s=%s' % item for item in kwargs.items())
-            result = func(self.libinstance, *chain(args, ikwargs))
+            varargs = ['%s=%s' % (key, kwargs.pop(key))
+                       for key in list(kwargs)
+                       if key not in self.func.argspec.args]
+            result = func(self.libinstance, *chain(args, varargs))
         # Switch back contexts and sessions (reverse order):
         for identifier, ctxname in current_contexts.items():
             getattr(self.libinstance, 'switch_' + identifier)(ctxname)
