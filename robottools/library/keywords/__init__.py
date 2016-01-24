@@ -113,7 +113,7 @@ class Keyword(object):
         elif any(hcls.meta.auto_explicit
                  for hcls in dictvalues(self.libinstance.session_handlers)) \
           or any(getattr(hcls, 'auto_explicit', False)
-                 for hcls in dictvalues(self.context_handlers)):
+                 for hcls in self.context_handlers):
             yield '**options'
 
     def __call__(self, *args, **kwargs):
