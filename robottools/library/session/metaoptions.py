@@ -45,7 +45,7 @@ class Meta(object):
           which can define name (variant) prefixes/suffixes
           and/or explicit name variants.
         """
-        self.explicit = bool(getattr(options, 'explicit', False))
+        self.auto_explicit = bool(getattr(options, 'auto_explicit', False))
 
         # Check all prefix definitions and generate actual prefix strings
         prefixes = {}
