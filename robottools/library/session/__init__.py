@@ -23,9 +23,11 @@ testlibrary()'s session handler framework.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+__all__ = ['SessionHandler']
+
 from six import with_metaclass
 
-__all__ = ['SessionHandler']
+from moretools import dictitems
 
 from .meta import SessionHandlerMeta
 
@@ -81,7 +83,7 @@ class SessionHandler(with_metaclass(SessionHandlerMeta, object)):
 
         if cls.session is None:
             raise cls.SessionError('No active session.')
-        for name, session in cls.sessions.items():
+        for name, session in list(dictitems(cls.sessions)):
             if session is cls.session:
                 del cls.sessions[name]
         session = cls.session

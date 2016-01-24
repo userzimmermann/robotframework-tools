@@ -29,6 +29,8 @@ import inspect
 import re
 from copy import deepcopy
 
+from moretools import dictitems
+
 from robottools.library.keywords import KeywordsDict
 from .metaoptions import Meta
 
@@ -96,7 +98,7 @@ class SessionHandlerMeta(type):
             cls.add_session(active)
             if previous is not None and close_func:
                 # explicitly close previously active session if unnamed
-                for name, session in cls.sessions.items():
+                for name, session in dictitems(cls.sessions):
                     if session is previous:
                         break
                 else:
@@ -154,7 +156,7 @@ class SessionHandlerMeta(type):
 
         open_funcs = []
         switch_func = close_func = None
-        for name, func in clsattrs.items():
+        for name, func in dictitems(clsattrs):
             if name.startswith('open'):
                 open_funcs.append(func)
             elif name == 'switch':
@@ -169,7 +171,7 @@ class SessionHandlerMeta(type):
             active = cls.switch_session(name)
             if previous is not None and close_func:
                 # explicitly close previously active session if unnamed
-                for name, session in cls.sessions.items():
+                for name, session in dictitems(cls.sessions):
                     if session is previous:
                         break
                 else:
