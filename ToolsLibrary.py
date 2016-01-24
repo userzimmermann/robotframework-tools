@@ -2,7 +2,7 @@
 #
 # Tools for Robot Framework and Test Libraries.
 #
-# Copyright (C) 2013-2015 Stefan Zimmermann <zimmermann.code@gmail.com>
+# Copyright (C) 2013-2016 Stefan Zimmermann <zimmermann.code@gmail.com>
 #
 # robotframework-tools is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
