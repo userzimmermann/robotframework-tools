@@ -32,7 +32,11 @@ __all__ = ['KeywordDecoratorType']
 
 import inspect
 
+from moretools import isstring, dictitems
+
 from robot.utils import NormalizedDict
+from robot.variables import is_scalar_var
+from robot.libraries.BuiltIn import BuiltIn, RobotNotRunningError
 
 from robottools.utils import normdictdata
 
@@ -107,6 +111,38 @@ class KeywordDecoratorType(object):
             varargs = args[nposargs:]
             kwargs = create_dictionary(*varargs, **kwargs)
             return func(self, *posargs, **kwargs)
+
+        method.__name__ = func.__name__
+        return method
+
+    @staticmethod
+    def option_kwargs_from_strings(func):
+        nposargs = len(func.argspec.args) - 1 # without self
+
+        def method(self, *args, **kwargs):
+            varargs = []
+            for arg in args[nposargs:]:
+                if isstring(arg) and '=' in arg:
+                    kwargs.setdefault(*arg.split('=', 1))
+                else:
+                    varargs.append(arg)
+            return func(self, *chain(args[:nposargs], varargs), **kwargs)
+
+        method.__name__ = func.__name__
+        return method
+
+    @staticmethod
+    def option_keys_from_vars(func):
+        def method(self, *args, **kwargs):
+            try:
+                variables = BuiltIn()._variables
+            except RobotNotRunningError:
+                pass
+            else:
+                for key, value in list(dictitems(kwargs)):
+                    if is_scalar_var(key):
+                        kwargs[variables[key]] = kwargs.pop(key)
+            return func(self, *args, **kwargs)
 
         method.__name__ = func.__name__
         return method
