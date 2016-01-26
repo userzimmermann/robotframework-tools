@@ -168,7 +168,12 @@ you would have to take care of preserving the original argspec for Robot.
 
 There are predefined options. Currently:
 
-* `unicode_to_str` - Convert all `unicode` values (pybot's default) to `str`.
+* `unicode_to_str` - Converts all `unicode` values (pybot's default) to `str`.
+* `varargs_to_kwargs` - Moves items pairwise from `*varargs` to `**kwargs`.
+* `kwargs_from_strings` - Splits any `key=value` strings in `*varargs`
+  and moves them to `**kwargs`.
+* `keys_from_vars` - Substitutes variable keys in `${key}=value` items
+  in `**kwargs`.
 
 You can specify `default_keyword_options` that will always be applied:
 
