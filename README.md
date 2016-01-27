@@ -244,7 +244,7 @@ The following Keywords will be generated:
 
 You can access the currently active session instance,
 as returned from an opener Keyword,
-with an auto-generated property:
+with an auto-generated property based on the handler class name:
 
     @TestLibrary.keyword
     def some_keyword(self):
@@ -263,6 +263,21 @@ To add custom logic just add a `close` method to your `SessionHandler`:
         def close(self, connection):
             # `self` will get the Test Library instance.
             ...
+
+The `SessionHandler` framework additionally supports some `Meta` options:
+
+    class SomeConnection(SessionHandler):
+        class Meta:
+            # options
+            ...
+
+* `auto_explicit = True` will automatically modify
+  every Keyword of the Test Library to support explicit session switching
+  with an additional named argument based on the handler class name.
+  After the Keyword call, the session will switch back
+  to the previously active one:
+
+    Some Keyword    ...   some_connection=alias
 
 
 # 2. Inspecting Test Libraries
