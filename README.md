@@ -277,7 +277,7 @@ The `SessionHandler` framework additionally supports some `Meta` options:
   After the Keyword call, the session will switch back
   to the previously active one:
 
-      Some Keyword    ...   some_connection=alias
+  `Some Keyword    ...   some_connection=alias`
 
 
 # 2. Inspecting Test Libraries
