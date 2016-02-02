@@ -166,11 +166,20 @@ class Keyword(object):
         # Does the keyword support **kwargs?
         if self.func.argspec.keywords or not kwargs:
             result = func(self.libinstance, *args, **kwargs)
-        else: # Pass them as *varargs in 'key=value' style to the Keyword:
+        else:
+            # resolve **kwargs to positional args...
+            posargs = []
+            # (argspec.args start index includes self)
+            for name in self.func.argspec.args[1 + len(args):]:
+                if name in kwargs:
+                    posargs.append(kwargs.pop(name))
+            # and turn the rest into *varargs in 'key=value' style
             varargs = ['%s=%s' % (key, kwargs.pop(key))
                        for key in list(kwargs)
                        if key not in self.func.argspec.args]
-            result = func(self.libinstance, *chain(args, varargs))
+            result = func(self.libinstance, *chain(args, posargs, varargs),
+                          # if **kwargs left ==> TypeError from Python
+                          **kwargs)
         # Switch back contexts and sessions (reverse order):
         for identifier, ctxname in dictitems(current_contexts):
             getattr(self.libinstance, 'switch_' + identifier)(ctxname)
