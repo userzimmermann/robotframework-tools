@@ -31,6 +31,7 @@ from six import PY3
 __all__ = ['KeywordDecoratorType']
 
 import inspect
+from itertools import chain
 
 from moretools import isstring, dictitems
 
