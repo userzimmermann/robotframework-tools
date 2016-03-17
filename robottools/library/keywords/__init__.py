@@ -43,8 +43,8 @@ from .deco import KeywordDecoratorType
 class Keyword(object):
     """The Keyword handler for Test Library instances.
 
-    - Provides inspection of names, args and docs.
-    - Gets called by Test Library's run_keyword().
+    * Provides inspection of Keyword name, arguments, and documentation.
+    * Instances get called by Test Libraries' ``.run_keyword()`` method.
     """
     def __init__(self, name, func, libinstance):
         """Initialize with Keyword's display `name`,
@@ -53,30 +53,34 @@ class Keyword(object):
         self.name = name
         self.func = func
         self.libinstance = libinstance
-        # Get all ContextHandler classes for which this Keyword
-        #  has context-specific implementations,
-        #  to implicitly provide additional <context>= switching kwargs:
+        # Get all ContextHandler-derived classes for which this Keyword
+        # has context-specific implementations,
+        # to implicitly provide additional context_name= switching kwargs:
         self.context_handlers = set(ctx.handler for ctx in func.contexts)
 
     @property
     def __doc__(self):
+        """The Keyword's documentation string,
+        taken from ``self.func.__doc__``.
+        """
         return self.func.__doc__
 
     @property
     def libname(self):
-        """The Test Library's class and display name.
+        """The Keyword's Test Library class name,
+        which also represents the Library's display name.
         """
         return type(self.libinstance).__name__
 
     @property
     def longname(self):
-        """The Keyword's full display name (TestLibraryName.Keyword Name).
+        """The Keyword's full display name (**TestLibraryName.Keyword Name**).
         """
         return '%s.%s' % (self.libname, self.name)
 
     def args(self):
         """Iterate the Keyword's argument spec in Robot's Dynamic API style,
-           usable by Test Library's get_keyword_arguments().
+           usable by Test Libraries' ``.get_keyword_arguments()`` method.
         """
         # First look for custom override args list:
         if self.func.args:
@@ -117,7 +121,7 @@ class Keyword(object):
             yield '**options'
 
     def __call__(self, *args, **kwargs):
-        """Call the Keyword's function with the given arguments.
+        """Call the Keyword's actual function with the given arguments.
         """
         func = self.func
         # look for explicit <session>= and <context>= switching options

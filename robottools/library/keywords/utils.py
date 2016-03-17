@@ -35,9 +35,9 @@ from robot.utils import normalize
 class KeywordName(str):
     """:class:`str` wrapper to work with Keyword names in a Robot way.
 
-    - Converts the given raw Keyword name (usually a function name)
+    * Converts the given raw Keyword name (usually a function name)
       to Capitalized Robot Style.
-    - Uses :func:`robot.utils.normalize`d conversions
+    * Uses :func:`robot.utils.normalize`d conversions
       (plain lowercase without spaces and underscores)
       for comparing and hashing.
     """
@@ -58,8 +58,8 @@ class KeywordName(str):
 
 
 class KeywordsDict(object):
-    """Store Keyword functions or :class:`Keyword` objects
-       with :class:`KeywordName` keys.
+    """Store Keyword functions or :class:`robottools.Keyword` instances
+    with :class:`robottools.KeywordName` keys.
     """
     def __init__(self):
         self._dict = {}
@@ -89,6 +89,7 @@ class KeywordsDict(object):
         return self.__bool__()
 
     def __dir__(self):
-        """The Keyword names in CamelCase.
+        """The Keyword names in CamelCase
+        to be used with :meth:`self.__getattr__`.
         """
         return [''.join(name.split()) for name in self._dict]
