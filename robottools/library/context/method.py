@@ -19,9 +19,10 @@
 
 """robottools.context.method
 
-Provides :class:`contextmethod` for creating `testlibrary` method decorators
-to separate method implementations for different contexts
-of :class:`ContextHandler`s.
+Provides :class:`robottools.contextmethod`
+for creating Test Library method decorators,
+separating method implementations for different contexts
+of :class:`robottools.ContextHandler`-derived definitions.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
@@ -32,28 +33,28 @@ from moretools import Lazy, LazyDict
 
 class contextmethod(object):
     """Class for creating `testlibrary` method decorators
-       to separate method implementations for different contexts
-       of :class:`ContextHandler`s.
+    to separate method implementations for different contexts
+    of :class:`ContextHandler`s.
 
-    - Decorated methods get Context name attributes for decorating
+    * Decorated methods get Context name attributes for decorating
       the Context specific method implementations::
 
        @contextmethod(Handler)
        def method(self, ...):
            pass
 
-       @method.<context name>
+       @method.context_name
        def context_method(self, ...):
            ...
 
-    - By default, on method call only the implementation
+    * By default, on method call only the implementation
       matching the currently active Context will be called.
 
-    - A @contextmethod.combined(Handler) decorated method
+    * A ``@contextmethod.combined(Handler)`` decorated method
       will call all context specific implementations
-      and return a `dict` containing the results by Context name keys.
-    - contextmethod.combined decorated methods will get an additional
-      .result decorator for defining a hook method
+      and return a ``dict`` containing the results by Context name keys.
+    * contextmethod.combined decorated methods will get an additional
+      ``.result`` decorator for defining a hook method
       processing the results dict before final return::
 
        @method.result
@@ -61,16 +62,17 @@ class contextmethod(object):
            ...
            return results_dict # or whatever...
 
-    - A @contextmethod.combined.lazy(Handler) decorated method
-      will return a :class:`LazyDict` which will call
-      the context specific implementations on first ['<context name>'] access.
+    * A ``@contextmethod.combined.lazy(Handler)`` decorated method
+      will return a ``moretools.LazyDict`` instance which will call
+      the context specific implementations on first
+      ``['context_name']`` access.
     """
     def __init__(self, *handlers, **options):
         """Create a decorator for the given `handlers`.
 
-        - Currently only 1 Handler supported :( - will change soon :)
-        - `options` are implicitly given
-          by derived :class:`combined` and :class:`lazy`.
+        * Currently only 1 Handler supported :( - will change soon :)
+        * `options` are implicitly given
+          by derived :class:`contextmethod.combined` and ``moretools.Lazy``.
         """
         self.handlers = handlers
         self.combined = options.pop('combined', False)
@@ -132,6 +134,7 @@ class contextmethod(object):
         method.result = resultdeco
 
         method.__name__ = func.__name__
+        method.__doc__ = func.__doc__
         return method
 
 
