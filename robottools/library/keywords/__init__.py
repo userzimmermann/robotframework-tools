@@ -32,6 +32,7 @@ __all__ = ['Keyword',
   'InvalidKeywordOption', 'KeywordNotDefined']
 
 from itertools import chain
+from textwrap import dedent
 
 from moretools import dictitems, dictvalues
 
@@ -63,7 +64,12 @@ class Keyword(object):
         """The Keyword's documentation string,
         taken from ``self.func.__doc__``.
         """
-        return self.func.__doc__
+        doc = self.func.__doc__
+        if doc is None:
+            return None
+        if '\n' in doc:
+            first_line, rest = doc.split('\n', 1)
+            return "%s\n%s" % (first_line, dedent(rest))
 
     @property
     def libname(self):
