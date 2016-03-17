@@ -23,15 +23,16 @@ Provides the interactive TestRobot interface.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+__all__ = [
+    'TestRobot',
+    'TestResult',  # from .result
+]
+
 from six import reraise
-
-__all__ = ['TestRobot',
-  'TestResult', # from .result
-  ]
-
 from inspect import getargspec
 from functools import partial
 
+import zetup
 from moretools import isidentifier
 
 from robot.errors import DataError
@@ -53,9 +54,10 @@ from .context import Context
 from .library import TestLibrary
 from .keyword import Keyword
 from .result import TestResult
+from .suite import Suite
 
 
-class TestRobot(object):
+class TestRobot(zetup.object):
     """An interactive Robot Framework interface.
     """
     def __init__(self, name, BuiltIn=True, variable_getters=None):
@@ -140,6 +142,7 @@ class TestRobot(object):
         settings = RobotSettings(**options)
         builder = TestSuiteBuilder()
         suite = builder.build(path)
+        print(suite.__class__)
         with self._context:
             runner = Runner(self._output, settings)
             suite.visit(runner)
@@ -148,11 +151,26 @@ class TestRobot(object):
                 reraise(*self._output._last_fail_exc)
             return TestResult(runner.result, **options)
 
-    def __getitem__(self, name):
-        """Get variables (with $/@{...} syntax),
-           Test Libraries and Keywords by name.
+    def _run(self, suite, **options):
+        debug = options.pop('debug', self.debug)
+        # post processed options
+        settings = RobotSettings(**options)
+        with self._context:
+            runner = Runner(self._output, settings)
+            suite.visit(runner)
+            result = runner.result
+            if debug and result.return_code:
+                reraise(*self._output._last_fail_exc)
+            return TestResult(runner.result, **options)
 
-        - Keyword names can be in any case (like in a Test Script).
+    def Suite(self, name):
+        return Suite(self, name)
+
+    def __getitem__(self, name):
+        """Get variables (with ``$/@{...}`` syntax),
+        Test Libraries and Keywords by name.
+
+        * Keyword names can be in any case (like in a Test Script).
         """
         if any(name.startswith(c) for c in '$@'):
             try:
