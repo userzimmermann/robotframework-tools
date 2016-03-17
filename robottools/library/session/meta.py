@@ -89,9 +89,10 @@ class SessionHandlerMeta(type):
         argspec = inspect.getargspec(func)
 
         def open_session(self, *args, **kwargs):
-            """Open an unnamed %s.
+            """Open an unnamed {singular}.
 
-            - Automatically closes active unnamed %s.
+            This keyword automatically closes
+            any other currently active unnamed {singular}.
             """
             previous = cls.session
             active = func(self, *args, **kwargs)
@@ -104,8 +105,8 @@ class SessionHandlerMeta(type):
                 else:
                     close_func(self, previous)
 
-        open_session.__doc__ %= (
-          cls.meta.verbose_name, cls.meta.plural_verbose_name)
+        open_session.__doc__ = open_session.__doc__.format(
+            singular=cls.meta.verbose_name)  # , cls.meta.plural_verbose_name)
 
         open_session.argspec = argspec
         # Use custom doc string if defined
@@ -114,9 +115,22 @@ class SessionHandlerMeta(type):
         cls.keywords[keywordname % ''] = open_session
 
         def open_named_session(self, name, *args, **kwargs):
-            """Open a named %s.
+            """Automatically generated alternative to `Open {singular}`
+            for opening {plural} with an alias ``name``
+            that can later be used with `Switch {singular}`.
 
-            - Automatically closes active unnamed %s.
+            The arguments are similar to `Open {singular}`,
+            except that the alias ``name`` is expected as first argument.
+            So if `Open {singular}` is called like:
+
+            ``Open {singular} | argument | ...``
+
+            Then `Open Named {singular}` is called like:
+
+            ``Open Named {singular} | alias | argument | ...``
+
+            This keyword also automatically closes
+            a currently active unnamed {singular}.
             """
             previous = cls.session
             active = func(self, *args, **kwargs)
@@ -129,8 +143,9 @@ class SessionHandlerMeta(type):
                 else:
                     close_func(self, previous)
 
-        open_named_session.__doc__ %= (
-          cls.meta.verbose_name, cls.meta.plural_verbose_name)
+        open_named_session.__doc__ = open_named_session.__doc__.format(
+            singular=cls.meta.verbose_name,
+            plural=cls.meta.plural_verbose_name)
 
         named_argspec = deepcopy(argspec)
         named_argspec.args.insert(1, 'name') # (after self)
