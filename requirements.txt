@@ -1,7 +1,7 @@
-zetup >= 0.2.30
+zetup >= 0.2.31
 six >= 1.10
 path.py >= 8.0 #import path
-moretools >= 0.1.7
+moretools >= 0.1.8
 modeled >= 0.1.8
 #py2 robotframework >= 2.8.7 #import robot
 #py3 robotframework-python3 >= 2.8.7 #import robot
