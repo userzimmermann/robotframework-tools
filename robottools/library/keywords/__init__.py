@@ -31,7 +31,9 @@ __all__ = ['Keyword',
   # from .errors:
   'InvalidKeywordOption', 'KeywordNotDefined']
 
+import re
 from itertools import chain
+from textwrap import dedent
 
 from moretools import dictitems, dictvalues
 
@@ -63,7 +65,26 @@ class Keyword(object):
         """The Keyword's documentation string,
         taken from ``self.func.__doc__``.
         """
-        return self.func.__doc__
+        """The Keyword's documentation string,
+        taken from ``self.func.__doc__``.
+        """
+        doc = self.func.__doc__
+        if doc is None:
+            return None
+        if '\n' in doc:
+            first_line, rest = doc.split('\n', 1)
+            doc = "%s\n%s" % (first_line, dedent(rest))
+        format_dict = {}
+        if self.func.examples:
+            examples = "Examples:\n"
+            for cells in self.func.examples:
+                examples += "| %s |\n" % " | ".join(cells)
+            format_dict['examples'] = examples
+        if not format_dict:
+            return doc
+        # prevent robot ${var} strings from being .format()ed
+        doc = re.sub(r'([$@&]){([^}]+)}', r'\1{{\2}}', doc)
+        return doc.format(**format_dict)
 
     @property
     def libname(self):
