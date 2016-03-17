@@ -77,6 +77,7 @@ class KeywordDecoratorType(object):
         self.keyword_args = meta.get('args')
         self.keyword_argtypes = meta.get('argtypes')
         self.contexts = meta.get('contexts')
+        self.examples = meta.get('examples')
 
     def __getitem__(self, argtypes):
         return type(self)(
@@ -180,7 +181,7 @@ class KeywordDecoratorType(object):
           argtypes=self.keyword_argtypes, contexts=self.contexts)
 
     def __call__(self, func=None, name=None, args=None, argtypes=None,
-                 contexts=None):
+                 contexts=None, examples=None):
         """The actual Keyword method decorator function.
 
         - When manually called, optional override `name`
@@ -194,8 +195,8 @@ class KeywordDecoratorType(object):
         """
         if not func:
             return type(self)(
-              self.keywords, *self.options, name=name, args=args,
-              argtypes=argtypes, contexts=contexts)
+                self.keywords, *self.options, name=name, args=args,
+                argtypes=argtypes, contexts=contexts, examples=examples)
 
         original_func = func
         if self.contexts:
@@ -240,6 +241,8 @@ class KeywordDecoratorType(object):
         func.__name__ = name
         # Keep method doc string
         func.__doc__ = doc
+        # and store optional examples for extending doc
+        func.examples = examples or self.examples
         # # Store original method argspec
         # func.argspec = argspec
         # Store optional override args list and explicit argtypes
