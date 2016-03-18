@@ -65,9 +65,6 @@ class Keyword(object):
         """The Keyword's documentation string,
         taken from ``self.func.__doc__``.
         """
-        """The Keyword's documentation string,
-        taken from ``self.func.__doc__``.
-        """
         doc = self.func.__doc__
         if doc is None:
             return None
