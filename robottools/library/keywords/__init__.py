@@ -154,6 +154,8 @@ class Keyword(object):
                     switch(sname)
                 except hcls.SessionError as exc:
                     error = exc
+                    # don't switch any more sessions
+                    break
         # only perform explicit context switching
         # if explicit session switching didn't raise any error
         if error is not None:
@@ -171,7 +173,12 @@ class Keyword(object):
                       self.libinstance, identifier)
                     switch = getattr(self.libinstance,
                                      'switch_' + identifier)
-                    switch(ctxname)
+                    try:
+                        switch(ctxname)
+                    except hcls.ContextError as exc:
+                        error = exc
+                        # don't switch any more contexts
+                        break
         # Look for arg type specs:
         if func.argtypes:
             casted = []
