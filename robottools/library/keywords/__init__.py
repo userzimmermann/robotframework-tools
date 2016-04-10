@@ -153,7 +153,7 @@ class Keyword(object):
                 try:
                     switch(sname)
                 except hcls.SessionError as exc:
-                    error = exc
+                    error = sys.exc_info()
                     # don't switch any more sessions
                     break
         # only perform explicit context switching
@@ -176,7 +176,7 @@ class Keyword(object):
                     try:
                         switch(ctxname)
                     except hcls.ContextError as exc:
-                        error = exc
+                        error = sys.exc_info()
                         # don't switch any more contexts
                         break
         # Look for arg type specs:
