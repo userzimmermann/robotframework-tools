@@ -63,7 +63,7 @@ class SessionHandler(with_metaclass(SessionHandlerMeta, object)):
         """
         name = str(name)
         try:
-            session = cls.session = cls.sessions[name]
+            session = cls.sessions[name]
         except KeyError:
             raise cls.SessionError('Session not found: %s' % repr(name))
         return session
