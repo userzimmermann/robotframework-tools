@@ -152,7 +152,7 @@ class Keyword(object):
                 switch = getattr(self.libinstance, 'switch_' + identifier)
                 try:
                     switch(sname)
-                except hcls.SessionError as exc:
+                except hcls.SessionError:
                     error = sys.exc_info()
                     # don't switch any more sessions
                     break
@@ -175,7 +175,7 @@ class Keyword(object):
                                      'switch_' + identifier)
                     try:
                         switch(ctxname)
-                    except hcls.ContextError as exc:
+                    except hcls.ContextError:
                         error = sys.exc_info()
                         # don't switch any more contexts
                         break
@@ -194,7 +194,10 @@ class Keyword(object):
                     func = context_func
             # Does the keyword support **kwargs?
             if self.func.argspec.keywords or not kwargs:
-                result = func(self.libinstance, *args, **kwargs)
+                try:
+                    result = func(self.libinstance, *args, **kwargs)
+                except Exception:
+                    error = sys.exc_info()
             else:
                 # resolve **kwargs to positional args...
                 posargs = []
@@ -206,10 +209,13 @@ class Keyword(object):
                 varargs = ['%s=%s' % (key, kwargs.pop(key))
                            for key in list(kwargs)
                            if key not in self.func.argspec.args]
-                result = func(self.libinstance,
-                              *chain(args, posargs, varargs),
-                              # if **kwargs left ==> TypeError from Python
-                              **kwargs)
+                try:
+                    result = func(self.libinstance,
+                                  *chain(args, posargs, varargs),
+                                  # if **kwargs left ==> TypeError from Python
+                                  **kwargs)
+                except:
+                    error = sys.exc_info()
         # Switch back contexts and sessions (reverse order):
         for identifier, ctxname in dictitems(current_contexts):
             getattr(self.libinstance, 'switch_' + identifier)(ctxname)
