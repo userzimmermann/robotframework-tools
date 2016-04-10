@@ -61,7 +61,7 @@ class SessionHandlerMeta(type):
         clsattrs['meta'] = meta
 
         excname = meta.upper_identifier_name + 'Error'
-        clsattrs['SessionError'] = type(excname, (RuntimeError,), {})
+        clsattrs['SessionError'] = type(excname, (RuntimeError, ), {})
 
         # The handler's dictionary of opened sessions
         clsattrs['sessions'] = {}
