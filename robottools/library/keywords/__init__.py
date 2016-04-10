@@ -31,6 +31,8 @@ __all__ = ['Keyword',
   # from .errors:
   'InvalidKeywordOption', 'KeywordNotDefined']
 
+import sys
+from six import reraise
 from itertools import chain
 from textwrap import dedent
 
@@ -147,8 +149,7 @@ class Keyword(object):
             except KeyError:
                 pass
             else:
-                current_sessions[identifier, plural_identifier] = getattr(
-                  self.libinstance, identifier)
+                previous = getattr(self.libinstance, identifier)
                 switch = getattr(self.libinstance, 'switch_' + identifier)
                 try:
                     switch(sname)
@@ -156,10 +157,12 @@ class Keyword(object):
                     error = sys.exc_info()
                     # don't switch any more sessions
                     break
+                # store previous session for switching back later
+                current_sessions[identifier, plural_identifier] = previous
         # only perform explicit context switching
         # if explicit session switching didn't raise any error
+        current_contexts = {}
         if error is None:
-            current_contexts = {}
             for hcls in self.context_handlers:
                 if not getattr(hcls, 'auto_explicit', False):
                     continue
@@ -169,8 +172,7 @@ class Keyword(object):
                 except KeyError:
                     pass
                 else:
-                    current_contexts[identifier] = getattr(
-                      self.libinstance, identifier)
+                    previous = getattr(self.libinstance, identifier)
                     switch = getattr(self.libinstance,
                                      'switch_' + identifier)
                     try:
@@ -179,6 +181,10 @@ class Keyword(object):
                         error = sys.exc_info()
                         # don't switch any more contexts
                         break
+                    # store previous context for switching back later
+                    current_contexts[identifier] = previous
+        # only call the acutal keyword func
+        # if explicit session and context switching didn't raise any error
         if error is None:
             # Look for arg type specs:
             if func.argtypes:
@@ -216,9 +222,12 @@ class Keyword(object):
                                   **kwargs)
                 except:
                     error = sys.exc_info()
-        # Switch back contexts and sessions (reverse order):
+        # finally try to switch back contexts and sessions (in reverse order)
+        # before either returning result or reraising any error catched above
         for identifier, ctxname in dictitems(current_contexts):
-            getattr(self.libinstance, 'switch_' + identifier)(ctxname)
+            switch = getattr(self.libinstance, 'switch_' + identifier)
+            # don't catch anything here. just step out on error
+            switch(ctxname)
         for (identifier, plural_identifier), session in dictitems(
                 current_sessions
         ):
@@ -226,7 +235,14 @@ class Keyword(object):
                     self.libinstance, plural_identifier
             )):
                 if sinstance is session:
-                    getattr(self.libinstance, 'switch_' + identifier)(sname)
+                    switch = getattr(self.libinstance, 'switch_' + identifier)
+                    # don't catch anything here. just step out on error
+                    switch(sname)
+        # was an error catched on initial session or context switching
+        # or on calling the actual keyword func?
+        if error is not None:
+            reraise(*error)
+        # great! everything went fine :)
         return result
 
     def __repr__(self):
