@@ -130,6 +130,8 @@ class Keyword(object):
         """Call the Keyword's actual function with the given arguments.
         """
         func = self.func
+        # the exception to finally reraise (if any)
+        error = None
         # look for explicit <session>= and <context>= switching options
         # in kwargs and store the currently active
         # session aliases and context names
@@ -147,20 +149,29 @@ class Keyword(object):
             else:
                 current_sessions[identifier, plural_identifier] = getattr(
                   self.libinstance, identifier)
-                getattr(self.libinstance, 'switch_' + identifier)(sname)
-        current_contexts = {}
-        for hcls in self.context_handlers:
-            if not getattr(hcls, 'auto_explicit', False):
-                continue
-            identifier = hcls.__name__.lower()
-            try:
-                ctxname = kwargs.pop(identifier)
-            except KeyError:
-                pass
-            else:
-                current_contexts[identifier] = getattr(
-                  self.libinstance, identifier)
-                getattr(self.libinstance, 'switch_' + identifier)(ctxname)
+                switch = getattr(self.libinstance, 'switch_' + identifier)
+                try:
+                    switch(sname)
+                except hcls.SessionError as exc:
+                    error = exc
+        # only perform explicit context switching
+        # if explicit session switching didn't raise any error
+        if error is not None:
+            current_contexts = {}
+            for hcls in self.context_handlers:
+                if not getattr(hcls, 'auto_explicit', False):
+                    continue
+                identifier = hcls.__name__.lower()
+                try:
+                    ctxname = kwargs.pop(identifier)
+                except KeyError:
+                    pass
+                else:
+                    current_contexts[identifier] = getattr(
+                      self.libinstance, identifier)
+                    switch = getattr(self.libinstance,
+                                     'switch_' + identifier)
+                    switch(ctxname)
         # Look for arg type specs:
         if func.argtypes:
             casted = []
