@@ -31,6 +31,8 @@ __all__ = ['Keyword',
   # from .errors:
   'InvalidKeywordOption', 'KeywordNotDefined']
 
+import sys
+from six import reraise
 from itertools import chain
 from textwrap import dedent
 
@@ -130,6 +132,8 @@ class Keyword(object):
         """Call the Keyword's actual function with the given arguments.
         """
         func = self.func
+        # the exception to finally reraise (if any)
+        error = None
         # look for explicit <session>= and <context>= switching options
         # in kwargs and store the currently active
         # session aliases and context names
@@ -145,54 +149,85 @@ class Keyword(object):
             except KeyError:
                 pass
             else:
-                current_sessions[identifier, plural_identifier] = getattr(
-                  self.libinstance, identifier)
-                getattr(self.libinstance, 'switch_' + identifier)(sname)
+                previous = getattr(self.libinstance, identifier)
+                switch = getattr(self.libinstance, 'switch_' + identifier)
+                try:
+                    switch(sname)
+                except hcls.SessionError:
+                    error = sys.exc_info()
+                    # don't switch any more sessions
+                    break
+                # store previous session for switching back later
+                current_sessions[identifier, plural_identifier] = previous
+        # only perform explicit context switching
+        # if explicit session switching didn't raise any error
         current_contexts = {}
-        for hcls in self.context_handlers:
-            if not getattr(hcls, 'auto_explicit', False):
-                continue
-            identifier = hcls.__name__.lower()
-            try:
-                ctxname = kwargs.pop(identifier)
-            except KeyError:
-                pass
+        if error is None:
+            for hcls in self.context_handlers:
+                if not getattr(hcls, 'auto_explicit', False):
+                    continue
+                identifier = hcls.__name__.lower()
+                try:
+                    ctxname = kwargs.pop(identifier)
+                except KeyError:
+                    pass
+                else:
+                    previous = getattr(self.libinstance, identifier)
+                    switch = getattr(self.libinstance,
+                                     'switch_' + identifier)
+                    try:
+                        switch(ctxname)
+                    except hcls.ContextError:
+                        error = sys.exc_info()
+                        # don't switch any more contexts
+                        break
+                    # store previous context for switching back later
+                    current_contexts[identifier] = previous
+        # only call the acutal keyword func
+        # if explicit session and context switching didn't raise any error
+        if error is None:
+            # Look for arg type specs:
+            if func.argtypes:
+                casted = []
+                for arg, argtype in zip(args, func.argtypes):
+                    if not isinstance(arg, argtype):
+                        arg = argtype(arg)
+                    casted.append(arg)
+                args = tuple(casted) + args[len(func.argtypes):]
+            # Look for context specific implementation of the Keyword function
+            for context, context_func in dictitems(func.contexts):
+                if context in self.libinstance.contexts:
+                    func = context_func
+            # Does the keyword support **kwargs?
+            if self.func.argspec.keywords or not kwargs:
+                try:
+                    result = func(self.libinstance, *args, **kwargs)
+                except Exception:
+                    error = sys.exc_info()
             else:
-                current_contexts[identifier] = getattr(
-                  self.libinstance, identifier)
-                getattr(self.libinstance, 'switch_' + identifier)(ctxname)
-        # Look for arg type specs:
-        if func.argtypes:
-            casted = []
-            for arg, argtype in zip(args, func.argtypes):
-                if not isinstance(arg, argtype):
-                    arg = argtype(arg)
-                casted.append(arg)
-            args = tuple(casted) + args[len(func.argtypes):]
-        # Look for context specific implementation of the Keyword function:
-        for context, context_func in dictitems(func.contexts):
-            if context in self.libinstance.contexts:
-                func = context_func
-        # Does the keyword support **kwargs?
-        if self.func.argspec.keywords or not kwargs:
-            result = func(self.libinstance, *args, **kwargs)
-        else:
-            # resolve **kwargs to positional args...
-            posargs = []
-            # (argspec.args start index includes self)
-            for name in self.func.argspec.args[1 + len(args):]:
-                if name in kwargs:
-                    posargs.append(kwargs.pop(name))
-            # and turn the rest into *varargs in 'key=value' style
-            varargs = ['%s=%s' % (key, kwargs.pop(key))
-                       for key in list(kwargs)
-                       if key not in self.func.argspec.args]
-            result = func(self.libinstance, *chain(args, posargs, varargs),
-                          # if **kwargs left ==> TypeError from Python
-                          **kwargs)
-        # Switch back contexts and sessions (reverse order):
+                # resolve **kwargs to positional args...
+                posargs = []
+                # (argspec.args start index includes self)
+                for name in self.func.argspec.args[1 + len(args):]:
+                    if name in kwargs:
+                        posargs.append(kwargs.pop(name))
+                # and turn the rest into *varargs in 'key=value' style
+                varargs = ['%s=%s' % (key, kwargs.pop(key))
+                           for key in list(kwargs)
+                           if key not in self.func.argspec.args]
+                try:
+                    result = func(self.libinstance,
+                                  *chain(args, posargs, varargs),
+                                  # if **kwargs left ==> TypeError from Python
+                                  **kwargs)
+                except:
+                    error = sys.exc_info()
+        # finally try to switch back contexts and sessions (in reverse order)
+        # before either returning result or reraising any error catched above
         for identifier, ctxname in dictitems(current_contexts):
-            getattr(self.libinstance, 'switch_' + identifier)(ctxname)
+            switch = getattr(self.libinstance, 'switch_' + identifier)
+            # don't catch anything here. just step out on error
+            switch(ctxname)
         for (identifier, plural_identifier), session in dictitems(
                 current_sessions
         ):
@@ -200,7 +235,14 @@ class Keyword(object):
                     self.libinstance, plural_identifier
             )):
                 if sinstance is session:
-                    getattr(self.libinstance, 'switch_' + identifier)(sname)
+                    switch = getattr(self.libinstance, 'switch_' + identifier)
+                    # don't catch anything here. just step out on error
+                    switch(sname)
+        # was an error catched on initial session or context switching
+        # or on calling the actual keyword func?
+        if error is not None:
+            reraise(*error)
+        # great! everything went fine :)
         return result
 
     def __repr__(self):
