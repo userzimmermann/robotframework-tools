@@ -158,7 +158,7 @@ class Keyword(object):
                     break
         # only perform explicit context switching
         # if explicit session switching didn't raise any error
-        if error is not None:
+        if error is None:
             current_contexts = {}
             for hcls in self.context_handlers:
                 if not getattr(hcls, 'auto_explicit', False):
@@ -179,35 +179,37 @@ class Keyword(object):
                         error = sys.exc_info()
                         # don't switch any more contexts
                         break
-        # Look for arg type specs:
-        if func.argtypes:
-            casted = []
-            for arg, argtype in zip(args, func.argtypes):
-                if not isinstance(arg, argtype):
-                    arg = argtype(arg)
-                casted.append(arg)
-            args = tuple(casted) + args[len(func.argtypes):]
-        # Look for context specific implementation of the Keyword function:
-        for context, context_func in dictitems(func.contexts):
-            if context in self.libinstance.contexts:
-                func = context_func
-        # Does the keyword support **kwargs?
-        if self.func.argspec.keywords or not kwargs:
-            result = func(self.libinstance, *args, **kwargs)
-        else:
-            # resolve **kwargs to positional args...
-            posargs = []
-            # (argspec.args start index includes self)
-            for name in self.func.argspec.args[1 + len(args):]:
-                if name in kwargs:
-                    posargs.append(kwargs.pop(name))
-            # and turn the rest into *varargs in 'key=value' style
-            varargs = ['%s=%s' % (key, kwargs.pop(key))
-                       for key in list(kwargs)
-                       if key not in self.func.argspec.args]
-            result = func(self.libinstance, *chain(args, posargs, varargs),
-                          # if **kwargs left ==> TypeError from Python
-                          **kwargs)
+        if error is None:
+            # Look for arg type specs:
+            if func.argtypes:
+                casted = []
+                for arg, argtype in zip(args, func.argtypes):
+                    if not isinstance(arg, argtype):
+                        arg = argtype(arg)
+                    casted.append(arg)
+                args = tuple(casted) + args[len(func.argtypes):]
+            # Look for context specific implementation of the Keyword function
+            for context, context_func in dictitems(func.contexts):
+                if context in self.libinstance.contexts:
+                    func = context_func
+            # Does the keyword support **kwargs?
+            if self.func.argspec.keywords or not kwargs:
+                result = func(self.libinstance, *args, **kwargs)
+            else:
+                # resolve **kwargs to positional args...
+                posargs = []
+                # (argspec.args start index includes self)
+                for name in self.func.argspec.args[1 + len(args):]:
+                    if name in kwargs:
+                        posargs.append(kwargs.pop(name))
+                # and turn the rest into *varargs in 'key=value' style
+                varargs = ['%s=%s' % (key, kwargs.pop(key))
+                           for key in list(kwargs)
+                           if key not in self.func.argspec.args]
+                result = func(self.libinstance,
+                              *chain(args, posargs, varargs),
+                              # if **kwargs left ==> TypeError from Python
+                              **kwargs)
         # Switch back contexts and sessions (reverse order):
         for identifier, ctxname in dictitems(current_contexts):
             getattr(self.libinstance, 'switch_' + identifier)(ctxname)
