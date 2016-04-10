@@ -29,7 +29,7 @@ import inspect
 import re
 from copy import deepcopy
 
-from moretools import dictitems
+from moretools import qualname, dictitems
 
 from robottools.library.keywords import KeywordsDict
 from .metaoptions import Meta
@@ -61,7 +61,7 @@ class SessionHandlerMeta(type):
         clsattrs['meta'] = meta
 
         excname = meta.upper_identifier_name + 'Error'
-        clsattrs['SessionError'] = type(excname, (RuntimeError,), {})
+        clsattrs['SessionError'] = type(excname, (RuntimeError, ), {})
 
         # The handler's dictionary of opened sessions
         clsattrs['sessions'] = {}
@@ -190,9 +190,21 @@ class SessionHandlerMeta(type):
                     if session is previous:
                         break
                 else:
-                    close_func(self, previous)
+                    try:
+                        close_func(self, previous)
+                    except Exception as exc:
+                        raise cls.SessionError(
+                            "Couldn't close unnamed session "
+                            "on switching to %s (%s: %s)"
+                            % (repr(name), qualname(type(exc)), exc))
             if switch_func:
-                switch_func(self, active)
+                try:
+                    switch_func(self, active)
+                except Exception as exc:
+                    raise cls.SessionError(
+                        "Couldn't switch session to %s (%s: %s)"
+                        % (repr(name), qualname(type(exc)), exc))
+            cls.session = active
 
         keywordname = 'switch_' + meta.identifier_name
         cls.keywords[keywordname] = switch_session

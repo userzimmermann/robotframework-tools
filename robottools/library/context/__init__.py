@@ -28,6 +28,8 @@ __all__ = [
   # From .method:
   'contextmethod']
 
+from moretools import qualname
+
 from robottools.library.session.metaoptions import Meta
 from robottools.library.keywords import KeywordsDict
 
@@ -66,6 +68,9 @@ class ContextHandlerMeta(type):
     ##     return type.__new__(metacls, clsname, bases, clsattrs)
 
     def __init__(cls, clsname, bases, clsattrs):
+        excname = cls.__name__ + 'Error'
+        cls.ContextError = type(excname, (RuntimeError, ), {})
+
         try:
             names = cls.contexts
         except AttributeError:
@@ -87,12 +92,17 @@ class ContextHandlerMeta(type):
                     break
             for context in cls.contexts:
                 if context.name == name:
+                    if switch_func: # Custom switch hook
+                        try:
+                            switch_func(self, name)
+                        except Exception as exc:
+                            raise cls.ContextError(
+                                "Couldn't switch context to %s (%s: %s)"
+                                % (repr(name), qualname(type(exc)), exc))
                     self.contexts.remove(current)
                     self.contexts.append(context)
-                    if switch_func: # Custom switch hook
-                        switch_func(self, name)
                     return
-            raise ValueError(name)
+            raise cls.ContextError("Context not found: %s" % repr(name))
 
         keyword_name = switch_context.__name__ = 'switch_' + clsname.lower()
         cls.keywords[keyword_name] = switch_context
