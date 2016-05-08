@@ -30,6 +30,10 @@ import logging
 from robot.output import LOGGER, LEVELS as LOG_LEVELS
 from robot.output.loggerhelper import AbstractLogger
 from robot.output.pyloggingconf import RobotHandler
+try: # Robot 3.0
+    from robot.output.listeners import LibraryListeners
+except ImportError:
+    LibraryListeners = None
 
 from .highlighting import Highlighter
 
@@ -61,11 +65,17 @@ class Output(AbstractLogger):
     def __init__(self, log_level='INFO'):
         AbstractLogger.__init__(self, level=log_level)
         self.logging_handler = LoggingHandler()
+        if LibraryListeners is not None:
+            # Robot 3.0
+            self.library_listeners = LibraryListeners(log_level)
         # streams to be used internally for writing messages
         # - see self.__enter__() and self.message()
         self._out = self._err = None
 
     def set_log_level(self, level):
+        if LibraryListeners is not None:
+            # Robot 3.0
+            self.library_listeners.set_log_level(level)
         return self.set_level(level)
 
     def __enter__(self):

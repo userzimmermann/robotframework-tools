@@ -38,6 +38,7 @@ class Context(object):
         self.in_teardown = False
         self.test = None
         self.importer = Importer()
+        self.timeouts = set()
 
     def __enter__(self):
         """Prepare the TestRobot's context
@@ -83,6 +84,10 @@ class Context(object):
             raise DataError("TestRobot %s has no Keyword named %s" % (
                 repr(self.testrobot.name), repr(name)))
         return keyword._handler
+
+    def get_runner(self, name):
+        handler = self.get_handler(name)
+        return handler.create_runner(name)
 
     def start_keyword(self, keyword):
         pass
