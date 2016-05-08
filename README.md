@@ -55,7 +55,7 @@ Extra requirements for __[remote]__:
 
 Extra requirements for __[robotshell]__:
 
-* [`ipython>=3.0`](https://pypi.python.org/pypi/ipython)
+* [`ipython>=4.0`](https://pypi.python.org/pypi/ipython)
 
 ### Installation
 
