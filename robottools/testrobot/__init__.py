@@ -23,27 +23,27 @@ Provides the interactive TestRobot interface.
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
+__all__ = [
+    'TestRobot',
+    'TestResult', # from .result
+]
+
 from six import reraise
-
-__all__ = ['TestRobot',
-  'TestResult', # from .result
-  ]
-
 from inspect import getargspec
 from functools import partial
 
 from moretools import isidentifier
 
 from robot.errors import DataError
-from robot.model import TestSuite
 from robot.conf import RobotSettings
+from robot.running.model import TestSuite
+from robot.running.namespace import Namespace
+from robot.running.runner import Runner
+from robot.running import TestSuiteBuilder
 try:
     from robot.variables import GLOBAL_VARIABLES, init_global_variables
 except ImportError: # Robot 2.9
     from robot.variables import VariableScopes
-from robot.running.namespace import Namespace
-from robot.running.runner import Runner
-from robot.running import TestSuiteBuilder
 
 from robottools import TestLibraryInspector
 
@@ -76,25 +76,36 @@ class TestRobot(object):
         self.debug = False
         try:
             GLOBAL_VARIABLES
-        except NameError: # Robot 2.9
+        except NameError:
+            # Robot 2.9+
             self._variables = VariableScopes(RobotSettings())
         else:
-            if not GLOBAL_VARIABLES: #HACK
+            # Robot 2.8
+            if not GLOBAL_VARIABLES: # HACK
                 init_global_variables(RobotSettings())
             self._variables = GLOBAL_VARIABLES.copy()
-        #HACK even more to extend variable lookup:
+        # HACK even more to extend variable lookup
         self._variables.__class__ = variablesclass(
-          self._variables.__class__, extra_getters=variable_getters)
+            self._variables.__class__, extra_getters=variable_getters)
+
         self._output = Output()
         self._context = Context(testrobot=self)
         self._suite = TestSuite(name)
-        namespace = partial(Namespace,
-          suite=self._suite, variables=self._variables,
-          user_keywords=[], imports=None)
-        if 'parent_variables' in getargspec(Namespace.__init__).args:
-            self._namespace = namespace(parent_variables=None)
-        else: # Robot 2.9
-            self._namespace = namespace()
+
+        argspec = getargspec(Namespace.__init__)
+        namespace = partial(
+            Namespace, suite=self._suite, variables=self._variables)
+        if 'resource' in argspec.args:
+            # Robot 3.0
+            self._namespace = namespace(resource=self._suite.resource)
+        else:
+            namespace.keywords.update(user_keywords=[], imports=None)
+            if 'parent_variables' in argspec.args:
+                # Robot 2.8
+                self._namespace = namespace(parent_variables=None)
+            else:
+                # Robot 2.9
+                self._namespace = namespace()
 
         if BuiltIn:
             self.Import('BuiltIn')
@@ -115,8 +126,8 @@ class TestRobot(object):
         """Dynamic doc string, listing imported Test Libraries.
         """
         return '%s\n\n%s' % (repr(self), '\n\n'.join(sorted(
-          '* [Import] ' + lib.name
-          for alias, lib in self._libraries.items())))
+            '* [Import] ' + lib.name
+            for alias, lib in self._libraries.items())))
 
     def Import(self, lib, args=None, alias=None):
         """Import a Test Library with an optional `alias` name.
@@ -125,8 +136,8 @@ class TestRobot(object):
             #HACK: `with` adds Context to robot.running.EXECUTION_CONTEXTS
             # and registers Output to robot.output.LOGGER
             with self._context:
-                lib = self._context.importer.import_library(lib,
-                  args and list(args), alias, None)
+                lib = self._context.importer.import_library(
+                    lib, args and list(args), alias, None)
                 self._libraries[alias or lib.name] = lib
                 lib = TestLibraryInspector(lib)
                 ## lib = TestLibraryInspector(lib, *(args or ()))
@@ -189,8 +200,8 @@ class TestRobot(object):
                 return self._variables['${%s}' % name]
             except DataError:
                 raise AttributeError(
-                  "No Test Library, Keyword or Variable named '%s'."
-                  % name)
+                    "No Test Library, Keyword or Variable named '%s'."
+                    % name)
 
     def __dir__(self):
         """List all Robot Variables (UPPER_CASE),

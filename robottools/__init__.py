@@ -25,6 +25,7 @@ Python Tools for Robot Framework and Test Libraries.
 """
 
 from zetup import find_zetup_config
+from zetup.version import Version
 
 zfg = find_zetup_config(__name__)
 
@@ -37,6 +38,17 @@ __requires__ = zfg.REQUIRES.checked
 __extras__ = zfg.EXTRAS
 
 ## __notebook__ = zfg.NOTEBOOKS['README']
+
+try:
+    import robot
+except ImportError as exc:
+    raise ImportError(
+        "%s depends on robotframework but import failed with: %s"
+        % (repr(__distribution__), exc))
+if Version(robot.__version__) < '2.8.7':
+    raise __import__('pkg_resources').VersionConflict(
+        "%s needs robotframework>=2.8.7 but found %s in %s"
+        % (repr(__distribution__), robot.__version__, repr(robot)))
 
 from robottools.library import *
 from robottools.library.keywords import *

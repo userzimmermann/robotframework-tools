@@ -147,18 +147,17 @@ class Keyword(object):
             try:
                 sname = kwargs.pop(identifier)
             except KeyError:
-                pass
-            else:
-                previous = getattr(self.libinstance, identifier)
-                switch = getattr(self.libinstance, 'switch_' + identifier)
-                try:
-                    switch(sname)
-                except hcls.SessionError:
-                    error = sys.exc_info()
-                    # don't switch any more sessions
-                    break
-                # store previous session for switching back later
-                current_sessions[identifier, plural_identifier] = previous
+                continue
+            previous = getattr(self.libinstance, identifier)
+            switch = getattr(self.libinstance, 'switch_' + identifier)
+            try:
+                switch(sname)
+            except hcls.SessionError:
+                error = sys.exc_info()
+                # don't switch any more sessions
+                break
+            # store previous session for switching back later
+            current_sessions[identifier, plural_identifier] = previous
         # only perform explicit context switching
         # if explicit session switching didn't raise any error
         current_contexts = {}
@@ -170,19 +169,17 @@ class Keyword(object):
                 try:
                     ctxname = kwargs.pop(identifier)
                 except KeyError:
-                    pass
-                else:
-                    previous = getattr(self.libinstance, identifier)
-                    switch = getattr(self.libinstance,
-                                     'switch_' + identifier)
-                    try:
-                        switch(ctxname)
-                    except hcls.ContextError:
-                        error = sys.exc_info()
-                        # don't switch any more contexts
-                        break
-                    # store previous context for switching back later
-                    current_contexts[identifier] = previous
+                    continue
+                previous = getattr(self.libinstance, identifier)
+                switch = getattr(self.libinstance, 'switch_' + identifier)
+                try:
+                    switch(ctxname)
+                except hcls.ContextError:
+                    error = sys.exc_info()
+                    # don't switch any more contexts
+                    break
+                # store previous context for switching back later
+                current_contexts[identifier] = previous
         # only call the acutal keyword func
         # if explicit session and context switching didn't raise any error
         if error is None:
