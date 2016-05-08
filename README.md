@@ -40,11 +40,13 @@ Package extra features:
 
 ### Requirements
 
-* [`six>=1.9`](https://pypi.python.org/pypi/six)
-* [`path.py>=7.0`](https://pypi.python.org/pypi/path.py)
-* [`moretools>=0.1.5`](https://pypi.python.org/pypi/moretools)
-* [`robotframework>=2.8`](https://pypi.python.org/pypi/robotframework)
-  * __Python 3.x__: [`robotframework-python3>=2.8.3`](
+* [`six>=1.10`](https://pypi.python.org/pypi/six)
+* [`path.py>=8.0`](https://pypi.python.org/pypi/path.py)
+* [`moretools>=0.1.8`](https://pypi.python.org/pypi/moretools)
+* [`robotframework>=2.8.7`](https://pypi.python.org/pypi/robotframework)
+* __Python 3.x__: 
+  * Robot Framework 3.0+ is officially Python 3 compatible
+  * For earlier versions please install [`robotframework-python3`](
       https://pypi.python.org/pypi/robotframework-python3)
 
 Extra requirements for __[remote]__:
@@ -70,6 +72,8 @@ Or from [PyPI](https://pypi.python.org/pypi/robotframework-tools):
 * With all extra features:
 
         pip install robotframework-tools[remote,robotshell]
+
+* Robot Framework will not be installed automatically
 
 
 # 1. Creating Dynamic Test Libraries
