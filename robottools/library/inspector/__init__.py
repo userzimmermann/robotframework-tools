@@ -21,14 +21,15 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-from six import with_metaclass
-
 __all__ = [
   'ROBOT_LIBRARIES',
   'TestLibraryImportError', 'TestLibraryInspector',
   # From .multi:
   'MultiTestLibraryInspector',
   ]
+
+from six import with_metaclass
+from itertools import chain
 
 from moretools import camelize
 
@@ -55,7 +56,7 @@ ROBOT_LIBRARIES = sorted(ROBOT_LIBRARIES)
 
 
 class TestLibraryImportError(ImportError):
-  pass
+    pass
 
 
 class TestLibraryInspectorMeta(type):
@@ -122,7 +123,10 @@ class TestLibraryInspector(
             raise AttributeError(str(e))
 
     def __dir__(self):
-        return list(map(camelize, self._library.handlers.keys()))
+        # return list(map(camelize, self._library.handlers.keys()))
+        return list(chain(
+            super(TestLibraryInspector, self).__dir__(),
+            (camelize(h.name) for h in self._library.handlers)))
 
     def __str__(self):
         return self._library.name
