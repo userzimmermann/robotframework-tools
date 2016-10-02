@@ -46,15 +46,3 @@ class ShellBase(object):
         """IPython's dict of registered cell magic functions.
         """
         return self.shell.magics_manager.magics['cell']
-
-    @property
-    def in_template(self):
-        """IPython's current input prompt template.
-        """
-        return self.shell.prompt_manager.in_template
-
-    @in_template.setter
-    def in_template(self, value):
-        """Change IPython's current input prompt template to `value`.
-        """
-        self.shell.prompt_manager.in_template = value
