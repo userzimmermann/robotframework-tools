@@ -15,7 +15,7 @@ install:
   - pip install robotframework-python3
   - pip install zetup[commands] --upgrade
   - pip install pytest --upgrade
-  - pip install tox --upgrade
+  - pip install tox tox-travis --upgrade
   - zetup install
 
 script:
