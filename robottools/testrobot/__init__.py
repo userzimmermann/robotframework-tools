@@ -209,13 +209,14 @@ class TestRobot(object):
            which are valid Python identifiers.
         """
         names = []
-        for name in self._variables:
+        for name in self._variables.as_dict():
             name = name[2:-1] # Strip ${}
             if isidentifier(name):
                 names.append(name.upper())
         for alias, lib in self._libraries.items():
             names.append(alias)
             # dir() returns the Library's CamelCase Keyword names:
+            lib = self[alias]
             names.extend(dir(lib))
         return names
 
