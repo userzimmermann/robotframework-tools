@@ -20,5 +20,6 @@ install:
 
 script:
   - zetup test
+  - py.test -vv robottools
   - py.test -vv test
   - zetup tox
