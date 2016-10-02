@@ -61,7 +61,11 @@ class TestInspector(object):
         # and check that exception message contains
         # RFW's original exception message
         with pytest.raises(DataError) as robot_exc:
-            inspector._library.handlers['Invalid']
+            if hasattr(inspector._library, 'get_handler'):
+                # robot < 2.9
+                inspector._library.get_handler('Invalid')
+            else:
+                inspector._library.handlers['Invalid']
         assert str(robot_exc.value) in str(exc.value)
 
     def test__repr__(self, inspector, stdlibname):
