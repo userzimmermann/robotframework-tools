@@ -1,5 +1,7 @@
 from importlib import import_module
 
+import robot
+
 from robottools import TestLibraryInspector
 
 import pytest
@@ -12,7 +14,10 @@ def stdlibname(request):
 
 @pytest.fixture
 def stdlib(request, stdlibname):
-    libmod = import_module('robot.libraries.%s' % stdlibname)
+    try: # Robot < 3.0
+        libmod = import_module(stdlibname)
+    except ImportError:
+        libmod = import_module('robot.libraries.%s' % stdlibname)
     libcls = getattr(libmod, stdlibname)
     return libcls()
 
