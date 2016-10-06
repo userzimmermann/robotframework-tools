@@ -44,13 +44,13 @@ except ImportError:
 from robottools.library.inspector.keyword import KeywordInspector
 
 
-def debug_fail(context):
+def debug_fail(context, exc_info=None):
     """Handles a Keyword FAIL in debugging mode
        by writing some extra output to the given Robot `context`
        and re-raising the exception that caused the FAIL.
     """
     # Get the Exception raised by the Keyword
-    exc_type, exc, traceback = sys.exc_info()
+    exc_type, exc, traceback = exc_info or sys.exc_info()
     context.output.fail("%s: %s" % (exc_type.__name__, exc))
     context.output.debug("Re-raising exception...")
     # Search the oldest traceback frame of the actual Keyword code
@@ -80,12 +80,15 @@ if NormalRunner: # Robot 2.9
 
 if StatusReporter: # Robot 3.0
     #HACK
-    def debug_get_failure(self, exc_type, exc_value, traceback, context):
+    def debug_get_failure(self, exc_type, exc, traceback, context):
         """On-demand-replacement (monkey patch) for
         :meth:`robot.running.statusreporter.StatusReporter._get_failure`
         to catch the exception that caused a Keyword FAIL for debugging.
         """
-        debug_fail(context)
+        if exc is None:
+            return None
+
+        debug_fail(context, (exc_type, exc, traceback))
 
 
 class DebugKeyword(robot.running.Keyword):
