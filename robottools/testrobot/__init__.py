@@ -33,7 +33,7 @@ from inspect import getargspec
 from functools import partial
 
 import zetup
-from moretools import isidentifier
+from moretools import isidentifier, isdict
 
 from robot.errors import DataError
 from robot.conf import RobotSettings
@@ -210,7 +210,11 @@ class TestRobot(zetup.object):
            which are valid Python identifiers.
         """
         names = super(TestRobot, self).__dir__()
-        for name in self._variables.as_dict():
+        variables = self._variables
+        if not isdict(variables):
+            # Robot > 2.8
+            variables = variables.as_dict()
+        for name in variables:
             name = name[2:-1] # Strip ${}
             if isidentifier(name):
                 names.append(name.upper())
