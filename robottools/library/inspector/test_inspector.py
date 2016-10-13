@@ -26,6 +26,17 @@ class TestInspector(object):
         inspector = TestLibraryInspector(stdlibname)
         assert type(inspector._library.get_instance()) is type(stdlib)
 
+    def test_name(self, inspector, stdlibname):
+        assert inspector.name == stdlibname
+
+    def test__iter__(self, inspector, stdlib, stdlib_kwfuncnames):
+        kwnames = [camelize(n, joiner=' ') for n in stdlib_kwfuncnames]
+        for keyword in iter(inspector):
+            assert isinstance(
+                keyword, robottools.library.inspector.KeywordInspector)
+            kwnames.remove(keyword.name)
+        assert not kwnames
+
     def test__dir__(self, inspector, stdlib):
         # filter keyword methods from directly instantiated stdlib
         kwfuncnames = [name for name, obj in getmembers(stdlib)
