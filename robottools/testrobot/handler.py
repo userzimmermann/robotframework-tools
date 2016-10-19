@@ -26,25 +26,29 @@ Making ``robot.running.handlers`` work better with
 """
 __all__ = ['Handler']
 
-from moretools import isstring, dictitems
+from six import with_metaclass
+
+from moretools import isstring, isdict, dictitems
 
 
-class Handler(object):
-    """A wrapper for instances of classes from ``robot.running.handlers``,
-    implementing a custom :meth:`.resolve_arguments`,
-    which supports passing arbitrary python objects
-    as keyword argument values.
+class HandlerMeta(type):
+
+    def __getitem__(cls, handlercls):
+        return type('Handler', (cls, handlercls), {
+            '_resolve_arguments': handlercls.resolve_arguments,
+        })
+
+
+class Handler(with_metaclass(HandlerMeta, object)):
+    """A wrapper base class for instances of classes
+    from ``robot.running.handlers``.
+
+    * Implements a custom :meth:`.resolve_arguments`,
+      which supports passing arbitrary python objects
+      as keyword argument values.
     """
-    def __init__(self, handler):
-        """Create with the `handler` instance to wrap.
-        """
-        self._handler = handler
-
-    def __getattr__(self, name):
-        return getattr(self._handler, name)
-
     # HACK
-    def resolve_arguments(self, args_and_kwargs, variables):
+    def resolve_arguments(self, args_and_kwargs, variables=None):
         """More Pythonic argument handling for interactive
         :class:`robottools.testrobot.keyword.Keyword` calls.
 
@@ -77,13 +81,19 @@ class Handler(object):
             if not isstring(value):
                 value = repr(value)
             rfwargs.append(u'%s=%s' % (name, value))
-        posargs, rfwkwargslist \
-            = self._handler.resolve_arguments(rfwargs, variables)
+        posargs, rfwkwargs = self._resolve_arguments(rfwargs, variables)
         # and replace values with original non-string objects after resolving
         kwargslist = []
-        for name, rfwvalue in rfwkwargslist:
+        if isdict(rfwkwargs):
+            # ==> RFW < 3.0
+            rfwkwargs = dictitems(rfwkwargs)
+        for name, rfwvalue in rfwkwargs:
             value = kwargs[name]
             if isstring(value):
                 value = rfwvalue
-            kwargslist.append(value)
+            kwargslist.append((name, value))
+        if hasattr(self, 'run'):
+            # ==> RFW < 3.0
+            return posargs, dict(kwargslist)
+        # RFW >= 3.0
         return posargs, kwargslist

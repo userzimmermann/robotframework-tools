@@ -29,7 +29,6 @@ import robot.running.namespace
 from robot.running.namespace import Importer
 
 from .keyword import Keyword
-from .handler import Handler
 
 
 class Context(object):
@@ -89,9 +88,6 @@ class Context(object):
     def get_runner(self, name):
         handler = self.get_handler(name)
         runner = handler.create_runner(name)
-        # wrap the handler for Pythonic args/kwargs handling
-        # as needed by .keyword.Keyword.__call__
-        runner._handler = Handler(runner._handler)
         return runner
 
     def start_keyword(self, keyword):

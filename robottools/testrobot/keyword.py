@@ -42,6 +42,8 @@ except ImportError:
 
 from robottools.library.inspector.keyword import KeywordInspector
 
+from .handler import Handler
+
 
 def debug_fail(context, exc_info=None):
     """Handles a Keyword FAIL in debugging mode
@@ -125,6 +127,8 @@ class DebugKeyword(robot.running.Keyword):
 class Keyword(KeywordInspector):
     def __init__(self, handler, context, debug=False):
         KeywordInspector.__init__(self, handler)
+        if not isinstance(handler, Handler):
+            handler.__class__ = Handler[handler.__class__]
         self._context = context
         self._debug = debug
 
