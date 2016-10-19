@@ -21,11 +21,10 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-from six import reraise, text_type as unicode
-
 __all__ = ['Keyword']
 
 import sys
+from six import reraise, text_type as unicode
 
 from robot.errors import HandlerExecutionFailed, ExecutionFailed
 import robot.running
@@ -134,12 +133,16 @@ class Keyword(KeywordInspector):
         return KeywordInspector.__doc__.fget(self)
 
     def __call__(self, *args, **kwargs):
-        args = list(map(unicode, args))
-        args.extend(u'%s=%s' % item for item in kwargs.items())
+        # HACK: normally, RFW's Keyword argument resolvers expect
+        # a plain list of arguments coming from an RFW script,
+        # which has limitations, as described in the .handler.Handler wrapper,
+        # which is patched later into the actual Keyword function runner
+        # by self._context.get_runner(),
+        # and which expects the (args, kwargs) pair instead
         if self._debug:
-            runner = DebugKeyword(self.name, args=args)
+            runner = DebugKeyword(self.name, args=(args, kwargs))
         else:
-            runner = robot.running.Keyword(self.name, args=args)
+            runner = robot.running.Keyword(self.name, args=(args, kwargs))
         # HACK: `with` registers Context to EXECUTION_CONTEXTS
         # and Output to LOGGER:
         with self._context as ctx:
