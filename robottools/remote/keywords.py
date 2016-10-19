@@ -43,7 +43,7 @@ def import_remote_library(self, name):
     """
     if name not in self.allow_import:
         raise RuntimeError(
-          "Importing Remote Library '%s' is not allowed." % name)
+            "Importing Remote Library '%s' is not allowed." % name)
     lib = self.Import(name)
     if self.register_keywords:
-        self._register_keywords(lib)
+        self._register_library_keywords(lib)
