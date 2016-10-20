@@ -1,9 +1,11 @@
 import sys
+from six import PY2
 from textwrap import dedent
 from subprocess import Popen
 
+from robot.errors import DataError
+
 from robottools import TestRobot
-from robottools.remote import RemoteRobot
 
 import pytest
 
@@ -24,7 +26,8 @@ def process(request):
     """Creates an external python process with a ``RemoteRobot`` instance
     loading all libraries defined in ``REMOTE_LIBRARIES``.
     """
-    return Popen([
+    # robotremoteserver is not PY3-compatible yet
+    return PY2 and Popen([
         sys.executable, '-c', dedent("""
         __import__('robottools.remote').remote.RemoteRobot(
             [%s], allow_import=[%s]
@@ -38,6 +41,14 @@ def robot_Remote(request):
     which automatically connects to the external ``RemoteRobot`` instance
     created in ``process`` fixture.
     """
-    robot = TestRobot('Test')
-    robot.Import('Remote')
-    return robot
+    # make 3 connection attempts before bailing out
+    for _ in range(3):
+        try:
+            # BuiltIn will also be served by RemoteRobot
+            robot = TestRobot('Test', BuiltIn=False)
+            robot.Import('Remote')
+            return robot
+
+        except DataError:
+            continue
+    raise

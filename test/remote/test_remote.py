@@ -1,7 +1,8 @@
-from six import text_type as unicode
+from six import PY3, text_type as unicode
 from time import sleep
 
 from decorator import decorate
+from moretools import isstring
 
 from robottools import TestRobot
 
@@ -14,6 +15,11 @@ def check_process(func):
     which is passed to every test method as ``process`` fixture.
     """
     def caller(func, self, process, *args, **kwargs):
+        cls = type(self)
+        # ensure that process was not recreated for some reason
+        if hasattr(cls, 'process'):
+            assert process is cls.process
+        cls.process = process
         # polling returns None as long as process is running
         assert process.poll() is None, \
             "RemoteRobot process is not running (anymore)."
@@ -57,7 +63,10 @@ class TestRemoteRobot(object):
     def test_string_result(self, process, robot_Remote):
         for value in [1, 2.3, 'four', u'five']:
             result = robot_Remote.ConvertToString(value)
-            assert isinstance(result, unicode)
+            # not consistent in current PY2-only robotremoteserver
+            # (can be str or unicode):
+            # assert isinstance(result, unicode)
+            assert isstring(result)
             assert result == unicode(value)
 
     @check_process
@@ -74,3 +83,16 @@ class TestRemoteRobot(object):
         process.wait()
         # polling returns None as long as process is running
         assert process.poll() is not None
+
+    @classmethod
+    def teardown_class(cls):
+        """Ensures that the ``RemoteRobot`` process
+        is really terminated in the end.
+        """
+        if not cls.process.poll():
+            cls.process.terminate()
+
+
+if PY3:
+    # robotremoteserver is not PY3-compatible yet
+    del TestRemoteRobot
