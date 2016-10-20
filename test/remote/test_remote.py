@@ -89,7 +89,7 @@ class TestRemoteRobot(object):
         """Ensures that the ``RemoteRobot`` process
         is really terminated in the end.
         """
-        if not cls.process.poll():
+        if cls.process.poll() is None:
             cls.process.terminate()
 
 
