@@ -28,11 +28,11 @@ def process(request):
     """
     # robotremoteserver is not PY3-compatible yet
     return PY2 and Popen([
-        sys.executable, '-c', dedent("""
-        __import__('robottools.remote').remote.RemoteRobot(
-            [%s], allow_import=[%s]
-        )""") % (', '.join(map(repr, REMOTE_LIBRARIES)),
-                 ', '.join(map(repr, ALLOWED_REMOTE_IMPORTS)))])
+        sys.executable, '-c',
+        "__import__('robottools.remote').remote.RemoteRobot("
+        "    [%s], allow_import=[%s])"
+        % (', '.join(map(repr, REMOTE_LIBRARIES)),
+           ', '.join(map(repr, ALLOWED_REMOTE_IMPORTS)))])
 
 
 @pytest.fixture(scope='module')
