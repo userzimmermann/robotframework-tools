@@ -18,7 +18,9 @@ def check_process(func):
         cls = type(self)
         # ensure that process was not recreated for some reason
         if hasattr(cls, 'process'):
-            assert process is cls.process
+            assert process is cls.process, \
+                "RemoteRobot process was recreated. " \
+                "Check `process` fixture."
         cls.process = process
         # polling returns None as long as process is running
         assert process.poll() is None, \
