@@ -21,8 +21,6 @@
 
 .. moduleauthor:: Stefan Zimmermann <zimmermann.code@gmail.com>
 """
-from six import with_metaclass
-
 __all__ = [
   'ROBOT_LIBRARIES',
   'TestLibraryImportError', 'TestLibraryInspector',
@@ -30,6 +28,10 @@ __all__ = [
   'MultiTestLibraryInspector',
   ]
 
+from six import with_metaclass
+from itertools import chain
+
+import zetup
 from moretools import camelize
 
 from path import Path
@@ -55,10 +57,11 @@ ROBOT_LIBRARIES = sorted(ROBOT_LIBRARIES)
 
 
 class TestLibraryImportError(ImportError):
-  pass
+    pass
 
 
-class TestLibraryInspectorMeta(type):
+class TestLibraryInspectorMeta(zetup.meta):
+
     def __getattr__(self, libname):
         try:
             return TestLibraryInspector(libname)
@@ -70,8 +73,9 @@ class TestLibraryInspectorMeta(type):
 
 
 class TestLibraryInspector(
-  with_metaclass(TestLibraryInspectorMeta, object)
+  with_metaclass(TestLibraryInspectorMeta, zetup.object)
   ):
+
     def __init__(self, lib, *args):
         if isinstance(lib, TestLibraryInspector):
             self._library = lib._library
@@ -122,7 +126,14 @@ class TestLibraryInspector(
             raise AttributeError(str(e))
 
     def __dir__(self):
-        return list(map(camelize, self._library.handlers.keys()))
+        if hasattr(self._library.handlers, 'keys'):
+            # Robot < 3.0
+            kwnames = self._library.handlers.keys()
+        else:
+            kwnames = (h.name for h in self._library.handlers)
+        return list(chain(
+            super(TestLibraryInspector, self).__dir__(),
+            map(camelize, kwnames)))
 
     def __str__(self):
         return self._library.name

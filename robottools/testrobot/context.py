@@ -87,7 +87,8 @@ class Context(object):
 
     def get_runner(self, name):
         handler = self.get_handler(name)
-        return handler.create_runner(name)
+        runner = handler.create_runner(name)
+        return runner
 
     def start_keyword(self, keyword):
         pass

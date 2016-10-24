@@ -120,14 +120,12 @@ class RemoteRobot(TestRobot, RobotRemoteServer, TestLibrary):
         except KeyError:
             try:
                 # find in extra RemoteRobot Keywords
-                keyword = self.keywords[name]
+                return self.keywords[name]
             except KeyError:
                 return None
-            else:
-                # use Keyword's debug mode
-                # to pass exceptions to RobotRemoteServer base
-                return keyword.debug
         # make sure that self[name] is not a Library
+        # and return TestRobot Keywords in debug mode
+        # to get actual exceptions from Keyword functions
         return keyword.debug if isinstance(keyword, Keyword) else None
 
     def _arguments_from_kw(self, keyword):

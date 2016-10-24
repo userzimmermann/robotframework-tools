@@ -5,6 +5,7 @@ python:
   - '2.7'
   - '3.3'
   - '3.4'
+  - '3.5'
   - pypy
 
 install:
@@ -14,10 +15,11 @@ install:
   - pip install robotframework-python3
   - pip install zetup[commands] --upgrade
   - pip install pytest --upgrade
-  - pip install tox --upgrade
+  - pip install tox tox-travis --upgrade
   - zetup install
 
 script:
   - zetup test
-  - py.test -v test
+  - py.test -vv robottools
+  - py.test -vv test
   - zetup tox

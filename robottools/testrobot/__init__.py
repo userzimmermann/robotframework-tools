@@ -32,7 +32,8 @@ from six import reraise
 from inspect import getargspec
 from functools import partial
 
-from moretools import isidentifier
+import zetup
+from moretools import isidentifier, isdict
 
 from robot.errors import DataError
 from robot.conf import RobotSettings
@@ -55,7 +56,7 @@ from .keyword import Keyword
 from .result import TestResult
 
 
-class TestRobot(object):
+class TestRobot(zetup.object):
     """An interactive Robot Framework interface.
     """
     def __init__(self, name, BuiltIn=True, variable_getters=None):
@@ -208,14 +209,19 @@ class TestRobot(object):
            Test Libraries and Keyword (CamelCase) names,
            which are valid Python identifiers.
         """
-        names = []
-        for name in self._variables:
+        names = super(TestRobot, self).__dir__()
+        variables = self._variables
+        if not isdict(variables):
+            # Robot > 2.8
+            variables = variables.as_dict()
+        for name in variables:
             name = name[2:-1] # Strip ${}
             if isidentifier(name):
                 names.append(name.upper())
         for alias, lib in self._libraries.items():
             names.append(alias)
             # dir() returns the Library's CamelCase Keyword names:
+            lib = self[alias]
             names.extend(dir(lib))
         return names
 

@@ -34,10 +34,15 @@ import re
 import os
 from itertools import chain
 
+# for creating custom IPython input prompts
+from pygments.token import Token
+
 from robot.errors import DataError
 
 from robottools import TestRobot, TestLibraryInspector
 from robottools.testrobot import Keyword
+
+from IPython.terminal.prompts import Prompts
 
 from .base import ShellBase
 from .library import TestLibrary
@@ -48,7 +53,7 @@ from .magic import (
 from .extension import ExtensionMagic
 
 
-class RobotShell(ShellBase):
+class RobotShell(ShellBase, Prompts):
     # To support customization in derived Plugins
     robot_magic_name = 'Robot'
 
@@ -57,6 +62,7 @@ class RobotShell(ShellBase):
 
     def __init__(self, shell, default_robot_name='Default'):
         ShellBase.__init__(self, shell)
+        shell.prompts = self
         self.label = None
 
         for name, value in os.environ.items():
@@ -116,11 +122,20 @@ class RobotShell(ShellBase):
             else:
                 if extname:
                     label += '.' + extname
-        self.in_template = re.sub(
-          r'^(\[%s\]\n)?' % self.label, '[%s]\n' % label, self.in_template)
         self.label = label
 
         return self.robot
+
+    def in_prompt_tokens(self, cli=None):
+        """Creates custom IPython input prompt with
+        ``[Robot.<name>]`` label above.
+
+        * Overrides method from IPython's ``Prompts`` base class.
+        """
+        tokens = super(RobotShell, self).in_prompt_tokens(cli=cli)
+        if not self.label:
+            return tokens
+        return [(Token.Prompt, '[%s]\n' % self.label)] + tokens
 
     def Import(self, libname, args=None, alias=None):
         library = self.robot.Import(libname, args, alias=alias)

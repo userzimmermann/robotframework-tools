@@ -27,6 +27,7 @@ from .arguments import KeywordArgumentsInspector
 
 
 class KeywordInspector(object):
+
     def __init__(self, handler):
         self._handler = handler
 
@@ -37,6 +38,10 @@ class KeywordInspector(object):
     @property
     def arguments(self):
         return KeywordArgumentsInspector(self._handler.arguments)
+
+    def __eq__(self, other):
+        return isinstance(other, KeywordInspector) and \
+            self._handler == other._handler
 
     def __getattr__(self, name):
         return getattr(self._handler, name)
