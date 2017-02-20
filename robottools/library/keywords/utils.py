@@ -48,7 +48,7 @@ class KeywordName(str):
 
     @property
     def normalized(self):
-        return normalize(self, ignore='_')
+        return normalize(str(self), ignore='_')
 
     def __eq__(self, name):
         return self.normalized == normalize(name, ignore='_')
