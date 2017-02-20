@@ -10,6 +10,7 @@ python:
   - pypy
 
 install:
+  - pip install pip setuptools --upgrade
   - pip install -r requirements.txt --upgrade
   - pip install -r requirements.remote.txt --upgrade
   - pip install -r requirements.robotshell.txt --upgrade
