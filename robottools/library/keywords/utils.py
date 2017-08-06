@@ -41,7 +41,7 @@ class KeywordName(str):
       (plain lowercase without spaces and underscores)
       for comparing and hashing.
     """
-    def __new__(cls, name, convert=True):
+    def __new__(cls, name='', convert=True):
         if convert and type(name) is not KeywordName:
             name = camelize(name, joiner=' ')
         return str.__new__(cls, name)
