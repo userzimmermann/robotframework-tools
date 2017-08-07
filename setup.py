@@ -16,7 +16,7 @@ except ImportError:
 
 
 SETUP_REQUIRES = [
-    'zetup >= 0.2.33',
+    'zetup >= 0.2.34',
 ]
 
 
@@ -27,12 +27,11 @@ try:
 except ImportError: # no setuptools
     pass
 else:
-    # make sure that setup requirements
-    # are always correctly resolved and accessible by:
-    # - pre-processing them one after another
-    # - recursively resolving their runtime requirements
-    # - moving any installed eggs to the front of sys.path
-    # - updating pkg_resources.working_set accordingly
+    # Make sure that setup requirements are always correctly resolved and
+    # accessible by:
+    # - Recursively resolving their runtime requirements
+    # - Moving any installed eggs to the front of sys.path
+    # - Updating pkg_resources.working_set accordingly
 
     installer = Distribution().fetch_build_egg
 
@@ -68,12 +67,13 @@ else:
             except (DistributionNotFound, VersionConflict):
                 dist = installer(req)
                 sys.path.insert(0, dist.location)
-                working_set.entries.insert(0, dist.location)
-                working_set.by_key[dist.key] = dist
+                working_set.add_entry(dist.location)
             extras = re.match(r'[^#\[]*\[([^#\]]*)\]', req)
             if extras:
                 extras = list(map(str.strip, extras.group(1).split(',')))
-            resolve(map(str, dist.requires(extras=extras or ())), qualreq)
+            resolve((str(req).split(';')[0]
+                     for req in dist.requires(extras=extras or ())),
+                    qualreq)
 
     resolve(SETUP_REQUIRES)
     zfg = __import__('zetup').Zetup()
