@@ -25,3 +25,9 @@ script:
   - py.test -vv robottools
   - py.test -vv test
   - zetup tox
+
+deploy:
+  provider: pypi
+  user: userzimmermann
+  password:
+    secure: oTkRtBIyrL99Lzule8ZMYOSk1VRTvrMoo4laleL5C4jxkdTEYTKl95CA5Z6WV6G7ChXKmAUOadTCDgBypHb24Tq0K1XGagxgmy3X6KPbNyBsJc/Kw+UJj4P/lro+YaiGwNnM4e4ZhhSs+RKydMtPaqUjQyea3awutTDOT/8C2jEvJ92Uxs5cgRn/JBbjYtfAV+LpH0jmsA3uTUcvqCWYhG0z1NQRMK/kqm5kDSzEhpS3s19oKcUYNFqSh/nLGENdiCZ+3rchRgGXBS4vNKEBnxAFZ7ZkGO+MRbSjYG/CVaGQUUQ6nMSPus9zfoLXtlF/yfNg69VXjIikjxJkdAVuHd+EQ/ed1jePt0DH/7SfbzXHL4ZOm/9+SDieyl+ugKQ9h0gGuOU1+UDzc+sA1TWqb4zYp97FlaGVOTotnMkNypyfF1amh0sFezYa3ClzORbKh7sRpePZ/e/BlNx/nj1UhcOHanBD88fArJhJ5YbyePRW+L+A1cfsC4L3TKLG55eZLf5vT/awpWC1I8h5L5jMXjgVRq7tg4uK2QrQzsPZzOO45tz00+ScLmpTuT4YKuDD8oci/JY3CGw4bGIBbD/fWAgAgGFu27dadE67CRubmIQI1AWjFk8OrHUmNu+GNsIWUHmt1ZLh+hkA5vnhs1csouR9eFucTeGND89daa7D7Xg=
